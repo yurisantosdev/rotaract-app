@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 const config = {
-  content: ["./app/**/*.{ts,tsx,js,jsx}"],
+  content: [
+    "./app/**/*.{ts,tsx,js,jsx}",
+    "../../packages/rotaract-finance/src/**/*.{ts,tsx}",
+  ],
   theme: {
     extend: {
       colors: {

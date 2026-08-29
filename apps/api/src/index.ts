@@ -36,13 +36,13 @@ import usersRoutes from "./routes/usersRoutes";
 
 function portaHttp(): number {
   const raw = process.env.PORT;
-  if (raw === undefined || raw === "") return 3000;
+  if (raw === undefined || raw === "") return 3001;
   const n = Number.parseInt(raw, 10);
   if (Number.isNaN(n) || n <= 0) {
     console.error(
-      `PORT inválido: "${raw}" — usando 3000 (remova PORT manual na Railway se não souber o valor certo)`
+      `PORT inválido: "${raw}" — usando 3001 (remova PORT manual na Railway se não souber o valor certo)`
     );
-    return 3000;
+    return 3001;
   }
   return n;
 }
@@ -86,6 +86,8 @@ async function main() {
   const allowedOrigins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3002",
+    "http://127.0.0.1:3002",
   ];
 
   const corsOptions = {

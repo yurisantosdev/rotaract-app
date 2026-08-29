@@ -1,16 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { AppHeader } from "../_components/app-header";
-import { apiFetch } from "../lib/api";
-import { clearSession, getToken } from "../lib/auth";
-import type { AuthUser } from "../lib/types";
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { useMemberSession } from "./_components/member-session";
+
+const cardClassName =
+  "group flex flex-col items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-3 text-left shadow-[0_12px_40px_rgba(24,24,27,0.04)] transition hover:-translate-y-0.5 hover:border-rotaract-pink/30 hover:shadow-[0_16px_40px_rgba(255,45,122,0.08)] sm:flex-row sm:gap-4 sm:rounded-3xl sm:p-5";
 
 const modules = [
   {
     title: "Financeiro",
-    description: "Tesouraria, contribuições e prestações de contas.",
+    description: "Tesouraria, mensalidades e prestações de contas.",
+    href: "/home/financeiro",
     icon: (
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
         <path
@@ -93,94 +94,74 @@ function openModule(title: string) {
   window.alert(`${title} está em desenvolvimento.`);
 }
 
+function ModuleBody({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rotaract-pink/10 text-rotaract-pink transition group-hover:bg-rotaract-pink group-hover:text-white sm:h-12 sm:w-12">
+        {icon}
+      </span>
+      <span>
+        <span className="block text-sm font-semibold text-zinc-900 sm:text-base">
+          {title}
+        </span>
+        <span className="mt-1 block text-xs leading-relaxed text-zinc-500 sm:text-sm">
+          {description}
+        </span>
+      </span>
+    </>
+  );
+}
+
 export default function HomePage() {
-  const router = useRouter();
-  const [user, setUser] = useState<AuthUser | null>(null);
-
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      clearSession();
-      router.replace("/");
-      return;
-    }
-
-    let cancelled = false;
-
-    apiFetch<AuthUser>("/api/auth/me", { token })
-      .then(({ ok, data }) => {
-        if (cancelled) return;
-        if (!ok || !data.name) {
-          clearSession();
-          router.replace("/");
-          return;
-        }
-        setUser(data);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        clearSession();
-        router.replace("/");
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [router]);
-
-  function handleLogout() {
-    clearSession();
-    router.replace("/");
-    router.refresh();
-  }
-
-  if (!user) {
-    return (
-      <main className="flex min-h-dvh items-center justify-center bg-rotaract-mist text-zinc-500">
-        Carregando...
-      </main>
-    );
-  }
+  const { user } = useMemberSession();
 
   return (
-    <div className="min-h-dvh bg-rotaract-mist text-rotaract-ink">
-      <AppHeader user={user} onLogout={handleLogout} />
+    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      <p className="text-xs font-medium uppercase tracking-[0.28em] text-rotaract-pink">
+        Área de membros
+      </p>
+      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
+        Olá, {user.name.split(" ")[0]}
+      </h1>
+      <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">
+        Escolha um módulo para continuar. Por enquanto, cada área ainda está em
+        desenvolvimento.
+      </p>
 
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <p className="text-xs font-medium uppercase tracking-[0.28em] text-rotaract-pink">
-          Área de membros
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-          Olá, {user.name.split(" ")[0]}
-        </h1>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">
-          Escolha um módulo para continuar. Por enquanto, cada área ainda está
-          em desenvolvimento.
-        </p>
-
-        <section className="mt-10 grid grid-cols-2 gap-3 sm:gap-4">
-          {modules.map((module) => (
+      <section className="mt-10 grid grid-cols-2 gap-3 sm:gap-4">
+        {modules.map((module) =>
+          "href" in module ? (
+            <Link key={module.title} href={module.href} className={cardClassName}>
+              <ModuleBody
+                icon={module.icon}
+                title={module.title}
+                description={module.description}
+              />
+            </Link>
+          ) : (
             <button
               key={module.title}
               type="button"
               onClick={() => openModule(module.title)}
-              className="group flex flex-col items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-3 text-left shadow-[0_12px_40px_rgba(24,24,27,0.04)] transition hover:-translate-y-0.5 hover:border-rotaract-pink/30 hover:shadow-[0_16px_40px_rgba(255,45,122,0.08)] sm:flex-row sm:gap-4 sm:rounded-3xl sm:p-5"
+              className={cardClassName}
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rotaract-pink/10 text-rotaract-pink transition group-hover:bg-rotaract-pink group-hover:text-white sm:h-12 sm:w-12">
-                {module.icon}
-              </span>
-              <span>
-                <span className="block text-sm font-semibold text-zinc-900 sm:text-base">
-                  {module.title}
-                </span>
-                <span className="mt-1 block text-xs leading-relaxed text-zinc-500 sm:text-sm">
-                  {module.description}
-                </span>
-              </span>
+              <ModuleBody
+                icon={module.icon}
+                title={module.title}
+                description={module.description}
+              />
             </button>
-          ))}
-        </section>
-      </main>
-    </div>
+          )
+        )}
+      </section>
+    </main>
   );
 }
