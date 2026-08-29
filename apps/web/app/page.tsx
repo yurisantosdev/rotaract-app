@@ -51,8 +51,8 @@ export default function Home() {
             O clube em um só lugar.
           </h1>
           <p className="mt-4 max-w-md text-base leading-relaxed text-zinc-500">
-            Uma entrada moderna para membros, diretoria e convidados. Nesta
-            versão, o login só simula o fluxo — sem autenticar de verdade.
+            Uma entrada moderna para membros, diretoria e convidados. Entre
+            com seu e-mail e senha para acessar a área do clube.
           </p>
 
           <ul className="mt-10 grid gap-3 sm:grid-cols-3">

@@ -58,3 +58,18 @@ export async function login(req: Request, res: Response): Promise<void> {
     expiraEm: "7d",
   });
 }
+
+export async function me(req: Request, res: Response): Promise<void> {
+  if (!req.user) {
+    res.status(401).json({ erro: "Token de autenticação necessário" });
+    return;
+  }
+
+  res.json({
+    id: req.user.sub,
+    email: req.user.email,
+    photo: req.user.photo,
+    createdAt: req.user.createdAt,
+    updatedAt: req.user.updatedAt,
+  });
+}

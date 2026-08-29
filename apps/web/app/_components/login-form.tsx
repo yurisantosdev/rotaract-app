@@ -1,8 +1,16 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { FormEvent, MouseEvent, useMemo, useState } from "react";
+import { apiFetch } from "../lib/api";
+import { setSession } from "../lib/auth";
 
-type Status = "idle" | "loading" | "success";
+type Status = "idle" | "loading";
+
+type LoginResponse = {
+  token?: string;
+  erro?: string;
+};
 
 function greetingForNow() {
   const hour = new Date().getHours();
@@ -12,6 +20,7 @@ function greetingForNow() {
 }
 
 export function LoginForm() {
+  const router = useRouter();
   const greeting = useMemo(() => greetingForNow(), []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,12 +37,6 @@ export function LoginForm() {
       x: event.clientX - rect.left,
       y: event.clientY - rect.top,
     });
-  }
-
-  function resetForm() {
-    setStatus("idle");
-    setError("");
-    setInfo("");
   }
 
   function handleForgotPassword() {
@@ -66,39 +69,25 @@ export function LoginForm() {
     setError("");
     setStatus("loading");
 
-    await new Promise((resolve) => setTimeout(resolve, 1100));
+    try {
+      const { ok, data } = await apiFetch<LoginResponse>("/api/auth", {
+        method: "POST",
+        body: JSON.stringify({ email: trimmedEmail, password }),
+      });
 
-    setStatus("success");
-  }
+      if (!ok || !data.token) {
+        setError(data.erro ?? "Não foi possível entrar. Confira os dados.");
+        setStatus("idle");
+        return;
+      }
 
-  if (status === "success") {
-    return (
-      <div className="rounded-3xl border border-zinc-200 bg-white p-8 text-center shadow-[0_24px_60px_rgba(24,24,27,0.08)] sm:p-10">
-        <div className="login-check mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rotaract-pink/10 text-rotaract-pink ring-1 ring-rotaract-pink/20">
-          <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" aria-hidden>
-            <path
-              d="M5 12.5 9.5 17 19 7.5"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-        <h2 className="mt-6 text-2xl font-semibold tracking-tight text-zinc-900">Tudo certo</h2>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-500">
-          Login simulado com sucesso. A autenticação real ainda não está ligada ao
-          sistema.
-        </p>
-        <button
-          type="button"
-          onClick={resetForm}
-          className="mt-8 inline-flex h-11 items-center justify-center rounded-full border border-zinc-200 px-5 text-sm font-medium text-zinc-800 transition hover:border-rotaract-pink/40 hover:bg-rotaract-pink/5"
-        >
-          Voltar ao formulário
-        </button>
-      </div>
-    );
+      setSession(data.token, remember);
+      router.push("/home");
+      router.refresh();
+    } catch {
+      setError("Falha de conexão com o servidor. Tente novamente.");
+      setStatus("idle");
+    }
   }
 
   return (
