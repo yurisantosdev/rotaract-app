@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, MouseEvent, useMemo, useState } from "react";
+import { FormEvent, MouseEvent, useState } from "react";
 import { apiFetch } from "../lib/api";
 import { setSession } from "../lib/auth";
 
@@ -12,16 +12,8 @@ type LoginResponse = {
   erro?: string;
 };
 
-function greetingForNow() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Bom dia";
-  if (hour < 18) return "Boa tarde";
-  return "Boa noite";
-}
-
 export function LoginForm() {
   const router = useRouter();
-  const greeting = useMemo(() => greetingForNow(), []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -107,7 +99,7 @@ export function LoginForm() {
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-rotaract-pink">
           Área de membros
         </p>
-        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900">{greeting}</h2>
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900">Olá, companheiro(a)!</h2>
         <p className="mt-2 text-sm leading-relaxed text-zinc-500">
           Entre para acompanhar projetos, reuniões e a vida do clube.
         </p>
@@ -131,7 +123,7 @@ export function LoginForm() {
                 type="email"
                 name="email"
                 autoComplete="email"
-                placeholder="voce@rotaract.org"
+                placeholder="Informe seu e-mail"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 pl-10 pr-4 text-sm text-zinc-900 outline-none ring-rotaract-pink/20 transition placeholder:text-zinc-400 focus:border-rotaract-pink/50 focus:bg-white focus:ring-4"
@@ -157,7 +149,7 @@ export function LoginForm() {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 autoComplete="current-password"
-                placeholder="••••••••"
+                placeholder="Informe sua senha"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className="h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 pl-10 pr-12 text-sm text-zinc-900 outline-none ring-rotaract-pink/20 transition placeholder:text-zinc-400 focus:border-rotaract-pink/50 focus:bg-white focus:ring-4"

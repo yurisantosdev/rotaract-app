@@ -32,14 +32,14 @@ export default function Home() {
       <div className="relative mx-auto grid min-h-dvh w-full max-w-6xl items-start gap-10 px-5 py-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:px-8 lg:py-12">
         <section className="order-2 max-w-xl lg:order-1">
           <div className="flex justify-center lg:justify-start">
-            <div className="inline-flex rounded-3xl bg-zinc-950 px-6 py-5 shadow-sm">
+            <div className="inline-flex rounded-3xl border border-white bg-white px-6 py-5 shadow-sm">
               <Image
-                src="/logo.webp"
+                src="/logo.jpg"
                 alt="Rotaract Club Chapecó"
                 width={720}
                 height={220}
                 priority
-                className="h-28 w-auto mix-blend-screen sm:h-36 lg:h-40"
+                className="h-28 w-auto sm:h-36 lg:h-40"
               />
             </div>
           </div>
