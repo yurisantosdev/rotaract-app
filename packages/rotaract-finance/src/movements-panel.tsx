@@ -2,6 +2,7 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { formatBRL, formatDate, todayISO } from "./money";
+import { MovementModal } from "./movement-modal";
 import {
   MOVEMENT_CATEGORIES,
   type Movement,
@@ -95,88 +96,34 @@ export function MovementsPanel({
         <button
           type="button"
           onClick={() => {
-            setFormOpen((open) => !open);
-            setError("");
+            resetForm();
+            setFormOpen(true);
           }}
           className="inline-flex h-11 items-center justify-center rounded-full bg-rotaract-pink px-4 text-sm font-semibold text-white transition hover:bg-rotaract-magenta"
         >
-          {formOpen ? "Cancelar" : "Nova movimentação"}
+          Nova movimentação
         </button>
       </div>
 
-      {formOpen ? (
-        <form
-          onSubmit={handleSubmit}
-          className="mt-5 grid gap-3 rounded-2xl border border-zinc-200 bg-rotaract-mist/70 p-4 sm:grid-cols-2 lg:grid-cols-6"
-        >
-          <label className="sm:col-span-2 lg:col-span-2">
-            <span className="mb-1.5 block text-sm text-zinc-600">Descrição</span>
-            <input
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              className={inputClassName}
-              placeholder="Ex.: Mensalidades de setembro"
-            />
-          </label>
-          <label>
-            <span className="mb-1.5 block text-sm text-zinc-600">Valor</span>
-            <input
-              inputMode="decimal"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              className={inputClassName}
-              placeholder="0,00"
-            />
-          </label>
-          <label>
-            <span className="mb-1.5 block text-sm text-zinc-600">Data</span>
-            <input
-              type="date"
-              value={date}
-              onChange={(event) => setDate(event.target.value)}
-              className={inputClassName}
-            />
-          </label>
-          <label>
-            <span className="mb-1.5 block text-sm text-zinc-600">Categoria</span>
-            <select
-              value={category}
-              onChange={(event) =>
-                setCategory(event.target.value as (typeof MOVEMENT_CATEGORIES)[number])
-              }
-              className={inputClassName}
-            >
-              {MOVEMENT_CATEGORIES.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span className="mb-1.5 block text-sm text-zinc-600">Tipo</span>
-            <select
-              value={type}
-              onChange={(event) => setType(event.target.value as MovementType)}
-              className={inputClassName}
-            >
-              <option value="entrada">Entrada</option>
-              <option value="saida">Saída</option>
-            </select>
-          </label>
-          <div className="flex items-end sm:col-span-2 lg:col-span-6">
-            <button
-              type="submit"
-              className="h-11 rounded-full bg-zinc-900 px-5 text-sm font-semibold text-white transition hover:bg-zinc-700"
-            >
-              Salvar movimentação
-            </button>
-          </div>
-          {error ? (
-            <p className="text-sm text-rose-500 sm:col-span-2 lg:col-span-6">{error}</p>
-          ) : null}
-        </form>
-      ) : null}
+      <MovementModal
+        open={formOpen}
+        description={description}
+        amount={amount}
+        date={date}
+        category={category}
+        type={type}
+        error={error}
+        onDescriptionChange={setDescription}
+        onAmountChange={setAmount}
+        onDateChange={setDate}
+        onCategoryChange={setCategory}
+        onTypeChange={setType}
+        onClose={() => {
+          setFormOpen(false);
+          setError("");
+        }}
+        onSubmit={handleSubmit}
+      />
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         <input

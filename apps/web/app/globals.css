@@ -94,3 +94,31 @@ body {
 .login-check {
   animation: check-pop 0.45s ease;
 }
+
+@keyframes finance-modal-backdrop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes finance-modal-panel {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.finance-modal-backdrop {
+  animation: finance-modal-backdrop 0.2s ease;
+}
+
+.finance-modal-panel {
+  animation: finance-modal-panel 0.22s ease;
+}
