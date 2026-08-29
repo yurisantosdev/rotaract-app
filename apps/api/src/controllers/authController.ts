@@ -65,11 +65,18 @@ export async function me(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  const user = await User.findById(req.user.sub);
+  if (!user) {
+    res.status(401).json({ erro: "Sessão inválida" });
+    return;
+  }
+
   res.json({
-    id: req.user.sub,
-    email: req.user.email,
-    photo: req.user.photo,
-    createdAt: req.user.createdAt,
-    updatedAt: req.user.updatedAt,
+    id: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    photo: user.photo,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   });
 }
