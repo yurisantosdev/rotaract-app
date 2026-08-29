@@ -12,9 +12,9 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Entrar | Antalya Olimpos Rotaract",
+  title: "Entrar | Rotaract Club Chapecó",
   description:
-    "Acesso à área de membros do Antalya Olimpos Rotaract Kulübü.",
+    "Acesso à área de membros do Rotaract Club Chapecó.",
 };
 
 export default function RootLayout({

@@ -35,7 +35,7 @@ export default function Home() {
             <div className="inline-flex rounded-3xl bg-zinc-950 px-6 py-5 shadow-sm">
               <Image
                 src="/logo.webp"
-                alt="Antalya Olimpos Rotaract Kulübü"
+                alt="Rotaract Club Chapecó"
                 width={720}
                 height={220}
                 priority
@@ -45,7 +45,7 @@ export default function Home() {
           </div>
 
           <p className="mt-8 text-sm uppercase tracking-[0.32em] text-zinc-400">
-            Antalya Olimpos
+            Rotaract Club Chapecó
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-zinc-900 sm:text-5xl">
             O clube em um só lugar.
@@ -71,7 +71,7 @@ export default function Home() {
         <section className="order-1 w-full max-w-md justify-self-end lg:order-2 lg:max-w-none">
           <LoginForm />
           <p className="mt-6 text-center text-xs text-zinc-400">
-            © {new Date().getFullYear()} Antalya Olimpos Rotaract Kulübü
+            © {new Date().getFullYear()} Rotaract Club Chapecó
           </p>
         </section>
       </div>
