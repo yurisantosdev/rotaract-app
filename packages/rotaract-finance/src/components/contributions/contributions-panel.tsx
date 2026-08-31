@@ -359,7 +359,7 @@ export function ContributionsPanel({
         </div>
       ) : null}
 
-      <ul className="mt-2 divide-y divide-zinc-100">
+      <ul className="mt-2 divide-y divide-zinc-100 max-h-[500px] overflow-y-auto">
         {filtered.length === 0 ? (
           <li className="py-10 text-center text-sm text-zinc-500">
             Nenhuma mensalidade encontrada com esses filtros.
@@ -399,7 +399,7 @@ export function ContributionsPanel({
                       ? "Isento"
                       : "Pendente"}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mr-4">
                   {item.status === "pendente" ? (
                     <ActionButton
                       label="Confirmar pagamento"

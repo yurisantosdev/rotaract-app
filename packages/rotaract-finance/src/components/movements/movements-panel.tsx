@@ -231,7 +231,7 @@ export function MovementsPanel({
         </div>
       </div>
 
-      <ul className="mt-5 divide-y divide-zinc-100">
+      <ul className="mt-5 divide-y divide-zinc-100 max-h-[500px] overflow-y-auto">
         {filtered.length === 0 ? (
           <li className="py-10 text-center text-sm text-zinc-500">
             Nenhuma movimentação encontrada com esses filtros.
@@ -257,7 +257,7 @@ export function MovementsPanel({
                   {formatBRL(movement.value)}
                 </span>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 mr-4">
                   <Tooltip label="Excluir">
                     <button
                       type="button"
