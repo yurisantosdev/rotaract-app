@@ -1,17 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ContributionsPanel } from "./contributions-panel";
-import { formatBRL, isInCurrentMonth } from "./money";
-import { MovementsPanel } from "./movements-panel";
-import { ReportPanel } from "./report-panel";
+import { useEffect, useMemo, useState } from "react";
+import { ContributionsPanel } from "./components/contributions-panel";
+import { formatBRL, isInCurrentMonth } from "./services/money";
+import {
+  createMovement,
+  listMovements,
+  removeMovement,
+  updateMovement,
+} from "./services/movements";
+import { MovementsPanel } from "./components/movements-panel";
+import { ReportPanel } from "./components/report-panel";
 import {
   INITIAL_CONTRIBUTIONS,
-  INITIAL_MOVEMENTS,
   type Contribution,
   type Movement,
-} from "./sample-data";
+} from "./types/movement";
+import { TitleModule, ReturnModule } from "@rotaract/components";
+import { Card } from "./components/card";
 
 export type FinancePageProps = {
   userName: string;
@@ -32,24 +38,39 @@ export function FinancePage({
 }: FinancePageProps) {
   const firstName = userName.split(" ")[0] || userName;
   const [tab, setTab] = useState<Tab>("movimentos");
-  const [movements, setMovements] = useState<Movement[]>(INITIAL_MOVEMENTS);
+  const [movements, setMovements] = useState<Movement[]>([]);
   const [contributions, setContributions] =
     useState<Contribution[]>(INITIAL_CONTRIBUTIONS);
-  const [notice, setNotice] = useState("");
+
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    listMovements(controller.signal)
+      .then(setMovements)
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setMovements([]);
+      });
+
+    return () => controller.abort();
+  }, []);
 
   const totals = useMemo(() => {
     const income = movements
       .filter((item) => item.type === "entrada")
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + item.value, 0);
     const expense = movements
       .filter((item) => item.type === "saida")
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + item.value, 0);
     const monthIncome = movements
       .filter((item) => item.type === "entrada" && isInCurrentMonth(item.date))
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + item.value, 0);
     const monthExpense = movements
       .filter((item) => item.type === "saida" && isInCurrentMonth(item.date))
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + item.value, 0);
     const pending = contributions.filter((item) => item.status === "pendente");
 
     return {
@@ -57,28 +78,59 @@ export function FinancePage({
       monthIncome,
       monthExpense,
       pendingCount: pending.length,
-      pendingAmount: pending.reduce((sum, item) => sum + item.amount, 0),
+      pendingValue: pending.reduce((sum, item) => sum + item.value, 0),
     };
   }, [contributions, movements]);
 
-  function showNotice(message: string) {
-    setNotice(message);
-    window.setTimeout(() => {
-      setNotice((current) => (current === message ? "" : current));
-    }, 3500);
+  function handleAddMovement(movement: Omit<Movement, "id">) {
+    const controller = new AbortController();
+
+    return createMovement(controller.signal, movement).then((created) => {
+      setMovements((current) => [
+        {
+          id: created.id,
+          date: created.date,
+          description: created.description,
+          category: created.category,
+          type: created.type,
+          value: created.value,
+        },
+        ...current,
+      ]);
+    });
   }
 
-  function handleAddMovement(movement: Omit<Movement, "id">) {
-    setMovements((current) => [
-      { ...movement, id: crypto.randomUUID() },
-      ...current,
-    ]);
-    showNotice("Movimentação registrada neste exemplo.");
+  function handleUpdateMovement(movement: Movement) {
+    const controller = new AbortController();
+
+    return updateMovement(movement.id, controller.signal, movement).then(
+      (updated) => {
+        setMovements((current) =>
+          current.map((item) =>
+            item.id === movement.id
+              ? {
+                  ...item,
+                  date: updated.date,
+                  description: updated.description,
+                  category: updated.category,
+                  type: updated.type,
+                  value: updated.value,
+                }
+              : item
+          )
+        );
+      }
+    );
   }
 
   function handleRemoveMovement(id: string) {
-    setMovements((current) => current.filter((item) => item.id !== id));
-    showNotice("Movimentação removida.");
+    const controller = new AbortController();
+
+    void removeMovement(id, controller.signal)
+      .then(() => {
+        setMovements((current) => current.filter((item) => item.id !== id));
+      })
+      .catch(() => undefined);
   }
 
   function handleToggleContribution(id: string) {
@@ -89,16 +141,15 @@ export function FinancePage({
           : item
       )
     );
-    showNotice("Status da mensalidade atualizado.");
   }
 
   function handleDownloadReport() {
     const income = movements
       .filter((item) => item.type === "entrada")
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + item.value, 0);
     const expense = movements
       .filter((item) => item.type === "saida")
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((sum, item) => sum + item.value, 0);
     const lines = [
       "Rotaract Club Chapecó — Prestação de contas (exemplo)",
       `Gerado por ${userName}`,
@@ -110,7 +161,7 @@ export function FinancePage({
       "Movimentações:",
       ...movements.map(
         (item) =>
-          `- ${item.date} | ${item.type} | ${item.category} | ${item.description} | ${formatBRL(item.amount)}`
+          `- ${item.date} | ${item.type} | ${item.category} | ${item.description} | ${formatBRL(item.value)}`
       ),
     ];
 
@@ -123,72 +174,43 @@ export function FinancePage({
     link.download = "prestacao-contas-exemplo.txt";
     link.click();
     URL.revokeObjectURL(url);
-    showNotice("Resumo de exemplo baixado.");
   }
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <Link
-        href={backHref}
-        className="text-sm font-medium text-rotaract-pink transition hover:text-rotaract-magenta"
-      >
-        ← Voltar para os módulos
-      </Link>
+      <ReturnModule backHref={backHref} />
 
-      <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-rotaract-pink">
-            Módulo financeiro
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-            Tesouraria
-          </h1>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">
-            Olá, {firstName}. Esta é uma tela de exemplo: os dados ficam só nesta
-            sessão e ainda não vão para a API.
-          </p>
-        </div>
-        {notice ? (
-          <p className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
-            {notice}
-          </p>
-        ) : null}
-      </div>
+      <TitleModule
+        module="Módulo financeiro"
+        title="Tesouraria"
+        description={`Olá, ${firstName}. O módulo financeiro foi desenvolvido para centralizar e organizar suas informações financeiras, permitindo acompanhar receitas, despesas, contas, movimentações e outros dados importantes de forma simples e organizada.`}
+      />
 
       <section className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <article className="rounded-2xl border border-zinc-200 bg-white p-4 sm:rounded-3xl sm:p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            Saldo atual
-          </p>
-          <p className="mt-2 text-xl font-semibold text-zinc-900 sm:text-2xl">
-            {formatBRL(totals.balance)}
-          </p>
-        </article>
-        <article className="rounded-2xl border border-zinc-200 bg-white p-4 sm:rounded-3xl sm:p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            Entradas no mês
-          </p>
-          <p className="mt-2 text-xl font-semibold text-emerald-600 sm:text-2xl">
-            {formatBRL(totals.monthIncome)}
-          </p>
-        </article>
-        <article className="rounded-2xl border border-zinc-200 bg-white p-4 sm:rounded-3xl sm:p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            Saídas no mês
-          </p>
-          <p className="mt-2 text-xl font-semibold text-rose-500 sm:text-2xl">
-            {formatBRL(totals.monthExpense)}
-          </p>
-        </article>
-        <article className="rounded-2xl border border-zinc-200 bg-white p-4 sm:rounded-3xl sm:p-5">
-          <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-            Mensalidades abertas
-          </p>
-          <p className="mt-2 text-xl font-semibold text-zinc-900 sm:text-2xl">
-            {totals.pendingCount}
-          </p>
-          <p className="mt-1 text-xs text-zinc-500">{formatBRL(totals.pendingAmount)} a receber</p>
-        </article>
+        <Card
+          title="Saldo atual"
+          number={totals.balance}
+          colorNumber="black"
+        />
+
+        <Card
+          title="Entradas no mês"
+          number={totals.monthIncome}
+          colorNumber="green"
+        />
+
+        <Card
+          title="Saídas no mês"
+          number={totals.monthExpense}
+          colorNumber="red"
+        />
+
+        <Card
+          title="Mensalidades abertas"
+          number={totals.pendingCount}
+          colorNumber="black"
+          description={`${formatBRL(totals.pendingValue)} a receber`}
+        />
       </section>
 
       <div
@@ -203,11 +225,10 @@ export function FinancePage({
             role="tab"
             aria-selected={tab === item.id}
             onClick={() => setTab(item.id)}
-            className={`h-10 shrink-0 rounded-full px-4 text-sm font-medium transition ${
-              tab === item.id
-                ? "bg-rotaract-pink text-white"
-                : "text-zinc-500 hover:text-zinc-800"
-            }`}
+            className={`h-10 shrink-0 rounded-full px-4 text-sm font-medium transition ${tab === item.id
+              ? "bg-rotaract-pink text-white"
+              : "text-zinc-500 hover:text-zinc-800"
+              }`}
           >
             {item.label}
           </button>
@@ -219,6 +240,7 @@ export function FinancePage({
           <MovementsPanel
             movements={movements}
             onAdd={handleAddMovement}
+            onUpdate={handleUpdateMovement}
             onRemove={handleRemoveMovement}
           />
         ) : null}

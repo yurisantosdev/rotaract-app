@@ -31,6 +31,8 @@ import {
 } from "./config/database";
 
 //Routes
+import { financeRouter } from "@rotaract/finance/server";
+import { requireAuth } from "./middleware/auth";
 import authRoutes from "./routes/authRoutes";
 import usersRoutes from "./routes/usersRoutes";
 
@@ -141,6 +143,7 @@ async function main() {
 
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
+  app.use("/api/finance", requireAuth, financeRouter);
 
   const host = process.env.HOST ?? "0.0.0.0";
 

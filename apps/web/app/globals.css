@@ -95,7 +95,7 @@ body {
   animation: check-pop 0.45s ease;
 }
 
-@keyframes finance-modal-backdrop {
+@keyframes rotaract-modal-backdrop {
   from {
     opacity: 0;
   }
@@ -104,7 +104,7 @@ body {
   }
 }
 
-@keyframes finance-modal-panel {
+@keyframes rotaract-modal-panel {
   from {
     opacity: 0;
     transform: translate3d(0, 16px, 0) scale(0.98);
@@ -115,10 +115,12 @@ body {
   }
 }
 
+.rotaract-modal-backdrop,
 .finance-modal-backdrop {
-  animation: finance-modal-backdrop 0.2s ease;
+  animation: rotaract-modal-backdrop 0.2s ease;
 }
 
+.rotaract-modal-panel,
 .finance-modal-panel {
-  animation: finance-modal-panel 0.22s ease;
+  animation: rotaract-modal-panel 0.22s ease;
 }

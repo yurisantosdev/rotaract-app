@@ -6,7 +6,10 @@
         "name": "next"
       }
     ],
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "paths": {
+      "@rotaract/components": ["../../packages/rotaract-components/src/index.ts"]
+    }
   },
   "include": [
     "**/*.ts",

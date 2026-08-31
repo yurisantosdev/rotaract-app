@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatBRL } from "./money";
-import type { Contribution, ContributionStatus } from "./sample-data";
+import { formatBRL } from "../services/money";
+import type { Contribution, ContributionStatus } from "../types/movement";
 
 type ContributionsPanelProps = {
   contributions: Contribution[];
@@ -28,13 +28,13 @@ export function ContributionsPanel({
   const pendingCount = contributions.filter((item) => item.status === "pendente").length;
   const received = contributions
     .filter((item) => item.status === "pago")
-    .reduce((sum, item) => sum + item.amount, 0);
+    .reduce((sum, item) => sum + item.value, 0);
 
   return (
     <section className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <h2 className="text-lg font-semibold text-zinc-900">Mensalidades</h2>
+          <h2 className="text-lg font-semibold text-zinc-900">Mensalidades</h2>
           <p className="mt-1 text-sm text-zinc-500">
             {pendingCount} pendente{pendingCount === 1 ? "" : "s"} · {formatBRL(received)}{" "}
             já recebidos neste mês.
@@ -52,11 +52,10 @@ export function ContributionsPanel({
               key={value}
               type="button"
               onClick={() => setStatusFilter(value)}
-              className={`h-9 rounded-full px-3 text-sm font-medium transition ${
-                statusFilter === value
-                  ? "bg-white text-zinc-900 shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-800"
-              }`}
+              className={`h-9 rounded-full px-3 text-sm font-medium transition ${statusFilter === value
+                ? "bg-white text-zinc-900 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-800"
+                }`}
             >
               {label}
             </button>
@@ -73,16 +72,15 @@ export function ContributionsPanel({
             <div>
               <p className="font-medium text-zinc-900">{item.memberName}</p>
               <p className="mt-1 text-sm text-zinc-500">
-                {item.reference} · {formatBRL(item.amount)}
+                {item.reference} · {formatBRL(item.value)}
               </p>
             </div>
             <div className="flex items-center gap-3">
               <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  item.status === "pago"
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-amber-50 text-amber-700"
-                }`}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${item.status === "pago"
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-amber-50 text-amber-700"
+                  }`}
               >
                 {item.status === "pago" ? "Pago" : "Pendente"}
               </span>

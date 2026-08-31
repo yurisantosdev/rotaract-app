@@ -13,9 +13,17 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
+  if (pathname.startsWith("/api/") && token && !request.headers.get("authorization")) {
+    const headers = new Headers(request.headers);
+    headers.set("Authorization", `Bearer ${token}`);
+    return NextResponse.next({
+      request: { headers },
+    });
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/", "/home/:path*"],
+  matcher: ["/", "/home/:path*", "/api/:path*"],
 };

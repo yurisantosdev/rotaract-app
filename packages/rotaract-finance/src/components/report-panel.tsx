@@ -1,7 +1,7 @@
 "use client";
 
-import { formatBRL } from "./money";
-import type { Contribution, Movement } from "./sample-data";
+import { formatBRL } from "../services/money";
+import type { Contribution, Movement } from "../types/movement";
 
 type ReportPanelProps = {
   movements: Movement[];
@@ -16,15 +16,15 @@ export function ReportPanel({
 }: ReportPanelProps) {
   const income = movements
     .filter((item) => item.type === "entrada")
-    .reduce((sum, item) => sum + item.amount, 0);
+    .reduce((sum, item) => sum + item.value, 0);
   const expense = movements
     .filter((item) => item.type === "saida")
-    .reduce((sum, item) => sum + item.amount, 0);
+    .reduce((sum, item) => sum + item.value, 0);
   const paidMembers = contributions.filter((item) => item.status === "pago").length;
 
   const byCategory = movements.reduce<Record<string, number>>((acc, item) => {
     const signal = item.type === "entrada" ? 1 : -1;
-    acc[item.category] = (acc[item.category] ?? 0) + item.amount * signal;
+    acc[item.category] = (acc[item.category] ?? 0) + item.value * signal;
     return acc;
   }, {});
 
