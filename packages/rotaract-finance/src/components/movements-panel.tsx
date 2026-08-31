@@ -6,13 +6,11 @@ import { formatBRL, formatDate, formatMoneyFromNumber, parseMoneyInput, todayISO
 import { MovementModal } from "./movement-modal";
 import {
   MOVEMENT_CATEGORIES,
+  inputClassName,
   type Movement,
   type MovementType,
 } from "../types/movement";
 import { TrashIcon, PencilSimpleIcon } from "@phosphor-icons/react";
-
-const inputClassName =
-  "h-11 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none ring-rotaract-pink/20 transition placeholder:text-zinc-400 focus:border-rotaract-pink/50 focus:bg-white focus:ring-4";
 
 type MovementsPanelProps = {
   movements: Movement[];
