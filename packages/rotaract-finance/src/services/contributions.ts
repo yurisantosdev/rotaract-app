@@ -78,3 +78,46 @@ export async function exemptContribution(
 
   return response.json();
 }
+
+export type GenerateContributionsResult = {
+  created: Contribution[];
+  skipped: number;
+};
+
+export async function generateContributions(
+  signal: AbortSignal,
+  payload: {
+    memberIds: string[];
+    references: string[];
+    value: number;
+  }
+): Promise<GenerateContributionsResult> {
+  const response = await fetch(`${CONTRIBUTIONS_URL}/generate`, {
+    method: "POST",
+    signal,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error("Não foi possível gerar as mensalidades");
+  }
+
+  const data: unknown = await response.json();
+  if (
+    !data ||
+    typeof data !== "object" ||
+    !Array.isArray((data as GenerateContributionsResult).created)
+  ) {
+    throw new Error("Resposta inválida ao gerar mensalidades");
+  }
+
+  const result = data as GenerateContributionsResult;
+  return {
+    created: result.created,
+    skipped: typeof result.skipped === "number" ? result.skipped : 0,
+  };
+}

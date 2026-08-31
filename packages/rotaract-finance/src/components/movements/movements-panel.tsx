@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { ConfirmModal, Tooltip } from "@rotaract/components";
+import { Button, ConfirmModal, Tooltip } from "@rotaract/components";
 import { formatBRL, formatDate, formatMoneyFromNumber, parseMoneyInput, todayISO } from "../../services/money";
 import { MovementModal } from "./movement-modal";
 import {
@@ -10,7 +10,8 @@ import {
   type Movement,
   type MovementType,
 } from "../../types/movement";
-import { TrashIcon, PencilSimpleIcon } from "@phosphor-icons/react";
+import { MicrosoftExcelLogoIcon, TrashIcon, PencilSimpleIcon } from "@phosphor-icons/react";
+import { downloadMovementsReport } from "../../services/report";
 
 type MovementsPanelProps = {
   movements: Movement[];
@@ -147,13 +148,22 @@ export function MovementsPanel({
             Filtre, registre e acompanhe entradas e saídas do clube.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="inline-flex h-11 items-center justify-center rounded-full bg-rotaract-pink px-4 text-sm font-semibold text-white transition hover:bg-rotaract-magenta"
-        >
-          Nova movimentação
-        </button>
+        <div className="flex items-center gap-3">
+          <Tooltip label="Baixar relatório">
+            <button
+              type="button"
+              aria-label="Baixar relatório"
+              onClick={() => downloadMovementsReport(filtered)}
+              className="cursor-pointer rounded-full bg-emerald-500 p-3 hover:bg-emerald-600"
+            >
+              <MicrosoftExcelLogoIcon className="h-4 w-4" color="white" />
+            </button>
+          </Tooltip>
+          <Button
+            title="Nova movimentação"
+            onClick={openCreate}
+          />
+        </div>
       </div>
 
       <MovementModal

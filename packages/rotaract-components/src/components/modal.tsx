@@ -2,10 +2,16 @@
 
 import { useEffect, useId, useRef, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
-import type { ModalProps } from "../types/modal";
+import type { ModalProps, ModalSize } from "../types/modal";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
+const PANEL_SIZE: Record<"default" | ModalSize, string> = {
+  default: "max-w-lg",
+  lg: "max-w-3xl",
+  xl: "max-w-5xl",
+};
 
 export function Modal({
   open,
@@ -16,6 +22,7 @@ export function Modal({
   children,
   initialFocusRef,
   showCloseButton = true,
+  size,
   panelClassName,
 }: ModalProps) {
   const titleId = useId();
@@ -89,7 +96,7 @@ export function Modal({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className={`rotaract-modal-panel w-full overflow-hidden rounded-[1.75rem] border border-white/70 bg-white shadow-[0_24px_80px_rgba(24,24,27,0.22)] ${panelClassName ?? "max-w-lg"}`}
+        className={`rotaract-modal-panel w-full overflow-hidden rounded-[1.75rem] border border-white/70 bg-white shadow-[0_24px_80px_rgba(24,24,27,0.22)] ${PANEL_SIZE[size ?? "default"]} ${panelClassName ?? ""}`.trim()}
       >
         <div className="flex items-start justify-between gap-4 border-b border-zinc-100 px-5 py-4 sm:px-6">
           <div>

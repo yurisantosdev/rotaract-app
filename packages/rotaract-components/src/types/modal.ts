@@ -1,5 +1,7 @@
 import type { ReactNode, RefObject } from "react";
 
+export type ModalSize = "lg" | "xl";
+
 export type ModalProps = {
   open: boolean;
   onClose: () => void;
@@ -9,5 +11,6 @@ export type ModalProps = {
   children: ReactNode;
   initialFocusRef?: RefObject<HTMLElement | null>;
   showCloseButton?: boolean;
+  size?: ModalSize;
   panelClassName?: string;
 };

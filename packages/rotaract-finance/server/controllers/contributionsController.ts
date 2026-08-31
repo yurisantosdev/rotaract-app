@@ -221,6 +221,108 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
   res.status(201).json(serializar(contribution, name));
 }
 
+export async function generate(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const userId = req.user?.sub;
+  if (!userId || !mongoose.isValidObjectId(userId)) {
+    res.status(401).json({ erro: "Token de autenticação necessário" });
+    return;
+  }
+
+  if (typeof req.body !== "object" || req.body === null) {
+    res.status(400).json({ erro: "Corpo da requisição inválido" });
+    return;
+  }
+
+  const { memberIds, references, reference, value } = req.body as {
+    memberIds?: unknown;
+    references?: unknown;
+    reference?: unknown;
+    value?: unknown;
+  };
+
+  if (!Array.isArray(memberIds) || memberIds.length === 0) {
+    res.status(400).json({ erro: "Selecione ao menos um membro" });
+    return;
+  }
+
+  const validIds = memberIds.filter(
+    (id): id is string => typeof id === "string" && mongoose.isValidObjectId(id)
+  );
+  if (validIds.length !== memberIds.length) {
+    res.status(400).json({ erro: "Um ou mais memberIds são inválidos" });
+    return;
+  }
+
+  const rawReferences = Array.isArray(references)
+    ? references
+    : typeof reference === "string"
+      ? [reference]
+      : [];
+  const trimmedReferences = Array.from(
+    new Set(
+      rawReferences
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    )
+  );
+
+  if (trimmedReferences.length === 0) {
+    res.status(400).json({ erro: "Selecione ao menos uma referência" });
+    return;
+  }
+
+  const parsedValue = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+    res.status(400).json({ erro: "Campo value deve ser um número maior que zero" });
+    return;
+  }
+
+  const objectIds = validIds.map((id) => new mongoose.Types.ObjectId(id));
+
+  const existing = await Contribution.find({
+    reference: { $in: trimmedReferences },
+    memberId: { $in: objectIds },
+  })
+    .select("memberId reference")
+    .lean();
+
+  const existingKeys = new Set(
+    existing.map((item) => `${item.memberId.toString()}::${item.reference}`)
+  );
+
+  const toCreate = objectIds.flatMap((memberId) =>
+    trimmedReferences
+      .filter((item) => !existingKeys.has(`${memberId.toString()}::${item}`))
+      .map((item) => ({
+        memberId,
+        reference: item,
+        value: parsedValue,
+        status: "pendente" as const,
+      }))
+  );
+
+  const skipped =
+    objectIds.length * trimmedReferences.length - toCreate.length;
+
+  if (toCreate.length === 0) {
+    res.status(200).json({ created: [], skipped });
+    return;
+  }
+
+  const inserted = await Contribution.insertMany(toCreate);
+
+  const docs = inserted.map((item) => item.toObject() as ContributionTypeDoc);
+  const names = await userNamesByIds(docs.map((item) => item.memberId));
+
+  res.status(201).json({
+    created: docs.map((item) =>
+      serializar(item, names.get(item.memberId.toString()) ?? "")
+    ),
+    skipped,
+  });
+}
+
 export async function update(req: AuthenticatedRequest, res: Response): Promise<void> {
   const userId = req.user?.sub;
   if (!userId || !mongoose.isValidObjectId(userId)) {

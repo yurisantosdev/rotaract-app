@@ -3,6 +3,8 @@
 import { formatBRL } from "../services/money";
 import type { Movement } from "../types/movement";
 import type { Contribution } from "../types/contributions";
+import { Button, Tooltip } from "@rotaract/components";
+import { MicrosoftExcelLogoIcon } from "@phosphor-icons/react";
 
 type ReportPanelProps = {
   movements: Movement[];
@@ -38,13 +40,16 @@ export function ReportPanel({
             Resumo de exemplo para assembleia, com totais e categorias.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onDownload}
-          className="inline-flex h-11 items-center justify-center rounded-full bg-rotaract-pink px-4 text-sm font-semibold text-white transition hover:bg-rotaract-magenta"
-        >
-          Baixar resumo
-        </button>
+
+        <Tooltip label="Baixar resumo">
+          <div className="cursor-pointer bg-emerald-500 hover:bg-emerald-600 p-3 rounded-full">
+            <MicrosoftExcelLogoIcon
+              className="h-4 w-4"
+              onClick={onDownload}
+              color="white"
+            />
+          </div>
+        </Tooltip>
       </div>
 
       <dl className="mt-6 grid gap-3 sm:grid-cols-3">

@@ -34,6 +34,8 @@ const contributionSchema = new mongoose.Schema(
   }
 );
 
+contributionSchema.index({ memberId: 1, reference: 1 }, { unique: true });
+
 export const Contribution =
   (mongoose.models.Contribution as mongoose.Model<ContributionTypeDoc> | undefined) ??
   mongoose.model<ContributionTypeDoc>("Contribution", contributionSchema);

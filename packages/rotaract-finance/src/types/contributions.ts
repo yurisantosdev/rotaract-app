@@ -10,3 +10,19 @@ export type Contribution = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+
+export const MONTHS = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+];

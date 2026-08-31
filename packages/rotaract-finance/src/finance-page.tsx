@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ContributionsPanel } from "./components/contributions-panel";
-import { formatBRL, isInCurrentMonth } from "./services/money";
+import { ContributionsPanel } from "./components/contributions/contributions-panel";
+import { isInCurrentMonth } from "./services/money";
 import {
   createMovement,
   listMovements,
   removeMovement,
   updateMovement,
 } from "./services/movements";
-import { MovementsPanel } from "./components/movement/movements-panel";
+import { MovementsPanel } from "./components/movements/movements-panel";
 import { ReportPanel } from "./components/report-panel";
 import {
   type Movement,
@@ -19,7 +19,8 @@ import {
 import { TitleModule, ReturnModule } from "@rotaract/components";
 import { CardsPrincipal } from "./components/cardsPrincipal";
 import { Contribution } from "./types/contributions";
-import { exemptContribution, listContributions, removeContribution, updateContribution } from "./services/contributions";
+import { exemptContribution, generateContributions, listContributions, removeContribution, updateContribution } from "./services/contributions";
+import { downloadFinanceReport } from "./services/report";
 
 export type FinancePageProps = {
   userName: string;
@@ -142,26 +143,32 @@ export function FinancePage({
       .catch(() => undefined);
   }
 
-  function handleToggleContribution(id: string) {
-    const contribution = contributions.find((item) => item.id === id);
-    if (!contribution) return;
+  function handleToggleContribution(ids: string[]) {
+    if (ids.length === 0) return;
 
-    const nextStatus =
-      contribution.status === "pendente" ? "pago" : "pendente";
     const controller = new AbortController();
+    const jobs = ids.flatMap((id) => {
+      const contribution = contributions.find((item) => item.id === id);
+      if (!contribution) return [];
+      const nextStatus =
+        contribution.status === "pendente" ? "pago" : "pendente";
+      return [
+        updateContribution(id, controller.signal, {
+          ...contribution,
+          status: nextStatus,
+        }),
+      ];
+    });
 
-    void updateContribution(id, controller.signal, {
-      ...contribution,
-      status: nextStatus,
-    })
+    if (jobs.length === 0) return;
+
+    void Promise.all(jobs)
       .then((updated) => {
+        const statusById = new Map(updated.map((item) => [item.id, item.status]));
         setContributions((current) =>
           current.map((item) =>
-            item.id === id
-              ? {
-                  ...item,
-                  status: updated.status,
-                }
+            statusById.has(item.id)
+              ? { ...item, status: statusById.get(item.id)! }
               : item
           )
         );
@@ -170,18 +177,20 @@ export function FinancePage({
       .catch(() => undefined);
   }
 
-  function handleExemptContribution(id: string) {
+  function handleExemptContribution(ids: string[]) {
+    if (ids.length === 0) return;
+
     const controller = new AbortController();
 
-    void exemptContribution(id, controller.signal)
+    void Promise.all(
+      ids.map((id) => exemptContribution(id, controller.signal))
+    )
       .then((updated) => {
+        const statusById = new Map(updated.map((item) => [item.id, item.status]));
         setContributions((current) =>
           current.map((item) =>
-            item.id === id
-              ? {
-                  ...item,
-                  status: updated.status,
-                }
+            statusById.has(item.id)
+              ? { ...item, status: statusById.get(item.id)! }
               : item
           )
         );
@@ -190,48 +199,41 @@ export function FinancePage({
       .catch(() => undefined);
   }
 
-  function handleRemoveContribution(id: string) {
-    const controller = new AbortController();
+  function handleRemoveContribution(ids: string[]) {
+    if (ids.length === 0) return;
 
-    void removeContribution(id, controller.signal)
+    const controller = new AbortController();
+    const idSet = new Set(ids);
+
+    void Promise.all(ids.map((id) => removeContribution(id, controller.signal)))
       .then(() => {
-        setContributions((current) => current.filter((item) => item.id !== id));
+        setContributions((current) =>
+          current.filter((item) => !idSet.has(item.id))
+        );
         return refreshMovements();
       })
       .catch(() => undefined);
+  }
+
+  function handleGenerateContributions(payload: {
+    memberIds: string[];
+    references: string[];
+    value: number;
+  }) {
+    const controller = new AbortController();
+
+    return generateContributions(controller.signal, payload).then((result) => {
+      if (result.created.length === 0) return;
+      setContributions((current) => [...result.created, ...current]);
+    });
   }
 
   function handleDownloadReport() {
-    const income = movements
-      .filter((item) => item.type === "entrada")
-      .reduce((sum, item) => sum + item.value, 0);
-    const expense = movements
-      .filter((item) => item.type === "saida")
-      .reduce((sum, item) => sum + item.value, 0);
-    const lines = [
-      "Rotaract Club Chapecó — Prestação de contas (exemplo)",
-      `Gerado por ${userName}`,
-      "",
-      `Saldo: ${formatBRL(income - expense)}`,
-      `Entradas: ${formatBRL(income)}`,
-      `Saídas: ${formatBRL(expense)}`,
-      "",
-      "Movimentações:",
-      ...movements.map(
-        (item) =>
-          `- ${item.date} | ${item.type} | ${item.category} | ${item.description} | ${formatBRL(item.value)}`
-      ),
-    ];
-
-    const blob = new Blob([lines.join("\n")], {
-      type: "text/plain;charset=utf-8",
+    downloadFinanceReport({
+      userName,
+      movements,
+      contributions,
     });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "prestacao-contas-exemplo.txt";
-    link.click();
-    URL.revokeObjectURL(url);
   }
 
   return (
@@ -283,6 +285,7 @@ export function FinancePage({
             onToggle={handleToggleContribution}
             onExempt={handleExemptContribution}
             onRemove={handleRemoveContribution}
+            onGenerate={handleGenerateContributions}
           />
         ) : null}
         {tab === "relatorio" ? (
