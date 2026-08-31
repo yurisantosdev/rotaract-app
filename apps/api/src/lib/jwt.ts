@@ -13,7 +13,7 @@ export function signAccessToken(payload: JwtUserPayload): string {
   if (!secret) {
     throw new Error("JWT_SECRET não definido");
   }
-  return jwt.sign(payload, secret, { expiresIn: "7d" });
+  return jwt.sign(payload, secret, { expiresIn: "1d" });
 }
 
 export function verifyAccessToken(token: string): JwtUserPayload {

@@ -25,10 +25,7 @@ process.on("uncaughtException", (err) => {
 process.on("unhandledRejection", (reason) => {
   console.error("[fatal] unhandledRejection:", reason);
 });
-import {
-  connectDatabase,
-  disconnectDatabase,
-} from "./config/database";
+import { connectDatabase, isDatabaseConnected } from "./config/database";
 
 //Routes
 import { financeRouter } from "@rotaract/finance/server";
@@ -57,103 +54,108 @@ function hostDaMongoUri(uri: string): string {
   return m ? m[0].slice(1) : "(host não identificado)";
 }
 
-let dbPronto = false;
+const jwtSecretOk = Boolean(process.env.JWT_SECRET?.trim());
+if (!jwtSecretOk) {
+  console.error(
+    "AVISO: JWT_SECRET ausente — /health responde, mas login e APIs com token falharão até configurar."
+  );
+}
 
-async function tentarMongo(uri: string): Promise<boolean> {
+const mongodbUri = process.env.MONGODB_URI?.trim();
+
+async function garantirMongo(): Promise<boolean> {
+  if (!mongodbUri) return false;
+  if (isDatabaseConnected()) return true;
   try {
-    await connectDatabase(uri);
+    await connectDatabase(mongodbUri);
     return true;
   } catch (err) {
     console.error(
-      "MongoDB indisponível (Atlas: libere 0.0.0.0/0 ou IPs da Railway em Network Access):"
+      "MongoDB indisponível (Atlas: libere 0.0.0.0/0 em Network Access para a Vercel):"
     );
     console.error(err);
-    await disconnectDatabase().catch(() => { });
     return false;
   }
 }
 
-async function main() {
-  const jwtSecretOk = Boolean(process.env.JWT_SECRET?.trim());
-  if (!jwtSecretOk) {
-    console.error(
-      "AVISO: JWT_SECRET ausente — /health responde, mas login e APIs com token falharão até configurar."
-    );
-  }
+const app = express();
+app.set("trust proxy", 1);
 
-  const mongodbUri = process.env.MONGODB_URI?.trim();
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:3002",
+  "http://127.0.0.1:3002",
+  "https://rotaract.vercel.app",
+];
 
-  const app = express();
-  app.set("trust proxy", 1);
-
-  const allowedOrigins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3002",
-    "http://127.0.0.1:3002",
-    "https://rotaract.vercel.app",
-  ];
-
-  const corsOptions = {
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  };
-
-  app.use(cors(corsOptions));
-
-  app.use(express.json({ limit: "5mb" }));
-
-  app.get("/health", (_req, res) => {
-    res.json({
-      ok: true,
-      versao: APP_VERSION,
-      db: dbPronto,
-      jwt: jwtSecretOk,
-      ...(mongodbUri ? {} : { aviso: "MONGODB_URI não configurada" }),
-      ...(!jwtSecretOk ? { avisoJwt: "JWT_SECRET não configurada" } : {}),
-    });
-  });
-
-  app.get("/", (_req, res) => {
-    res.json({
-      ok: true,
-      versao: APP_VERSION,
-      db: dbPronto,
-      jwt: jwtSecretOk,
-      ...(mongodbUri ? {} : { aviso: "MONGODB_URI não configurada" }),
-      ...(!jwtSecretOk ? { avisoJwt: "JWT_SECRET não configurada" } : {}),
-    });
-  });
-
-  app.use((req, res, next) => {
-    const p = req.path || "";
-    if (p === "/health" || p === "/" || p.startsWith("/health")) return next();
-    if (!dbPronto) {
-      return res.status(503).json({
-        erro:
-          "Banco de dados indisponível. Confira MONGODB_URI e Network Access no Atlas.",
-      });
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
     }
-    next();
-  });
+  },
+  credentials: true,
+};
 
-  app.use("/api/auth", authRoutes);
-  app.use("/api/users", usersRoutes);
-  app.use("/api/finance", requireAuth, financeRouter);
-  app.use("/api/settings", requireAuth, settingsRouter);
+app.use(cors(corsOptions));
+
+app.use(express.json({ limit: "5mb" }));
+
+function payloadSaude(db: boolean) {
+  return {
+    ok: true,
+    versao: APP_VERSION,
+    db,
+    jwt: jwtSecretOk,
+    ...(mongodbUri ? {} : { aviso: "MONGODB_URI não configurada" }),
+    ...(!jwtSecretOk ? { avisoJwt: "JWT_SECRET não configurada" } : {}),
+  };
+}
+
+app.get("/health", async (_req, res) => {
+  const db = await garantirMongo();
+  res.json(payloadSaude(db));
+});
+
+app.get("/", async (_req, res) => {
+  const db = await garantirMongo();
+  res.json(payloadSaude(db));
+});
+
+app.use(async (req, res, next) => {
+  const p = req.path || "";
+  if (p === "/health" || p === "/" || p.startsWith("/health")) return next();
+  const db = await garantirMongo();
+  if (!db) {
+    return res.status(503).json({
+      erro:
+        "Banco de dados indisponível. Confira MONGODB_URI e Network Access no Atlas.",
+    });
+  }
+  next();
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/finance", requireAuth, financeRouter);
+app.use("/api/settings", requireAuth, settingsRouter);
+
+export default app;
+
+async function iniciarServidorLocal(): Promise<void> {
+  if (process.env.VERCEL === "1") {
+    return;
+  }
 
   const host = process.env.HOST ?? "0.0.0.0";
 
   await new Promise<void>((resolve, reject) => {
     const server = app.listen(PORT, host, () => {
       console.log(
-        `Rotaract API ${APP_VERSION} | HTTP em ${host}:${PORT} | GET /health (mongo opcional até conectar)`
+        `Rotaract API ${APP_VERSION} | HTTP em ${host}:${PORT} | GET /health`
       );
       resolve();
     });
@@ -168,27 +170,17 @@ async function main() {
   }
 
   console.log(`Conectando ao MongoDB em ${hostDaMongoUri(mongodbUri)} …`);
-
-  dbPronto = await tentarMongo(mongodbUri);
-  if (dbPronto) {
+  const ok = await garantirMongo();
+  if (ok) {
     console.log("MongoDB conectado.");
   } else {
-    const intervaloMs = 15_000;
     console.error(
-      `Novas tentativas de MongoDB a cada ${intervaloMs / 1000}s (processo não será encerrado).`
+      "MongoDB não conectou no startup; novas tentativas ocorrerão a cada request."
     );
-    setInterval(async () => {
-      if (dbPronto) return;
-      const ok = await tentarMongo(mongodbUri);
-      if (ok) {
-        dbPronto = true;
-        console.log("MongoDB conectado após nova tentativa.");
-      }
-    }, intervaloMs);
   }
 }
 
-main().catch((err) => {
+iniciarServidorLocal().catch((err) => {
   console.error(err);
   process.exit(1);
 });

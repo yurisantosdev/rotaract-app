@@ -55,7 +55,7 @@ export async function login(req: Request, res: Response): Promise<void> {
   res.json({
     token,
     tipo: "Bearer",
-    expiraEm: "7d",
+    expiraEm: "1d",
   });
 }
 

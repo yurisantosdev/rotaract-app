@@ -33,4 +33,6 @@ const usersSchema = new mongoose.Schema(
   }
 );
 
-export const User = mongoose.model<UsersType>("User", usersSchema);
+export const User =
+  (mongoose.models.User as mongoose.Model<UsersType> | undefined) ??
+  mongoose.model<UsersType>("User", usersSchema);
