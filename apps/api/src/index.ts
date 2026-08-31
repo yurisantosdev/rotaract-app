@@ -32,6 +32,7 @@ import {
 
 //Routes
 import { financeRouter } from "@rotaract/finance/server";
+import { settingsRouter } from "@rotaract/settings/server";
 import { requireAuth } from "./middleware/auth";
 import authRoutes from "./routes/authRoutes";
 import usersRoutes from "./routes/usersRoutes";
@@ -105,7 +106,7 @@ async function main() {
 
   app.use(cors(corsOptions));
 
-  app.use(express.json());
+  app.use(express.json({ limit: "5mb" }));
 
   app.get("/health", (_req, res) => {
     res.json({
@@ -144,6 +145,7 @@ async function main() {
   app.use("/api/auth", authRoutes);
   app.use("/api/users", usersRoutes);
   app.use("/api/finance", requireAuth, financeRouter);
+  app.use("/api/settings", requireAuth, settingsRouter);
 
   const host = process.env.HOST ?? "0.0.0.0";
 

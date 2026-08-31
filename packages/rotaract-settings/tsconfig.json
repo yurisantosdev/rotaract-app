@@ -20,8 +20,7 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@rotaract/components": ["../rotaract-components/src/index.ts"],
-      "@rotaract/settings": ["../rotaract-settings/src/index.ts"]
+      "@rotaract/components": ["../rotaract-components/src/index.ts"]
     }
   },
   "include": [

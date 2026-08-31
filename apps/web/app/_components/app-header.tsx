@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { AuthUser } from "../lib/types";
+import { useClubBranding } from "../home/_components/club-branding";
 
 type AppHeaderProps = {
   user: AuthUser;
@@ -11,6 +11,7 @@ type AppHeaderProps = {
 };
 
 export function AppHeader({ user, onLogout }: AppHeaderProps) {
+  const { branding } = useClubBranding();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
@@ -39,15 +40,15 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
     <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[4.5rem] sm:px-6">
         <Link href="/home" className="flex min-w-0 items-center gap-3">
-          <Image
-            src="/logo.jpg"
-            alt="Rotaract Club Chapecó"
+          <img
+            src={branding.logo}
+            alt={branding.name}
             width={120}
             height={40}
-            className="h-9 w-auto"
+            className="h-9 w-auto max-w-28 object-contain"
           />
           <span className="hidden truncate text-sm font-semibold text-zinc-800 sm:inline">
-            Rotaract Club Chapecó
+            {branding.name}
           </span>
         </Link>
 

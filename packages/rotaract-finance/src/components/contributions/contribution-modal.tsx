@@ -6,6 +6,7 @@ import { formatMoneyFromNumber, formatMoneyInput, parseMoneyInput } from "../../
 import { listMembers, type Member } from "../../services/members";
 import { inputClassName } from "../../types/movement";
 import { MONTHS, type Contribution } from "../../types/contributions";
+import { listSettings } from "@rotaract/settings";
 
 function remainingReferences(now = new Date()): string[] {
   const year = now.getFullYear();
@@ -23,8 +24,6 @@ function normalizeSearch(value: string): string {
     .toLowerCase()
     .trim();
 }
-
-const DEFAULT_VALUE = formatMoneyFromNumber(100);
 
 type ContributionModalProps = {
   open: boolean;
@@ -50,7 +49,7 @@ export function ContributionModal({
     references[0] ? [references[0]] : []
   );
   const [query, setQuery] = useState("");
-  const [value, setValue] = useState(DEFAULT_VALUE);
+  const [value, setValue] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -62,7 +61,7 @@ export function ContributionModal({
     setError("");
     setQuery("");
     setSelectedIds([]);
-    setValue(DEFAULT_VALUE);
+    setValue("");
     setSelectedReferences(nextReferences[0] ? [nextReferences[0]] : []);
 
     listMembers(controller.signal)
@@ -73,6 +72,22 @@ export function ContributionModal({
         }
         setMembers([]);
         setError("Não foi possível carregar os membros.");
+      });
+
+    listSettings(controller.signal)
+      .then((items) => {
+        const fee = items[0]?.valueContribution;
+        setValue(
+          formatMoneyFromNumber(
+            typeof fee === "number" && Number.isFinite(fee) && fee > 0 ? fee : 100
+          )
+        );
+      })
+      .catch((caught: unknown) => {
+        if (caught instanceof DOMException && caught.name === "AbortError") {
+          return;
+        }
+        setValue(formatMoneyFromNumber(100));
       });
 
     return () => controller.abort();

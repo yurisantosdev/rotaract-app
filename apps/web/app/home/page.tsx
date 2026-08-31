@@ -32,7 +32,7 @@ const modules = [
   {
     title: "Financeiro",
     description: "Tesouraria, mensalidades e prestações de contas.",
-    href: "/home/financeiro",
+    href: "/home/finance",
     action: "Abrir tesouraria",
     icon: (
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
@@ -49,7 +49,7 @@ const modules = [
   {
     title: "Reuniões",
     description: "Pautas, atas e presença das reuniões do clube.",
-    href: "/home/reunioes",
+    href: "/home/meeting",
     action: "Abrir reuniões",
     icon: (
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
@@ -66,7 +66,7 @@ const modules = [
   {
     title: "Agenda",
     description: "Eventos, projetos e compromissos do calendário.",
-    href: "/home/agenda",
+    href: "/home/calendar",
     action: "Abrir agenda",
     icon: (
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
@@ -83,7 +83,7 @@ const modules = [
   {
     title: "Membros",
     description: "Cadastro, cargos e a família do Rotaract.",
-    href: "/home/membros",
+    href: "/home/members",
     action: "Abrir membros",
     icon: (
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
@@ -100,7 +100,7 @@ const modules = [
   {
     title: "Configurações",
     description: "Preferências do clube, permissões e ajustes da conta.",
-    href: "/home/configuracoes",
+    href: "/home/settings",
     action: "Abrir configurações",
     icon: (
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>

@@ -6,6 +6,7 @@ import { AppHeader } from "../_components/app-header";
 import { apiFetch } from "../lib/api";
 import { clearSession, getToken } from "../lib/auth";
 import type { AuthUser } from "../lib/types";
+import { ClubBrandingProvider } from "./_components/club-branding";
 import { MemberSessionProvider } from "./_components/member-session";
 
 export default function HomeLayout({
@@ -63,8 +64,10 @@ export default function HomeLayout({
 
   return (
     <div className="min-h-dvh bg-rotaract-mist text-rotaract-ink">
-      <AppHeader user={user} onLogout={handleLogout} />
-      <MemberSessionProvider user={user}>{children}</MemberSessionProvider>
+      <ClubBrandingProvider>
+        <AppHeader user={user} onLogout={handleLogout} />
+        <MemberSessionProvider user={user}>{children}</MemberSessionProvider>
+      </ClubBrandingProvider>
     </div>
   );
 }

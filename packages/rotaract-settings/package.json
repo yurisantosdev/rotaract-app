@@ -1,5 +1,5 @@
 {
-  "name": "@rotaract/finance",
+  "name": "@rotaract/settings",
   "version": "0.1.0",
   "private": true,
   "exports": {
@@ -26,7 +26,6 @@
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
     "@rotaract/components": "*",
-    "@rotaract/settings": "*",
     "next": "16.3.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
