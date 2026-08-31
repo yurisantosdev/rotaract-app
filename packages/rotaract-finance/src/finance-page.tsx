@@ -9,28 +9,22 @@ import {
   removeMovement,
   updateMovement,
 } from "./services/movements";
-import { MovementsPanel } from "./components/movements-panel";
+import { MovementsPanel } from "./components/movement/movements-panel";
 import { ReportPanel } from "./components/report-panel";
 import {
   INITIAL_CONTRIBUTIONS,
   type Contribution,
   type Movement,
+  Tab,
+  tabs,
 } from "./types/movement";
 import { TitleModule, ReturnModule } from "@rotaract/components";
-import { Card } from "./components/card";
+import { CardsPrincipal } from "./components/cardsPrincipal";
 
 export type FinancePageProps = {
   userName: string;
   backHref?: string;
 };
-
-type Tab = "movimentos" | "mensalidades" | "relatorio";
-
-const tabs: { id: Tab; label: string }[] = [
-  { id: "movimentos", label: "Movimentações" },
-  { id: "mensalidades", label: "Mensalidades" },
-  { id: "relatorio", label: "Prestação de contas" },
-];
 
 export function FinancePage({
   userName,
@@ -109,13 +103,13 @@ export function FinancePage({
           current.map((item) =>
             item.id === movement.id
               ? {
-                  ...item,
-                  date: updated.date,
-                  description: updated.description,
-                  category: updated.category,
-                  type: updated.type,
-                  value: updated.value,
-                }
+                ...item,
+                date: updated.date,
+                description: updated.description,
+                category: updated.category,
+                type: updated.type,
+                value: updated.value,
+              }
               : item
           )
         );
@@ -186,32 +180,7 @@ export function FinancePage({
         description={`Olá, ${firstName}. O módulo financeiro foi desenvolvido para centralizar e organizar suas informações financeiras, permitindo acompanhar receitas, despesas, contas, movimentações e outros dados importantes de forma simples e organizada.`}
       />
 
-      <section className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card
-          title="Saldo atual"
-          number={totals.balance}
-          colorNumber="black"
-        />
-
-        <Card
-          title="Entradas no mês"
-          number={totals.monthIncome}
-          colorNumber="green"
-        />
-
-        <Card
-          title="Saídas no mês"
-          number={totals.monthExpense}
-          colorNumber="red"
-        />
-
-        <Card
-          title="Mensalidades abertas"
-          number={totals.pendingCount}
-          colorNumber="black"
-          description={`${formatBRL(totals.pendingValue)} a receber`}
-        />
-      </section>
+      <CardsPrincipal totals={totals} />
 
       <div
         role="tablist"

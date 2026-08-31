@@ -1,5 +1,13 @@
 export type MovementType = "entrada" | "saida";
 
+export type Tab = "movimentos" | "mensalidades" | "relatorio";
+
+export const tabs: { id: Tab; label: string }[] = [
+  { id: "movimentos", label: "Movimentações" },
+  { id: "mensalidades", label: "Mensalidades" },
+  { id: "relatorio", label: "Prestação de contas" },
+];
+
 export const inputClassName =
   "h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none ring-rotaract-pink/20 transition placeholder:text-zinc-400 focus:border-rotaract-pink/50 focus:bg-white focus:ring-4";
 
@@ -30,57 +38,6 @@ export const MOVEMENT_CATEGORIES = [
   "Infraestrutura",
   "Outros",
 ] as const;
-
-export const INITIAL_MOVEMENTS: Movement[] = [
-  {
-    id: "m1",
-    date: "2026-08-04",
-    description: "Mensalidades de agosto",
-    category: "Mensalidade",
-    type: "entrada",
-    value: 1800,
-  },
-  {
-    id: "m2",
-    date: "2026-08-08",
-    description: "Doação do Rotary parceiro",
-    category: "Doação",
-    type: "entrada",
-    value: 500,
-  },
-  {
-    id: "m3",
-    date: "2026-08-12",
-    description: "Café da manhã do projeto Tamandaré",
-    category: "Evento",
-    type: "saida",
-    value: 240,
-  },
-  {
-    id: "m4",
-    date: "2026-08-18",
-    description: "Material gráfico da campanha",
-    category: "Material",
-    type: "saida",
-    value: 185.5,
-  },
-  {
-    id: "m5",
-    date: "2026-08-22",
-    description: "Arrecadação do happy hour",
-    category: "Evento",
-    type: "entrada",
-    value: 320,
-  },
-  {
-    id: "m6",
-    date: "2026-07-28",
-    description: "Aluguel da sala de reuniões",
-    category: "Infraestrutura",
-    type: "saida",
-    value: 150,
-  },
-];
 
 export const INITIAL_CONTRIBUTIONS: Contribution[] = [
   {

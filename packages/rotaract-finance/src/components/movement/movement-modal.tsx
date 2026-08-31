@@ -2,9 +2,9 @@
 
 import { useRef } from "react";
 import { Modal } from "@rotaract/components";
-import { formatMoneyInput } from "../services/money";
-import { MOVEMENT_CATEGORIES, inputClassName } from "../types/movement";
-import { MovementModalProps } from "../types/movementModal";
+import { formatMoneyInput } from "../../services/money";
+import { MOVEMENT_CATEGORIES, inputClassName } from "../../types/movement";
+import { MovementModalProps } from "../../types/movementModal";
 
 export function MovementModal({
   open,

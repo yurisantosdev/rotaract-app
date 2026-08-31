@@ -2,14 +2,14 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { ConfirmModal, Tooltip } from "@rotaract/components";
-import { formatBRL, formatDate, formatMoneyFromNumber, parseMoneyInput, todayISO } from "../services/money";
+import { formatBRL, formatDate, formatMoneyFromNumber, parseMoneyInput, todayISO } from "../../services/money";
 import { MovementModal } from "./movement-modal";
 import {
   MOVEMENT_CATEGORIES,
   inputClassName,
   type Movement,
   type MovementType,
-} from "../types/movement";
+} from "../../types/movement";
 import { TrashIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 
 type MovementsPanelProps = {
