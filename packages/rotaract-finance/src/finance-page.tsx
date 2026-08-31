@@ -12,14 +12,14 @@ import {
 import { MovementsPanel } from "./components/movement/movements-panel";
 import { ReportPanel } from "./components/report-panel";
 import {
-  INITIAL_CONTRIBUTIONS,
-  type Contribution,
   type Movement,
   Tab,
   tabs,
 } from "./types/movement";
 import { TitleModule, ReturnModule } from "@rotaract/components";
 import { CardsPrincipal } from "./components/cardsPrincipal";
+import { Contribution } from "./types/contributions";
+import { exemptContribution, listContributions, removeContribution, updateContribution } from "./services/contributions";
 
 export type FinancePageProps = {
   userName: string;
@@ -34,8 +34,7 @@ export function FinancePage({
   const [tab, setTab] = useState<Tab>("movimentos");
   const [movements, setMovements] = useState<Movement[]>([]);
   const [contributions, setContributions] =
-    useState<Contribution[]>(INITIAL_CONTRIBUTIONS);
-
+    useState<Contribution[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -47,6 +46,15 @@ export function FinancePage({
           return;
         }
         setMovements([]);
+      });
+
+    listContributions(controller.signal)
+      .then(setContributions)
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setContributions([]);
       });
 
     return () => controller.abort();
@@ -127,14 +135,70 @@ export function FinancePage({
       .catch(() => undefined);
   }
 
+  function refreshMovements() {
+    const controller = new AbortController();
+    return listMovements(controller.signal)
+      .then(setMovements)
+      .catch(() => undefined);
+  }
+
   function handleToggleContribution(id: string) {
-    setContributions((current) =>
-      current.map((item) =>
-        item.id === id
-          ? { ...item, status: item.status === "pago" ? "pendente" : "pago" }
-          : item
-      )
-    );
+    const contribution = contributions.find((item) => item.id === id);
+    if (!contribution) return;
+
+    const nextStatus =
+      contribution.status === "pendente" ? "pago" : "pendente";
+    const controller = new AbortController();
+
+    void updateContribution(id, controller.signal, {
+      ...contribution,
+      status: nextStatus,
+    })
+      .then((updated) => {
+        setContributions((current) =>
+          current.map((item) =>
+            item.id === id
+              ? {
+                  ...item,
+                  status: updated.status,
+                }
+              : item
+          )
+        );
+        return refreshMovements();
+      })
+      .catch(() => undefined);
+  }
+
+  function handleExemptContribution(id: string) {
+    const controller = new AbortController();
+
+    void exemptContribution(id, controller.signal)
+      .then((updated) => {
+        setContributions((current) =>
+          current.map((item) =>
+            item.id === id
+              ? {
+                  ...item,
+                  status: updated.status,
+                }
+              : item
+          )
+        );
+        return refreshMovements();
+      })
+      .catch(() => undefined);
+  }
+
+  function handleRemoveContribution(id: string) {
+    const controller = new AbortController();
+
+    void removeContribution(id, controller.signal)
+      .then(() => {
+        setContributions((current) => current.filter((item) => item.id !== id));
+        return refreshMovements();
+      })
+      .catch(() => undefined);
   }
 
   function handleDownloadReport() {
@@ -217,6 +281,8 @@ export function FinancePage({
           <ContributionsPanel
             contributions={contributions}
             onToggle={handleToggleContribution}
+            onExempt={handleExemptContribution}
+            onRemove={handleRemoveContribution}
           />
         ) : null}
         {tab === "relatorio" ? (

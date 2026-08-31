@@ -115,23 +115,13 @@ export async function list(_req: Request, res: Response): Promise<void> {
   res.json(itens.map((item) => serializar(item as unknown as MovementTypeDoc)));
 }
 
-export async function get(req: Request, res: Response): Promise<void> {
-  const { id } = req.params;
-  if (!mongoose.isValidObjectId(id)) {
-    res.status(400).json({ erro: "ID inválido" });
-    return;
-  }
-
-  const movement = await Movement.findById(id).lean();
-  if (!movement) {
-    res.status(404).json({ erro: "Movimentação não encontrada" });
-    return;
-  }
-
-  res.json(serializar(movement as unknown as MovementTypeDoc));
-}
-
 export async function create(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const userId = req.user?.sub;
+  if (!userId || !mongoose.isValidObjectId(userId)) {
+    res.status(401).json({ erro: "Token de autenticação necessário" });
+    return;
+  }
+
   const parsed = parseMovementBody(req.body);
   if (!parsed.ok) {
     res.status(400).json({ erro: parsed.erro });
@@ -140,7 +130,7 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
 
   const criada = await Movement.create({
     ...parsed.data,
-    createdBy: req.user?.sub,
+    createdBy: new mongoose.Types.ObjectId(userId),
   });
 
   res.status(201).json(serializar(criada.toObject() as MovementTypeDoc));

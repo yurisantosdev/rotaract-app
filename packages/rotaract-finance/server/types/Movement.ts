@@ -11,6 +11,7 @@ export const MOVEMENT_CATEGORIES = [
   "Infraestrutura",
   "Outros",
 ] as const;
+
 export type MovementCategory = (typeof MOVEMENT_CATEGORIES)[number];
 
 export type MovementTypeDoc = {
@@ -20,7 +21,8 @@ export type MovementTypeDoc = {
   category: MovementCategory;
   type: MovementType;
   value: number;
-  createdBy?: string;
+  createdBy: mongoose.Types.ObjectId;
+  contributionId?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 };

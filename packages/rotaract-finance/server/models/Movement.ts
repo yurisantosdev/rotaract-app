@@ -33,9 +33,16 @@ const movementSchema = new mongoose.Schema(
       min: 0.01,
     },
     createdBy: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    contributionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Contribution",
       required: false,
-      trim: true,
+      unique: true,
+      sparse: true,
     },
   },
   {

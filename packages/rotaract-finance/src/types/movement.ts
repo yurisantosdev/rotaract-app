@@ -20,16 +20,6 @@ export type Movement = {
   value: number;
 };
 
-export type ContributionStatus = "pago" | "pendente";
-
-export type Contribution = {
-  id: string;
-  memberName: string;
-  reference: string;
-  value: number;
-  status: ContributionStatus;
-};
-
 export const MOVEMENT_CATEGORIES = [
   "Mensalidade",
   "Evento",
@@ -38,41 +28,3 @@ export const MOVEMENT_CATEGORIES = [
   "Infraestrutura",
   "Outros",
 ] as const;
-
-export const INITIAL_CONTRIBUTIONS: Contribution[] = [
-  {
-    id: "c1",
-    memberName: "Ana Souza",
-    reference: "Agosto/2026",
-    value: 50,
-    status: "pago",
-  },
-  {
-    id: "c2",
-    memberName: "Bruno Lima",
-    reference: "Agosto/2026",
-    value: 50,
-    status: "pago",
-  },
-  {
-    id: "c3",
-    memberName: "Carla Mendes",
-    reference: "Agosto/2026",
-    value: 50,
-    status: "pendente",
-  },
-  {
-    id: "c4",
-    memberName: "Diego Martins",
-    reference: "Agosto/2026",
-    value: 50,
-    status: "pendente",
-  },
-  {
-    id: "c5",
-    memberName: "Fernanda Alves",
-    reference: "Agosto/2026",
-    value: 50,
-    status: "pago",
-  },
-];

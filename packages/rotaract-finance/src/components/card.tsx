@@ -8,6 +8,7 @@ type CardProps = {
   number: number;
   colorNumber: "green" | "red" | "black";
   description?: string;
+  formatCurrency?: boolean;
 };
 
 const colorNumberMap = {
@@ -29,7 +30,17 @@ function prefersReducedMotion() {
   );
 }
 
-export function Card({ title, number, colorNumber, description }: CardProps) {
+function formatDisplayed(
+  displayed: number,
+  target: number,
+  formatCurrency: boolean
+) {
+  if (formatCurrency) return formatBRL(displayed);
+  if (Number.isInteger(target)) return String(Math.round(displayed));
+  return String(displayed);
+}
+
+export function Card({ title, number, colorNumber, description, formatCurrency = true }: CardProps) {
   const [displayed, setDisplayed] = useState(0);
   const displayedRef = useRef(0);
   const frameRef = useRef(0);
@@ -75,7 +86,7 @@ export function Card({ title, number, colorNumber, description }: CardProps) {
       <p
         className={`mt-2 text-xl font-semibold tabular-nums sm:text-2xl ${colorNumberMap[colorNumber]}`}
       >
-        {formatBRL(displayed)}
+        {formatDisplayed(displayed, number, formatCurrency)}
       </p>
       {description && (
         <p className="mt-2 text-sm text-zinc-500">{description}</p>

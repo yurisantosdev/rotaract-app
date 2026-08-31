@@ -1,10 +1,8 @@
 import { Router } from "express";
-import * as movementsController from "./controllers/movementsController";
+import { movementsRoutes } from "./routes/movementsRoutes";
+import { contributionsRoutes } from "./routes/contributionsRoutes";
 
 export const financeRouter = Router();
 
-financeRouter.get("/", movementsController.list);
-financeRouter.get("/:id", movementsController.get);
-financeRouter.post("/", movementsController.create);
-financeRouter.put("/:id", movementsController.update);
-financeRouter.delete("/:id", movementsController.remove);
+financeRouter.use("/movements", movementsRoutes);
+financeRouter.use("/contributions", contributionsRoutes);

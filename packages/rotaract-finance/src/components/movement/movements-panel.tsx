@@ -34,7 +34,7 @@ export function MovementsPanel({
   const [description, setDescription] = useState("");
   const [value, setValue] = useState("");
   const [category, setCategory] = useState<(typeof MOVEMENT_CATEGORIES)[number]>(
-    "Mensalidade"
+    "Doação"
   );
   const [type, setType] = useState<MovementType>("entrada");
   const [date, setDate] = useState(todayISO());
@@ -61,7 +61,7 @@ export function MovementsPanel({
   function resetForm() {
     setDescription("");
     setValue("");
-    setCategory("Mensalidade");
+    setCategory("Doação");
     setType("entrada");
     setDate(todayISO());
     setError("");

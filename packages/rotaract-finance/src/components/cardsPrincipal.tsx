@@ -26,6 +26,7 @@ export function CardsPrincipal({ totals }: any) {
       <Card
         title="Mensalidades abertas"
         number={totals.pendingCount}
+        formatCurrency={false}
         colorNumber="black"
         description={`${formatBRL(totals.pendingValue)} a receber`}
       />

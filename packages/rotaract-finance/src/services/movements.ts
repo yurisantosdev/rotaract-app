@@ -1,6 +1,6 @@
 import type { Movement } from "../types/movement";
 
-const MOVEMENTS_URL = "/api/finance";
+const MOVEMENTS_URL = "/api/finance/movements";
 
 export async function listMovements(signal: AbortSignal): Promise<Movement[]> {
   const response = await fetch(MOVEMENTS_URL, {

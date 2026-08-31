@@ -1,7 +1,8 @@
 "use client";
 
 import { formatBRL } from "../services/money";
-import type { Contribution, Movement } from "../types/movement";
+import type { Movement } from "../types/movement";
+import type { Contribution } from "../types/contributions";
 
 type ReportPanelProps = {
   movements: Movement[];
