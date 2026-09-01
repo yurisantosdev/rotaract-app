@@ -1,14 +1,16 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { CheckCircleIcon, ArrowCounterClockwiseIcon, HandshakeIcon, TrashIcon, MicrosoftExcelLogoIcon } from "@phosphor-icons/react";
+import { CheckCircleIcon, ArrowCounterClockwiseIcon, HandshakeIcon, TrashIcon } from "@phosphor-icons/react";
 import { ConfirmModal, Tooltip } from "@rotaract/components";
 import { formatBRL } from "../../services/money";
 import { Contribution, ContributionStatus, MONTHS } from "../../types/contributions";
 import { inputClassName } from "../../types/movement";
-import { Button } from "@rotaract/components";
 import { downloadContributionsReport } from "../../services/report";
 import { ContributionModal } from "./contribution-modal";
+import { TextContributions } from "./TextContribution";
+import { ButtonsExcelGenerate } from "./ButtonsExcelGenerate";
+import { StatusContribution } from "./StatusContribution";
 
 function normalizeSearch(value: string): string {
   return value
@@ -174,57 +176,23 @@ export function ContributionsPanel({
 
   return (
     <section className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex justify-between items-center gap-3">
         <div>
           <h2 className="text-lg font-semibold text-zinc-900">Mensalidades</h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            {pendingCount} pendente{pendingCount === 1 ? "" : "s"} · {formatBRL(received)}{" "}
-            já recebidos neste mês.
-          </p>
+          <span className="md:flex hidden">
+            <TextContributions pendingCount={pendingCount} received={received} />
+          </span>
         </div>
 
-        <div className="flex flex-col gap-2 sm:items-end">
-          <div className="flex items-center gap-3">
-
-            <Tooltip label="Baixar relatório">
-              <div className="cursor-pointer bg-emerald-500 hover:bg-emerald-600 p-3 rounded-full">
-                <MicrosoftExcelLogoIcon
-                  className="h-4 w-4"
-                  onClick={() => downloadContributionsReport(filtered)}
-                  color="white"
-                />
-              </div>
-            </Tooltip>
-
-            <div className="flex rounded-full border border-zinc-200 bg-zinc-50 p-1">
-              {(
-                [
-                  ["todos", "Todos"],
-                  ["pendente", "Pendentes"],
-                  ["pago", "Pagos"],
-                  ["isento", "Isentos"],
-                ] as const
-              ).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setFilter(value)}
-                  className={`h-9 rounded-full px-3 text-sm font-medium transition ${statusFilter === value
-                    ? "bg-white text-zinc-900 shadow-sm"
-                    : "text-zinc-500 hover:text-zinc-800"
-                    }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button title="Gerar" onClick={() => setOpenModal(!openModal)} />
-            </div>
-          </div>
-        </div>
+        <ButtonsExcelGenerate
+          onDownload={() => downloadContributionsReport(filtered)}
+          onGenerate={() => setOpenModal(!openModal)}
+        />
       </div>
+
+      <span className="md:hidden flex mt-3">
+        <TextContributions pendingCount={pendingCount} received={received} />
+      </span>
 
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         <input
@@ -238,6 +206,30 @@ export function ContributionsPanel({
           placeholder="Buscar por nome"
           autoComplete="off"
         />
+
+        <div className="flex rounded-full border border-zinc-200 bg-zinc-50 p-1">
+          {(
+            [
+              ["todos", "Todos"],
+              ["pendente", "Pendentes"],
+              ["pago", "Pagos"],
+              ["isento", "Isentos"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setFilter(value)}
+              className={`h-9 rounded-full w-full px-3 text-sm font-medium transition ${statusFilter === value
+                ? "bg-white text-zinc-900 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-800"
+                }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <select
           value={activeReference}
           onChange={(event) => setReference(event.target.value)}
@@ -282,9 +274,9 @@ export function ContributionsPanel({
       />
 
       {filtered.length > 0 ? (
-        <div className="flex justify-between items-center gap-2">
+        <div className="flex justify-between items-center gap-2 mt-5">
           <div>
-            <label className="mt-5 flex cursor-pointer items-center gap-3 text-sm text-zinc-600">
+            <label className="flex cursor-pointer items-center gap-3 text-sm text-zinc-600">
               <input
                 type="checkbox"
                 checked={allVisibleSelected}
@@ -368,7 +360,7 @@ export function ContributionsPanel({
           filtered.map((item) => (
             <li
               key={item.id}
-              className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between mt-3"
             >
               <label className="flex min-w-0 cursor-pointer items-start gap-3">
                 <input
@@ -384,21 +376,9 @@ export function ContributionsPanel({
                   </span>
                 </span>
               </label>
-              <div className="flex items-center gap-3 sm:pl-7">
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${item.status === "pago"
-                    ? "bg-emerald-50 text-emerald-700"
-                    : item.status === "isento"
-                      ? "bg-sky-50 text-sky-700"
-                      : "bg-amber-50 text-amber-700"
-                    }`}
-                >
-                  {item.status === "pago"
-                    ? "Pago"
-                    : item.status === "isento"
-                      ? "Isento"
-                      : "Pendente"}
-                </span>
+              <div className="flex items-center gap-3 md:justify-center justify-between md:ml-0 ml-4">
+                <StatusContribution status={item} />
+
                 <div className="flex gap-2 mr-4">
                   {item.status === "pendente" ? (
                     <ActionButton

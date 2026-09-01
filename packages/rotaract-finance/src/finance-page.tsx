@@ -10,7 +10,7 @@ import {
   updateMovement,
 } from "./services/movements";
 import { MovementsPanel } from "./components/movements/movements-panel";
-import { ReportPanel } from "./components/report-panel";
+import { ReportPanel } from "./components/reportPanel/report-panel";
 import {
   type Movement,
   Tab,
@@ -18,6 +18,7 @@ import {
 } from "./types/movement";
 import { TitleModule, ReturnModule } from "@rotaract/components";
 import { CardsPrincipal } from "./components/cardsPrincipal";
+import { Loading } from "@rotaract/components";
 import { Contribution } from "./types/contributions";
 import { exemptContribution, generateContributions, listContributions, removeContribution, updateContribution } from "./services/contributions";
 import { downloadFinanceReport } from "./services/report";
@@ -36,27 +37,33 @@ export function FinancePage({
   const [movements, setMovements] = useState<Movement[]>([]);
   const [contributions, setContributions] =
     useState<Contribution[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    listMovements(controller.signal)
-      .then(setMovements)
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-        setMovements([]);
-      });
-
-    listContributions(controller.signal)
-      .then(setContributions)
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-        setContributions([]);
-      });
+    void Promise.all([
+      listMovements(controller.signal)
+        .then(setMovements)
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            return;
+          }
+          setMovements([]);
+        }),
+      listContributions(controller.signal)
+        .then(setContributions)
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === "AbortError") {
+            return;
+          }
+          setContributions([]);
+        }),
+    ]).finally(() => {
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
+    });
 
     return () => controller.abort();
   }, []);
@@ -238,6 +245,7 @@ export function FinancePage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      {isLoading ? <Loading /> : null}
       <ReturnModule backHref={backHref} />
 
       <TitleModule

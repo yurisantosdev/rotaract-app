@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Modal } from "@rotaract/components";
+import { Button, Modal } from "@rotaract/components";
 import { formatMoneyInput } from "../../services/money";
 import { MOVEMENT_CATEGORIES, inputClassName } from "../../types/movement";
 import { MovementModalProps } from "../../types/movementModal";
@@ -15,6 +15,7 @@ export function MovementModal({
   category,
   type,
   error,
+  saving = false,
   onDescriptionChange,
   onValueChange,
   onDateChange,
@@ -131,16 +132,23 @@ export function MovementModal({
           <button
             type="button"
             onClick={onClose}
-            className="h-12 rounded-full px-5 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900"
+            disabled={saving}
+            className="h-12 rounded-full px-5 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
           >
             Cancelar
           </button>
-          <button
+
+          <Button
             type="submit"
-            className="h-12 rounded-full bg-rotaract-pink px-5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(255,45,122,0.28)] transition hover:bg-rotaract-magenta"
-          >
-            {isEdit ? "Salvar alterações" : "Salvar movimentação"}
-          </button>
+            loading={saving}
+            title={
+              saving
+                ? "Salvando..."
+                : isEdit
+                  ? "Salvar alterações"
+                  : "Salvar movimentação"
+            }
+          />
         </div>
       </form>
     </Modal>

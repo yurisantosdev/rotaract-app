@@ -217,7 +217,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-col sm:items-end">
+          <div className="flex shrink-0 flex-wrap items-center gap-2 justify-center">
             <p className="rounded-full border border-zinc-200/80 bg-white/80 px-3 py-1.5 text-xs font-medium text-zinc-600 backdrop-blur">
               {now ? formatToday(now) : "Rotaract Club Chapecó"}
             </p>

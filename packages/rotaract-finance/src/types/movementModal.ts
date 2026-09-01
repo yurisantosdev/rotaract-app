@@ -10,6 +10,7 @@ export type MovementModalProps = {
   category: (typeof MOVEMENT_CATEGORIES)[number];
   type: MovementType;
   error: string;
+  saving?: boolean;
   onDescriptionChange: (value: string) => void;
   onValueChange: (value: string) => void;
   onDateChange: (value: string) => void;

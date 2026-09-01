@@ -10,7 +10,7 @@ import {
   type Movement,
   type MovementType,
 } from "../../types/movement";
-import { MicrosoftExcelLogoIcon, TrashIcon, PencilSimpleIcon } from "@phosphor-icons/react";
+import { MicrosoftExcelLogoIcon, TrashIcon, PencilSimpleIcon, PlusIcon } from "@phosphor-icons/react";
 import { downloadMovementsReport } from "../../services/report";
 
 type MovementsPanelProps = {
@@ -43,6 +43,7 @@ export function MovementsPanel({
   const [movementToDelete, setMovementToDelete] = useState<Movement | null>(
     null
   );
+  const [saving, setSaving] = useState(false);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -69,6 +70,7 @@ export function MovementsPanel({
   }
 
   function closeForm() {
+    if (saving) return;
     setFormOpen(false);
     setEditingMovement(null);
     setError("");
@@ -99,6 +101,8 @@ export function MovementsPanel({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (saving) return;
+
     const parsedValue = parseMoneyInput(value);
 
     if (!description.trim()) {
@@ -119,32 +123,36 @@ export function MovementsPanel({
       value: parsedValue,
     };
 
+    setSaving(true);
+    setError("");
+
     try {
       if (editingMovement) {
         await onUpdate({ ...payload, id: editingMovement.id });
       } else {
         await onAdd(payload);
       }
+
+      setEditingMovement(null);
+      resetForm();
+      setFormOpen(false);
     } catch {
       setError(
         editingMovement
           ? "Não foi possível atualizar a movimentação."
           : "Não foi possível criar a movimentação."
       );
-      return;
+    } finally {
+      setSaving(false);
     }
-
-    setEditingMovement(null);
-    resetForm();
-    setFormOpen(false);
   }
 
   return (
     <section className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex justify-between items-center gap-3">
         <div>
           <h2 className="text-lg font-semibold text-zinc-900">Movimentações</h2>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-zinc-500 md:flex hidden">
             Filtre, registre e acompanhe entradas e saídas do clube.
           </p>
         </div>
@@ -154,15 +162,19 @@ export function MovementsPanel({
               type="button"
               aria-label="Baixar relatório"
               onClick={() => downloadMovementsReport(filtered)}
-              className="cursor-pointer rounded-full bg-emerald-500 p-3 hover:bg-emerald-600"
+              className="inline-flex items-center justify-center rounded-full bg-emerald-500 p-3.5 transition hover:bg-emerald-600 cursor-pointer"
             >
-              <MicrosoftExcelLogoIcon className="h-4 w-4" color="white" />
+              <MicrosoftExcelLogoIcon className="h-5 w-5" color="white" />
             </button>
           </Tooltip>
-          <Button
-            title="Nova movimentação"
-            onClick={openCreate}
-          />
+
+          <Tooltip label="Nova movimentação">
+            <Button
+              aria-label="Nova movimentação"
+              icon={<PlusIcon className="h-5 w-5" />}
+              onClick={openCreate}
+            />
+          </Tooltip>
         </div>
       </div>
 
@@ -175,6 +187,7 @@ export function MovementsPanel({
         category={category}
         type={type}
         error={error}
+        saving={saving}
         onDescriptionChange={setDescription}
         onValueChange={setValue}
         onDateChange={setDate}
@@ -220,7 +233,7 @@ export function MovementsPanel({
               key={value}
               type="button"
               onClick={() => setTypeFilter(value)}
-              className={`h-9 rounded-full px-3 text-sm font-medium transition ${typeFilter === value
+              className={`h-9 rounded-full px-3 w-full text-sm font-medium transition ${typeFilter === value
                 ? "bg-white text-zinc-900 shadow-sm"
                 : "text-zinc-500 hover:text-zinc-800"
                 }`}
@@ -240,46 +253,47 @@ export function MovementsPanel({
           filtered.map((movement) => (
             <li
               key={movement.id}
-              className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="min-w-0">
-                <p className="font-medium text-zinc-900">{movement.description}</p>
+              <p
+                className="font-medium text-zinc-900">
+                {movement.description}
+              </p>
+
+              <div className="flex justify-between items-center gap-3">
                 <p className="mt-1 text-sm text-zinc-500">
                   {formatDate(movement.date)} · {movement.category}
                 </p>
-              </div>
-              <div className="flex items-center gap-3">
                 <span
-                  className={`text-sm font-semibold ${movement.type === "entrada" ? "text-emerald-600" : "text-rose-500"
+                  className={`text-sm mr-3 md:mr-4 font-semibold ${movement.type === "entrada" ? "text-emerald-600" : "text-rose-500"
                     }`}
                 >
                   {movement.type === "entrada" ? "+" : "−"}
                   {formatBRL(movement.value)}
                 </span>
+              </div>
 
-                <div className="flex gap-2 mr-4">
-                  <Tooltip label="Excluir">
-                    <button
-                      type="button"
-                      aria-label="Excluir"
-                      onClick={() => setMovementToDelete(movement)}
-                      className="rounded-full p-1.5 text-sm text-zinc-500 transition hover:bg-rose-50 hover:text-zinc-800"
-                    >
-                      <TrashIcon className="h-4 w-4 text-red-500 group-hover/tooltip:text-red-600" />
-                    </button>
-                  </Tooltip>
+              <div className="flex items-center justify-end gap-2 mr-3 md:mr-4">
+                <Tooltip label="Excluir">
+                  <button
+                    type="button"
+                    aria-label="Excluir"
+                    onClick={() => setMovementToDelete(movement)}
+                    className="rounded-full p-1.5 text-sm text-zinc-500 transition hover:bg-rose-50 hover:text-zinc-800"
+                  >
+                    <TrashIcon className="h-4 w-4 text-red-500 group-hover/tooltip:text-red-600" />
+                  </button>
+                </Tooltip>
 
-                  <Tooltip label="Editar">
-                    <button
-                      type="button"
-                      aria-label="Editar"
-                      onClick={() => openEdit(movement)}
-                      className="rounded-full p-1.5 text-sm text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
-                    >
-                      <PencilSimpleIcon className="h-4 w-4 text-zinc-500 group-hover/tooltip:text-zinc-700" />
-                    </button>
-                  </Tooltip>
-                </div>
+                <Tooltip label="Editar">
+                  <button
+                    type="button"
+                    aria-label="Editar"
+                    onClick={() => openEdit(movement)}
+                    className="rounded-full p-1.5 text-sm text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
+                  >
+                    <PencilSimpleIcon className="h-4 w-4 text-zinc-500 group-hover/tooltip:text-zinc-700" />
+                  </button>
+                </Tooltip>
               </div>
             </li>
           ))

@@ -1,10 +1,11 @@
 "use client";
 
-import { formatBRL } from "../services/money";
-import type { Movement } from "../types/movement";
-import type { Contribution } from "../types/contributions";
-import { Button, Tooltip } from "@rotaract/components";
+import { formatBRL } from "../../services/money";
+import type { Movement } from "../../types/movement";
+import type { Contribution } from "../../types/contributions";
+import { Tooltip } from "@rotaract/components";
 import { MicrosoftExcelLogoIcon } from "@phosphor-icons/react";
+import { DescriptionReportPanel } from "./DescriptionReportPanel";
 
 type ReportPanelProps = {
   movements: Movement[];
@@ -33,12 +34,13 @@ export function ReportPanel({
 
   return (
     <section className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex gap-3 items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-zinc-900">Prestação de contas</h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Resumo de exemplo para assembleia, com totais e categorias.
-          </p>
+
+          <span className="md:flex hidden">
+            <DescriptionReportPanel />
+          </span>
         </div>
 
         <Tooltip label="Baixar resumo">
@@ -51,6 +53,10 @@ export function ReportPanel({
           </div>
         </Tooltip>
       </div>
+
+      <span className="md:hidden flex mt-3">
+        <DescriptionReportPanel />
+      </span>
 
       <dl className="mt-6 grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl bg-rotaract-mist p-4">

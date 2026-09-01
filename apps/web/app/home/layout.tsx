@@ -8,6 +8,7 @@ import { clearSession, getToken } from "../lib/auth";
 import type { AuthUser } from "../lib/types";
 import { ClubBrandingProvider } from "./_components/club-branding";
 import { MemberSessionProvider } from "./_components/member-session";
+import { Loading } from "@rotaract/components";
 
 export default function HomeLayout({
   children,
@@ -54,20 +55,16 @@ export default function HomeLayout({
     router.refresh();
   }
 
-  if (!user) {
-    return (
-      <main className="flex min-h-dvh items-center justify-center bg-rotaract-mist text-zinc-500">
-        Carregando...
-      </main>
-    );
-  }
-
   return (
-    <div className="min-h-dvh bg-rotaract-mist text-rotaract-ink">
-      <ClubBrandingProvider>
-        <AppHeader user={user} onLogout={handleLogout} />
-        <MemberSessionProvider user={user}>{children}</MemberSessionProvider>
-      </ClubBrandingProvider>
-    </div>
+    user ? (
+      <div className="min-h-dvh bg-rotaract-mist text-rotaract-ink">
+        <ClubBrandingProvider>
+          <AppHeader user={user} onLogout={handleLogout} />
+          <MemberSessionProvider user={user}>{children}</MemberSessionProvider>
+        </ClubBrandingProvider>
+      </div>
+    ) : (
+      <Loading />
+    )
   );
 }
