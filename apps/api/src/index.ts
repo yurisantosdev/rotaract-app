@@ -1,8 +1,11 @@
 import "dotenv/config";
+import { setDefaultResultOrder } from "node:dns";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import cors from "cors";
 import express from "express";
+
+setDefaultResultOrder("ipv4first");
 
 function lerVersaoDoPacote(): string {
   try {
@@ -61,15 +64,35 @@ if (!jwtSecretOk) {
   );
 }
 
-const mongodbUri = process.env.MONGODB_URI?.trim();
+function lerMongoUri(): string | undefined {
+  const raw = process.env.MONGODB_URI?.trim();
+  if (!raw) return undefined;
+  return raw.replace(/^["']+|["']+$/g, "").trim();
+}
+
+function mensagemErroMongo(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
+let ultimoErroMongo: string | undefined;
 
 async function garantirMongo(): Promise<boolean> {
-  if (!mongodbUri) return false;
-  if (isDatabaseConnected()) return true;
+  const mongodbUri = lerMongoUri();
+  if (!mongodbUri) {
+    ultimoErroMongo = "MONGODB_URI ausente";
+    return false;
+  }
+  if (isDatabaseConnected()) {
+    ultimoErroMongo = undefined;
+    return true;
+  }
   try {
     await connectDatabase(mongodbUri);
+    ultimoErroMongo = undefined;
     return true;
   } catch (err) {
+    ultimoErroMongo = mensagemErroMongo(err);
     console.error(
       "MongoDB indisponível (Atlas: libere 0.0.0.0/0 em Network Access para a Vercel):"
     );
@@ -105,6 +128,7 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "5mb" }));
 
 function payloadSaude(db: boolean) {
+  const mongodbUri = lerMongoUri();
   return {
     ok: true,
     versao: APP_VERSION,
@@ -112,6 +136,10 @@ function payloadSaude(db: boolean) {
     jwt: jwtSecretOk,
     ...(mongodbUri ? {} : { aviso: "MONGODB_URI não configurada" }),
     ...(!jwtSecretOk ? { avisoJwt: "JWT_SECRET não configurada" } : {}),
+    ...(ultimoErroMongo ? { dbErro: ultimoErroMongo } : {}),
+    ...(mongodbUri && !mongodbUri.startsWith("mongodb")
+      ? { avisoUri: "MONGODB_URI não começa com mongodb:// ou mongodb+srv://" }
+      : {}),
   };
 }
 
@@ -133,6 +161,7 @@ app.use(async (req, res, next) => {
     return res.status(503).json({
       erro:
         "Banco de dados indisponível. Confira MONGODB_URI e Network Access no Atlas.",
+      ...(ultimoErroMongo ? { detalhe: ultimoErroMongo } : {}),
     });
   }
   next();
@@ -162,6 +191,7 @@ async function iniciarServidorLocal(): Promise<void> {
     server.on("error", reject);
   });
 
+  const mongodbUri = lerMongoUri();
   if (!mongodbUri) {
     console.error(
       "AVISO: MONGODB_URI ausente — rotas /api/* ficam em 503 até configurar."

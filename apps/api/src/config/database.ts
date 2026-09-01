@@ -25,13 +25,12 @@ export async function connectDatabase(uri: string): Promise<void> {
   if (!cache.promise) {
     mongoose.set("strictQuery", true);
     cache.promise = mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 10_000,
-      connectTimeoutMS: 10_000,
+      serverSelectionTimeoutMS: 8_000,
+      connectTimeoutMS: 8_000,
       socketTimeoutMS: 45_000,
       maxPoolSize: 10,
       maxIdleTimeMS: 10_000,
       bufferCommands: false,
-      family: 4,
     });
   }
 
