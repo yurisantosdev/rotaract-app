@@ -32,7 +32,7 @@ export default function Home() {
       <div className="relative mx-auto grid min-h-dvh w-full max-w-6xl items-start gap-10 px-5 py-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:px-8 lg:py-12">
         <section className="order-2 max-w-xl lg:order-1">
           <p className="mt-8 text-sm uppercase tracking-[0.32em] text-zinc-400">
-            Rotaract Club Chapecó
+            Rotaract Club
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-zinc-900 sm:text-5xl">
             O clube em um só lugar.
@@ -58,7 +58,7 @@ export default function Home() {
         <section className="order-1 w-full max-w-md justify-self-end lg:order-2 lg:max-w-none">
           <LoginForm />
           <p className="mt-6 text-center text-xs text-zinc-400">
-            © {new Date().getFullYear()} Rotaract Club Chapecó
+            © {new Date().getFullYear()} Quattro LTDA - Todos os direitos reservados.
           </p>
         </section>
       </div>

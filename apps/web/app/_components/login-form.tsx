@@ -36,11 +36,6 @@ export function LoginForm() {
     setInfo("Recuperação de senha ainda não está conectada. Em breve por aqui.");
   }
 
-  function handleCreateAccount() {
-    setError("");
-    setInfo("O cadastro de novos membros ainda não está disponível nesta tela.");
-  }
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setInfo("");
@@ -185,15 +180,7 @@ export function LoginForm() {
           </label>
 
           <div className="flex items-center justify-between gap-3 text-sm">
-            <label className="inline-flex items-center gap-2 text-zinc-500 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(event) => setRemember(event.target.checked)}
-                className="h-4 w-4 rounded border-zinc-300 bg-white accent-rotaract-pink"
-              />
-              Lembrar de mim
-            </label>
+
             <button
               type="button"
               onClick={handleForgotPassword}
@@ -217,17 +204,6 @@ export function LoginForm() {
             {status === "loading" ? "Entrando..." : "Entrar"}
           </button>
         </form>
-
-        <p className="mt-6 text-center text-sm text-zinc-500">
-          Ainda não faz parte do clube?{" "}
-          <button
-            type="button"
-            onClick={handleCreateAccount}
-            className="font-medium text-zinc-900 underline-offset-4 transition hover:text-rotaract-pink hover:underline"
-          >
-            Solicitar acesso
-          </button>
-        </p>
       </div>
     </div>
   );
