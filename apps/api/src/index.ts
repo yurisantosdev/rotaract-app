@@ -109,7 +109,7 @@ const allowedOrigins = [
   "http://127.0.0.1:3000",
   "http://localhost:3002",
   "http://127.0.0.1:3002",
-  "https://rotaract.vercel.app",
+  "https://rotaractapp.vercel.app/",
 ];
 
 const corsOptions = {
