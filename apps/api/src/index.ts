@@ -104,21 +104,30 @@ async function garantirMongo(): Promise<boolean> {
 const app = express();
 app.set("trust proxy", 1);
 
+function normalizarOrigin(origin: string): string {
+  return origin.trim().replace(/\/+$/, "");
+}
+
 const allowedOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
   "http://localhost:3002",
   "http://127.0.0.1:3002",
-  "https://rotaractapp.vercel.app/",
-];
+  "https://rotaractapp.vercel.app",
+  "https://rotaract.vercel.app",
+  ...(process.env.FRONTEND_URL ?? process.env.CORS_ORIGIN ?? "")
+    .split(",")
+    .map(normalizarOrigin)
+    .filter(Boolean),
+].map(normalizarOrigin);
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(normalizarOrigin(origin))) {
       callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+      return;
     }
+    callback(null, false);
   },
   credentials: true,
 };
