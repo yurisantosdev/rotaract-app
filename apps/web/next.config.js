@@ -6,6 +6,7 @@ const nextConfig = {
     "@rotaract/finance",
     "@rotaract/components",
     "@rotaract/settings",
+    "@rotaract/members",
   ],
   async rewrites() {
     return [

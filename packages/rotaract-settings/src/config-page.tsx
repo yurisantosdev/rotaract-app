@@ -5,7 +5,7 @@ import {
   CheckCircleIcon,
   FloppyDiskIcon,
 } from "@phosphor-icons/react";
-import { Button, ConfirmModal, ReturnModule, TitleModule } from "@rotaract/components";
+import { Button, ConfirmModal, Loading, ReturnModule, TitleModule } from "@rotaract/components";
 import { ClubLogoField } from "./components/club-logo-field";
 
 import {
@@ -55,6 +55,7 @@ export function ConfigPage({
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const draftFee = parseMoneyInput(feeInput);
   const dirty = useMemo(() => {
@@ -140,14 +141,19 @@ export function ConfigPage({
           return;
         }
         setSaved(EMPTY_SETTINGS);
+      }).finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       });
 
     return () => controller.abort();
   }, []);
 
-
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+      {isLoading ? <Loading /> : null}
+
       <ReturnModule backHref={backHref} />
 
       <TitleModule

@@ -4,6 +4,7 @@ const config = {
     "./app/**/*.{ts,tsx,js,jsx}",
     "../../packages/rotaract-finance/src/**/*.{ts,tsx}",
     "../../packages/rotaract-settings/src/**/*.{ts,tsx}",
+    "../../packages/rotaract-members/src/**/*.{ts,tsx}",
     "../../packages/rotaract-components/src/**/*.{ts,tsx}",
   ],
   theme: {

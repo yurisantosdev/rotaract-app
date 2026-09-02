@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { User } from "../models/Users";
+import { Member } from "@rotaract/members/server";
 import { comparePassword } from "../lib/password";
 import { signAccessToken } from "../lib/jwt";
 
@@ -23,16 +23,16 @@ export async function login(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const user = await User.findOne({
+  const member = await Member.findOne({
     email: normalizarEmail(email),
   }).select("+password");
 
-  if (!user) {
+  if (!member) {
     res.status(401).json({ erro: "Credenciais inválidas" });
     return;
   }
 
-  const hash = user.password;
+  const hash = member.password;
   if (!hash) {
     res.status(500).json({ erro: "Dados de autenticação inconsistentes" });
     return;
@@ -45,11 +45,14 @@ export async function login(req: Request, res: Response): Promise<void> {
   }
 
   const token = signAccessToken({
-    sub: user._id.toString(),
-    email: user.email,
-    photo: user.photo,
-    createdAt: user.createdAt.toISOString(),
-    updatedAt: user.updatedAt.toISOString(),
+    sub: member._id.toString(),
+    email: member.email,
+    photo: member.photo,
+    position: member.position,
+    status: member.status,
+    birthDate: member.birthDate,
+    createdAt: member.createdAt.toISOString(),
+    updatedAt: member.updatedAt.toISOString(),
   });
 
   res.json({
@@ -65,18 +68,21 @@ export async function me(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const user = await User.findById(req.user.sub);
-  if (!user) {
+  const member = await Member.findById(req.user.sub);
+  if (!member) {
     res.status(401).json({ erro: "Sessão inválida" });
     return;
   }
 
   res.json({
-    id: user._id.toString(),
-    name: user.name,
-    email: user.email,
-    photo: user.photo,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
+    id: member._id.toString(),
+    name: member.name,
+    position: member.position,
+    status: member.status,
+    email: member.email,
+    photo: member.photo,
+    birthDate: member.birthDate,
+    createdAt: member.createdAt,
+    updatedAt: member.updatedAt,
   });
 }

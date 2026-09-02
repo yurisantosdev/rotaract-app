@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "tsc -p ../../packages/rotaract-finance/tsconfig.server.json && tsc -p ../../packages/rotaract-settings/tsconfig.server.json && tsc",
+    "build": "tsc -p ../../packages/rotaract-finance/tsconfig.server.json && tsc -p ../../packages/rotaract-settings/tsconfig.server.json && tsc -p ../../packages/rotaract-members/tsconfig.server.json && tsc",
     "start": "node dist/index.js",
     "sync-version": "node scripts/sync-version-from-front.mjs",
     "prepare": "husky"
@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@rotaract/finance": "*",
+    "@rotaract/members": "*",
     "@rotaract/settings": "*",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

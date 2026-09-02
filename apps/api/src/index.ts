@@ -33,9 +33,9 @@ import { connectDatabase, isDatabaseConnected } from "./config/database";
 //Routes
 import { financeRouter } from "@rotaract/finance/server";
 import { settingsRouter } from "@rotaract/settings/server";
+import { membersRouter } from "@rotaract/members/server";
 import { requireAuth } from "./middleware/auth";
 import authRoutes from "./routes/authRoutes";
-import usersRoutes from "./routes/usersRoutes";
 
 function portaHttp(): number {
   const raw = process.env.PORT;
@@ -177,9 +177,9 @@ app.use(async (req, res, next) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/users", usersRoutes);
 app.use("/api/finance", requireAuth, financeRouter);
 app.use("/api/settings", requireAuth, settingsRouter);
+app.use("/api/members", requireAuth, membersRouter);
 
 export default app;
 
