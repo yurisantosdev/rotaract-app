@@ -44,7 +44,11 @@ function toDateInput(value: unknown): string | undefined {
 
   const br = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (br) {
-    return `${br[3]}-${br[2].padStart(2, "0")}-${br[1].padStart(2, "0")}`;
+    const day = br[1];
+    const month = br[2];
+    const year = br[3];
+    if (!day || !month || !year) return undefined;
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   }
 
   const parsed = new Date(trimmed);

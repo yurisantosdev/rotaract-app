@@ -1,4 +1,4 @@
-import { Contribution } from "@/src/types/contributions";
+import { Contribution } from "../../types/contributions";
 import React from "react";
 
 export type StatusContributionProps = {
