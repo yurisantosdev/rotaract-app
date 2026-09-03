@@ -3,10 +3,6 @@ import jwt from "jsonwebtoken";
 export type JwtUserPayload = {
   sub: string;
   email: string;
-  photo?: string;
-  position?: string;
-  status?: string;
-  birthDate?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -31,10 +27,6 @@ export function verifyAccessToken(token: string): JwtUserPayload {
   return {
     sub: decoded.sub,
     email: decoded.email,
-    photo: typeof decoded.photo === "string" ? decoded.photo : undefined,
-    position: typeof decoded.position === "string" ? decoded.position : undefined,
-    status: typeof decoded.status === "string" ? decoded.status : undefined,
-    birthDate: typeof decoded.birthDate === "string" ? decoded.birthDate : undefined,
     createdAt: typeof decoded.createdAt === "string" ? decoded.createdAt : undefined,
     updatedAt: typeof decoded.updatedAt === "string" ? decoded.updatedAt : undefined,
   };
