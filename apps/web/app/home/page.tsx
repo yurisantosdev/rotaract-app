@@ -47,23 +47,6 @@ const modules = [
     ),
   },
   {
-    title: "Reuniões",
-    description: "Pautas, atas e presença das reuniões do clube.",
-    href: "/home/meeting",
-    action: "Abrir reuniões",
-    icon: (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
-        <path
-          d="M7 8h10M7 12h6M6 5h12a2 2 0 0 1 2 2v12l-3.5-2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-  },
-  {
     title: "Agenda",
     description: "Eventos, projetos e compromissos do calendário.",
     href: "/home/calendar",
