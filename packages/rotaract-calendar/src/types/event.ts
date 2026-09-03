@@ -1,4 +1,4 @@
-export type EventKind = "reuniao" | "projeto" | "evento" | "compromisso" | "outro";
+export type EventKind = "reuniao" | "projeto" | "evento" | "outro";
 
 export type CalendarEvent = {
   id: string;
@@ -25,7 +25,6 @@ export const EVENT_KINDS: { id: EventKind; label: string }[] = [
   { id: "reuniao", label: "Reunião" },
   { id: "projeto", label: "Projeto" },
   { id: "evento", label: "Evento" },
-  { id: "compromisso", label: "Compromisso" },
   { id: "outro", label: "Outro" },
 ];
 
@@ -50,12 +49,6 @@ export const EVENT_KIND_STYLES: Record<
     hover: "bg-sky-500 text-white ring-sky-600",
     dot: "bg-sky-500",
     header: "bg-sky-50 text-sky-800",
-  },
-  compromisso: {
-    chip: "bg-amber-100 text-amber-800 ring-amber-200",
-    hover: "bg-amber-500 text-white ring-amber-600",
-    dot: "bg-amber-500",
-    header: "bg-amber-50 text-amber-800",
   },
   outro: {
     chip: "bg-zinc-100 text-zinc-800 ring-zinc-200",

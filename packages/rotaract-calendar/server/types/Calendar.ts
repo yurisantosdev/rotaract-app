@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export type TypeCalendar = "reuniao" | "projeto" | "evento" | "compromisso" | "outro";
+export type TypeCalendar = "reuniao" | "projeto" | "evento" | "outro";
 
 export type CalendarType = {
   _id: mongoose.Types.ObjectId;

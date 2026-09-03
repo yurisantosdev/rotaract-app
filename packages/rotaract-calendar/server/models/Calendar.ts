@@ -11,7 +11,7 @@ const calendarSchema = new mongoose.Schema(
     type: {
       type: String,
       required: false,
-      enum: ["reuniao", "reunião", "projeto", "evento", "compromisso", "outro"],
+      enum: ["reuniao", "reunião", "projeto", "evento", "outro"],
       trim: true,
     },
     date_start: {

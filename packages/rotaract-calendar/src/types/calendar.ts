@@ -1,4 +1,4 @@
-export type TypeCalendar = "reuniao" | "projeto" | "evento" | "compromisso" | "outro";
+export type TypeCalendar = "reuniao" | "projeto" | "evento" | "outro";
 
 export type MemberStatus = "ativo" | "inativo";
 

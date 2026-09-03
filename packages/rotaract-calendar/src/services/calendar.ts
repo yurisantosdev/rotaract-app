@@ -30,7 +30,7 @@ function asString(value: unknown, fallback = ""): string {
 
 function asCalendarType(value: unknown): TypeCalendar {
   if (value === "reunião" || value === "reuniao") return "reuniao";
-  if (value === "projeto" || value === "evento" || value === "compromisso" || value === "outro") {
+  if (value === "projeto" || value === "evento" || value === "outro") {
     return value;
   }
   return "outro";
