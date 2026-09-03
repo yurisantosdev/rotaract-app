@@ -47,10 +47,6 @@ export async function login(req: Request, res: Response): Promise<void> {
   const token = signAccessToken({
     sub: member._id.toString(),
     email: member.email,
-    photo: member.photo,
-    position: member.position,
-    status: member.status,
-    birthDate: member.birthDate,
     createdAt: member.createdAt.toISOString(),
     updatedAt: member.updatedAt.toISOString(),
   });
@@ -77,11 +73,7 @@ export async function me(req: Request, res: Response): Promise<void> {
   res.json({
     id: member._id.toString(),
     name: member.name,
-    position: member.position,
-    status: member.status,
     email: member.email,
-    photo: member.photo,
-    birthDate: member.birthDate,
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
   });
