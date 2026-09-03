@@ -12,9 +12,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Entrar | Rotaract Club Chapecó",
-  description:
-    "Acesso à área de membros do Rotaract Club Chapecó.",
+  title: "Rotaract Club",
+  description: "Rotaract Club",
 };
 
 export default function RootLayout({
