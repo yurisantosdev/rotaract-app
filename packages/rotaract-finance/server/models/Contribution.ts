@@ -8,8 +8,14 @@ const contributionSchema = new mongoose.Schema(
   {
     memberId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Member",
       required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      default: "",
     },
     reference: {
       type: String,

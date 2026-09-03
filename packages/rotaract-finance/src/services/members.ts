@@ -5,7 +5,7 @@ export type Member = {
 };
 
 export async function listMembers(signal: AbortSignal): Promise<Member[]> {
-  const response = await fetch("/api/users", {
+  const response = await fetch("/api/members", {
     signal,
     credentials: "include",
   });

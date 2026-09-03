@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { Button, Modal } from "@rotaract/components";
+import { Button, DatePicker, Modal } from "@rotaract/components";
 import { MemberPhotoField } from "./member-photo-field";
 import {
   digitsOnly,
@@ -234,22 +234,24 @@ export function MemberModal({
         </div>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <label>
-            <span className="mb-1.5 block text-sm text-zinc-600">
+          <div>
+            <label htmlFor="member-birth-date" className="mb-1.5 block text-sm text-zinc-600">
               Data de nascimento
-            </span>
-            <input
-              type="date"
+            </label>
+            <DatePicker
+              id="member-birth-date"
               value={form.birthDate}
-              onChange={(event) =>
+              onChange={(birthDate) =>
                 setForm((current) => ({
                   ...current,
-                  birthDate: event.target.value,
+                  birthDate,
                 }))
               }
-              className={MEMBER_INPUT_CLASS}
+              fixedPopover
+              allowClear={false}
+              showToday={false}
             />
-          </label>
+          </div>
           <label>
             <span className="mb-1.5 block text-sm text-zinc-600">Cargo no clube</span>
             <select

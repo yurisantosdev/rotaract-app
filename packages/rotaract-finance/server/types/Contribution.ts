@@ -6,6 +6,7 @@ export type ContributionStatus = (typeof CONTRIBUTION_STATUS)[number];
 export type ContributionTypeDoc = {
   _id: mongoose.Types.ObjectId;
   memberId: mongoose.Types.ObjectId;
+  name: string;
   reference: string;
   value: number;
   status: ContributionStatus;

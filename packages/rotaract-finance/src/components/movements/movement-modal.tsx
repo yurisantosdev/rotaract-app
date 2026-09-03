@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Button, Modal } from "@rotaract/components";
+import { Button, DatePicker, Modal } from "@rotaract/components";
 import { formatMoneyInput } from "../../services/money";
 import { MOVEMENT_CATEGORIES, inputClassName } from "../../types/movement";
 import { MovementModalProps } from "../../types/movementModal";
@@ -92,15 +92,18 @@ export function MovementModal({
               />
             </span>
           </label>
-          <label>
-            <span className="mb-1.5 block text-sm text-zinc-600">Data</span>
-            <input
-              type="date"
+          <div>
+            <label htmlFor="movement-date" className="mb-1.5 block text-sm text-zinc-600">
+              Data
+            </label>
+            <DatePicker
+              id="movement-date"
               value={date}
-              onChange={(event) => onDateChange(event.target.value)}
-              className={inputClassName}
+              onChange={onDateChange}
+              fixedPopover
+              allowClear={false}
             />
-          </label>
+          </div>
         </div>
 
         <label className="mt-4 block">

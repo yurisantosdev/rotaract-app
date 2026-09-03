@@ -26,6 +26,7 @@
   ],
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
+    "@rotaract/calendar": "^0.1.0",
     "@rotaract/members": "^0.1.0"
   }
 }

@@ -4,6 +4,15 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import cors from "cors";
 import express from "express";
+import { connectDatabase, isDatabaseConnected } from "./config/database";
+import { requireAuth } from "./middleware/auth";
+
+//Routes
+import authRoutes from "./routes/authRoutes";
+import { financeRouter } from "@rotaract/finance/server";
+import { settingsRouter } from "@rotaract/settings/server";
+import { membersRouter } from "@rotaract/members/server";
+import { calendarRouter } from "@rotaract/calendar/server";
 
 setDefaultResultOrder("ipv4first");
 
@@ -28,14 +37,6 @@ process.on("uncaughtException", (err) => {
 process.on("unhandledRejection", (reason) => {
   console.error("[fatal] unhandledRejection:", reason);
 });
-import { connectDatabase, isDatabaseConnected } from "./config/database";
-
-//Routes
-import { financeRouter } from "@rotaract/finance/server";
-import { settingsRouter } from "@rotaract/settings/server";
-import { membersRouter } from "@rotaract/members/server";
-import { requireAuth } from "./middleware/auth";
-import authRoutes from "./routes/authRoutes";
 
 function portaHttp(): number {
   const raw = process.env.PORT;
@@ -180,6 +181,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/finance", requireAuth, financeRouter);
 app.use("/api/settings", requireAuth, settingsRouter);
 app.use("/api/members", requireAuth, membersRouter);
+app.use("/api/calendar", requireAuth, calendarRouter);
+
 
 export default app;
 

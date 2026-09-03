@@ -1,9 +1,11 @@
 "use client";
 
-export default function AgendaPage() {
+import { CalendarPage } from "@rotaract/calendar";
+import { useMemberSession } from "../_components/member-session";
+
+export default function Calendar() {
+  const { user } = useMemberSession();
   return (
-    <div>
-      Em desenvolvimento
-    </div>
+    <CalendarPage userName={user.name} currentUserId={user.id} backHref="/home" />
   );
 }

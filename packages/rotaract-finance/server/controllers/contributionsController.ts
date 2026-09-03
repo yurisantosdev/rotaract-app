@@ -14,7 +14,8 @@ function shortName(name: string): string {
   return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).join(" ");
 }
 
-function serializar(doc: ContributionTypeDoc, name = ""): ContributionResponse {
+function serializar(doc: ContributionTypeDoc, fallbackName = ""): ContributionResponse {
+  const name = doc.name?.trim() || fallbackName;
   return {
     id: doc._id.toString(),
     memberId: doc.memberId.toString(),
@@ -27,22 +28,22 @@ function serializar(doc: ContributionTypeDoc, name = ""): ContributionResponse {
   };
 }
 
-async function userNameById(
+async function memberNameById(
   memberId: mongoose.Types.ObjectId | string | undefined
 ): Promise<string> {
   if (!memberId || !mongoose.isValidObjectId(memberId)) return "";
 
-  const user = await mongoose.connection
-    .collection("users")
+  const member = await mongoose.connection
+    .collection("members")
     .findOne(
       { _id: new mongoose.Types.ObjectId(memberId.toString()) },
       { projection: { name: 1 } }
     );
 
-  return typeof user?.name === "string" ? user.name : "";
+  return typeof member?.name === "string" ? member.name.trim() : "";
 }
 
-async function userNamesByIds(
+async function memberNamesByIds(
   memberIds: Array<mongoose.Types.ObjectId | string | undefined>
 ): Promise<Map<string, string>> {
   const uniqueIds = Array.from(
@@ -58,15 +59,15 @@ async function userNamesByIds(
 
   if (ids.length === 0) return new Map();
 
-  const users = await mongoose.connection
-    .collection("users")
+  const members = await mongoose.connection
+    .collection("members")
     .find({ _id: { $in: ids } }, { projection: { name: 1 } })
     .toArray();
 
   return new Map(
-    users.map((user) => [
-      user._id.toString(),
-      typeof user.name === "string" ? user.name : "",
+    members.map((member) => [
+      member._id.toString(),
+      typeof member.name === "string" ? member.name.trim() : "",
     ])
   );
 }
@@ -91,7 +92,7 @@ async function ensureMovementForContribution(
   const existing = await Movement.findOne({ contributionId: contribution._id });
   if (existing) return;
 
-  const name = await userNameById(contribution.memberId);
+  const name = contribution.name?.trim() || (await memberNameById(contribution.memberId));
   const member = shortName(name);
   const description = member
     ? `Mensalidade ${contribution.reference} — ${member}`
@@ -126,14 +127,28 @@ function isContributionStatus(value: string): value is ContributionStatus {
 
 type ContributionInput = {
   memberId: mongoose.Types.ObjectId;
+  name: string;
   reference: string;
   value: number;
   status: ContributionStatus;
 };
 
+async function withMemberName(
+  data: Omit<ContributionInput, "name">
+): Promise<{ ok: true; data: ContributionInput } | { ok: false; erro: string }> {
+  const name = await memberNameById(data.memberId);
+  if (!name) {
+    return { ok: false, erro: "Membro não encontrado" };
+  }
+
+  return { ok: true, data: { ...data, name } };
+}
+
 function parseContributionBody(
   body: unknown
-): { ok: true; data: ContributionInput } | { ok: false; erro: string } {
+):
+  | { ok: true; data: Omit<ContributionInput, "name"> }
+  | { ok: false; erro: string } {
   if (typeof body !== "object" || body === null) {
     return { ok: false, erro: "Corpo da requisição inválido" };
   }
@@ -185,7 +200,10 @@ function parseContributionBody(
 
 export async function list(_req: Request, res: Response): Promise<void> {
   const itens = await Contribution.find().sort({ createdAt: -1 }).lean();
-  const names = await userNamesByIds(itens.map((item) => item.memberId));
+  const missingNameIds = itens
+    .filter((item) => typeof item.name !== "string" || !item.name.trim())
+    .map((item) => item.memberId);
+  const names = await memberNamesByIds(missingNameIds);
 
   res.json(
     itens.map((item) =>
@@ -210,15 +228,20 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
     return;
   }
 
-  const criada = await Contribution.create(parsed.data);
+  const resolved = await withMemberName(parsed.data);
+  if (!resolved.ok) {
+    res.status(400).json({ erro: resolved.erro });
+    return;
+  }
+
+  const criada = await Contribution.create(resolved.data);
   const contribution = criada.toObject() as ContributionTypeDoc;
   await syncContributionMovement(
     contribution,
     new mongoose.Types.ObjectId(userId)
   );
-  const name = await userNameById(criada.memberId);
 
-  res.status(201).json(serializar(contribution, name));
+  res.status(201).json(serializar(contribution));
 }
 
 export async function generate(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -279,6 +302,12 @@ export async function generate(req: AuthenticatedRequest, res: Response): Promis
   }
 
   const objectIds = validIds.map((id) => new mongoose.Types.ObjectId(id));
+  const names = await memberNamesByIds(objectIds);
+  const missing = validIds.filter((id) => !names.get(id));
+  if (missing.length > 0) {
+    res.status(400).json({ erro: "Um ou mais membros não foram encontrados" });
+    return;
+  }
 
   const existing = await Contribution.find({
     reference: { $in: trimmedReferences },
@@ -296,6 +325,7 @@ export async function generate(req: AuthenticatedRequest, res: Response): Promis
       .filter((item) => !existingKeys.has(`${memberId.toString()}::${item}`))
       .map((item) => ({
         memberId,
+        name: names.get(memberId.toString()) ?? "",
         reference: item,
         value: parsedValue,
         status: "pendente" as const,
@@ -313,12 +343,9 @@ export async function generate(req: AuthenticatedRequest, res: Response): Promis
   const inserted = await Contribution.insertMany(toCreate);
 
   const docs = inserted.map((item) => item.toObject() as ContributionTypeDoc);
-  const names = await userNamesByIds(docs.map((item) => item.memberId));
 
   res.status(201).json({
-    created: docs.map((item) =>
-      serializar(item, names.get(item.memberId.toString()) ?? "")
-    ),
+    created: docs.map((item) => serializar(item)),
     skipped,
   });
 }
@@ -342,7 +369,13 @@ export async function update(req: AuthenticatedRequest, res: Response): Promise<
     return;
   }
 
-  const atualizada = await Contribution.findByIdAndUpdate(id, parsed.data, {
+  const resolved = await withMemberName(parsed.data);
+  if (!resolved.ok) {
+    res.status(400).json({ erro: resolved.erro });
+    return;
+  }
+
+  const atualizada = await Contribution.findByIdAndUpdate(id, resolved.data, {
     new: true,
     runValidators: true,
   }).lean();
@@ -358,9 +391,7 @@ export async function update(req: AuthenticatedRequest, res: Response): Promise<
     new mongoose.Types.ObjectId(userId)
   );
 
-  const name = await userNameById(contribution.memberId);
-
-  res.json(serializar(contribution, name));
+  res.json(serializar(contribution));
 }
 
 export async function remove(req: Request, res: Response): Promise<void> {
@@ -409,6 +440,10 @@ export async function exempt(req: AuthenticatedRequest, res: Response): Promise<
   const contribution = atualizada as unknown as ContributionTypeDoc;
   await removeMovementForContribution(contribution._id);
 
-  const name = await userNameById(contribution.memberId);
-  res.json(serializar(contribution, name));
+  res.json(
+    serializar(
+      contribution,
+      contribution.name?.trim() ? "" : await memberNameById(contribution.memberId)
+    )
+  );
 }
