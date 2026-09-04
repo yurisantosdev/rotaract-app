@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { CheckCircleIcon } from "@phosphor-icons/react";
 import { Loading, ReturnModule, TitleModule } from "@rotaract/components";
 import { MembersStats } from "./components/members-stats";
 import { MembersPanel } from "./components/members-panel";
 import type { Member, MemberPayload } from "./types/member";
-import { createMembers, listMembers, updateMembers } from "./services/members";
+import { membersAdd, membersUpdate } from "./redux/members/actions";
+import { useMembers, useMembersStatus } from "./redux/members/hooks";
+import { createMembers, updateMembers } from "./services/members";
 
 export type MembersPageProps = {
   userName: string;
@@ -17,16 +20,18 @@ export function MembersPage({
   userName,
   backHref = "/home",
 }: MembersPageProps) {
+  const dispatch = useDispatch();
+  const members = useMembers();
+  const membersStatus = useMembersStatus();
   const firstName = userName.split(" ")[0] || userName;
-  const [members, setMembers] = useState<Member[]>([]);
   const [notice, setNotice] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const isLoading = membersStatus === "idle" || membersStatus === "loading";
 
   function handleCreate(payload: MemberPayload) {
     const controller = new AbortController();
 
     return createMembers(controller.signal, payload).then((created) => {
-      setMembers((current) => [created, ...current]);
+      dispatch(membersAdd(created));
       setNotice("Membro cadastrado.");
     });
   }
@@ -35,9 +40,7 @@ export function MembersPage({
     const controller = new AbortController();
 
     return updateMembers(id, controller.signal, payload).then((updated) => {
-      setMembers((current) =>
-        current.map((item) => (item.id === updated.id ? updated : item))
-      );
+      dispatch(membersUpdate(updated));
       setNotice("Dados do membro atualizados.");
     });
   }
@@ -56,9 +59,7 @@ export function MembersPage({
       status: nextStatus,
     })
       .then((updated) => {
-        setMembers((current) =>
-          current.map((item) => (item.id === updated.id ? updated : item))
-        );
+        dispatch(membersUpdate(updated));
         setNotice(
           nextStatus === "inativo"
             ? "Membro marcado como inativo."
@@ -72,27 +73,6 @@ export function MembersPage({
         setNotice("Não foi possível alterar o status do membro.");
       });
   }
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    void Promise.all([
-      listMembers(controller.signal)
-        .then(setMembers)
-        .catch((error: unknown) => {
-          if (error instanceof DOMException && error.name === "AbortError") {
-            return;
-          }
-          setMembers([]);
-        }),
-    ]).finally(() => {
-      if (!controller.signal.aborted) {
-        setIsLoading(false);
-      }
-    });
-
-    return () => controller.abort();
-  }, []);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">

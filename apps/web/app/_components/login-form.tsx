@@ -2,8 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, MouseEvent, useState } from "react";
+import { useDispatch } from "react-redux";
+import { loadMembers } from "@rotaract/members";
 import { apiFetch } from "../lib/api";
 import { setSession } from "../lib/auth";
+import type { AppDispatch } from "../store";
 
 type Status = "idle" | "loading";
 
@@ -14,6 +17,7 @@ type LoginResponse = {
 
 export function LoginForm() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -69,6 +73,7 @@ export function LoginForm() {
       }
 
       setSession(data.token, remember);
+      await dispatch(loadMembers());
       router.push("/home");
       router.refresh();
     } catch {

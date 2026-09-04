@@ -2,10 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { useDispatch } from "react-redux";
+import { loadMembers, membersClean } from "@rotaract/members";
 import { AppHeader } from "../_components/app-header";
 import { apiFetch } from "../lib/api";
 import { clearSession, getToken } from "../lib/auth";
 import type { AuthUser } from "../lib/types";
+import type { AppDispatch } from "../store";
 import { ClubBrandingProvider } from "./_components/club-branding";
 import { MemberSessionProvider } from "./_components/member-session";
 import { Loading } from "@rotaract/components";
@@ -16,6 +19,7 @@ export default function HomeLayout({
   children: ReactNode;
 }) {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
@@ -28,10 +32,14 @@ export default function HomeLayout({
 
     let cancelled = false;
 
-    apiFetch<AuthUser>("/api/auth/me", { token })
-      .then(({ ok, data }) => {
+    void Promise.all([
+      apiFetch<AuthUser>("/api/auth/me", { token }),
+      dispatch(loadMembers()),
+    ])
+      .then(([{ ok, data }]) => {
         if (cancelled) return;
         if (!ok || !data.name) {
+          dispatch(membersClean());
           clearSession();
           router.replace("/");
           return;
@@ -40,6 +48,7 @@ export default function HomeLayout({
       })
       .catch(() => {
         if (cancelled) return;
+        dispatch(membersClean());
         clearSession();
         router.replace("/");
       });
@@ -47,9 +56,10 @@ export default function HomeLayout({
     return () => {
       cancelled = true;
     };
-  }, [router]);
+  }, [dispatch, router]);
 
   function handleLogout() {
+    dispatch(membersClean());
     clearSession();
     router.replace("/");
     router.refresh();

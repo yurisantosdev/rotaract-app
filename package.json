@@ -26,6 +26,7 @@
   ],
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
+    "@reduxjs/toolkit": "^2.12.0",
     "@rotaract/calendar": "^0.1.0",
     "@rotaract/members": "^0.1.0",
     "@rotaract/notices": "^0.1.0"

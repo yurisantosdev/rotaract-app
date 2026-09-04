@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { CheckCircleIcon } from "@phosphor-icons/react";
 import { Loading, ReturnModule, TitleModule } from "@rotaract/components";
+import { useMembers, useMembersStatus } from "@rotaract/members";
 import { CalendarStats } from "./components/calendar-stats";
 import { CalendarWorkspace } from "./components/calendar-workspace";
 import { dateTimeInputToIso, toDateInputValue, toTimeInputValue } from "./lib/dates";
 import { createCalendar, listCalendar, removeCalendar, updateCalendar } from "./services/calendar";
-import { listMembers } from "./services/members";
-import type { Calendar, CalendarPayload, Member } from "./types/calendar";
+import type { Calendar, CalendarPayload } from "./types/calendar";
 import type { CalendarEvent, CalendarEventPayload } from "./types/event";
 
 export type CalendarPageProps = {
@@ -56,11 +56,16 @@ export function CalendarPage({
   backHref = "/home",
 }: CalendarPageProps) {
   const firstName = userName.split(" ")[0] || userName;
+  const members = useMembers();
+  const membersStatus = useMembersStatus();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
   const [notice, setNotice] = useState("");
   const [loadError, setLoadError] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingCalendar, setIsLoadingCalendar] = useState(true);
+  const isLoading =
+    isLoadingCalendar ||
+    membersStatus === "idle" ||
+    membersStatus === "loading";
 
   function handleCreate(payload: CalendarEventPayload) {
     const controller = new AbortController();
@@ -112,36 +117,24 @@ export function CalendarPage({
   useEffect(() => {
     const controller = new AbortController();
 
-    void Promise.all([
-      listCalendar(controller.signal)
-        .then((list) => {
-          if (controller.signal.aborted) return;
-          setEvents(list.map(calendarToEvent));
-          setLoadError("");
-        })
-        .catch((error: unknown) => {
-          if (error instanceof DOMException && error.name === "AbortError") {
-            return;
-          }
-          setEvents([]);
-          setLoadError("Não foi possível carregar os agendamentos.");
-        }),
-      listMembers(controller.signal)
-        .then((list) => {
-          if (controller.signal.aborted) return;
-          setMembers(list);
-        })
-        .catch((error: unknown) => {
-          if (error instanceof DOMException && error.name === "AbortError") {
-            return;
-          }
-          setMembers([]);
-        }),
-    ]).finally(() => {
-      if (!controller.signal.aborted) {
-        setIsLoading(false);
-      }
-    });
+    void listCalendar(controller.signal)
+      .then((list) => {
+        if (controller.signal.aborted) return;
+        setEvents(list.map(calendarToEvent));
+        setLoadError("");
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setEvents([]);
+        setLoadError("Não foi possível carregar os agendamentos.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoadingCalendar(false);
+        }
+      });
 
     return () => controller.abort();
   }, []);

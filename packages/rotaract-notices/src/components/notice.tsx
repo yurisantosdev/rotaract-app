@@ -122,7 +122,7 @@ export function Notice() {
         <div
           role="dialog"
           aria-labelledby="notices-dialog-title"
-          className="absolute right-0 top-full z-50 mt-2 w-96 rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_16px_40px_rgba(24,24,27,0.12)]"
+          className="fixed inset-x-4 top-16 z-50 mt-2 max-h-[min(28rem,calc(100dvh-5.5rem))] overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_16px_40px_rgba(24,24,27,0.12)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:w-96"
         >
           <div className="flex items-center justify-between gap-2">
             <p

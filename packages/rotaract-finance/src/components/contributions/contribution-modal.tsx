@@ -3,10 +3,9 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CheckIcon } from "@phosphor-icons/react";
 import { Modal } from "@rotaract/components";
-import { MemberAvatar } from "@rotaract/members";
+import { MemberAvatar, useMembers, useMembersError, useMembersStatus } from "@rotaract/members";
 import { listSettings } from "@rotaract/settings";
 import { formatMoneyFromNumber, formatMoneyInput, parseMoneyInput } from "../../services/money";
-import { listMembers, type Member } from "../../services/members";
 import { inputClassName } from "../../types/movement";
 import { MONTHS, type Contribution } from "../../types/contributions";
 
@@ -41,7 +40,10 @@ export function ContributionModal({
   onGenerate,
 }: ContributionModalProps) {
   const references = useMemo(() => remainingReferences(), []);
-  const [members, setMembers] = useState<Member[]>([]);
+  const members = useMembers();
+  const membersStatus = useMembersStatus();
+  const membersError = useMembersError();
+  const loadingMembers = membersStatus === "idle" || membersStatus === "loading";
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedReferences, setSelectedReferences] = useState<string[]>(
     references[0] ? [references[0]] : []
@@ -50,13 +52,9 @@ export function ContributionModal({
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [loadingMembers, setLoadingMembers] = useState(true);
 
   useEffect(() => {
-    if (!open) {
-      setLoadingMembers(true);
-      return;
-    }
+    if (!open) return;
 
     const controller = new AbortController();
     const nextReferences = remainingReferences();
@@ -64,26 +62,7 @@ export function ContributionModal({
     setQuery("");
     setSelectedIds([]);
     setValue("");
-    setLoadingMembers(true);
     setSelectedReferences(nextReferences[0] ? [nextReferences[0]] : []);
-
-    listMembers(controller.signal)
-      .then((items) => {
-        if (controller.signal.aborted) return;
-        setMembers(items);
-      })
-      .catch((caught: unknown) => {
-        if (caught instanceof DOMException && caught.name === "AbortError") {
-          return;
-        }
-        setMembers([]);
-        setError("Não foi possível carregar os membros.");
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoadingMembers(false);
-        }
-      });
 
     listSettings(controller.signal)
       .then((items) => {
@@ -103,6 +82,12 @@ export function ContributionModal({
 
     return () => controller.abort();
   }, [open]);
+
+  const displayedError =
+    error ||
+    (membersStatus === "failed"
+      ? membersError ?? "Não foi possível carregar os membros."
+      : "");
 
   const existingKeys = useMemo(() => {
     return new Set(
@@ -404,9 +389,9 @@ export function ContributionModal({
           </ul>
         </div>
 
-        {error ? (
+        {displayedError ? (
           <p className="mt-4 text-sm text-rose-500" role="alert">
-            {error}
+            {displayedError}
           </p>
         ) : null}
 
