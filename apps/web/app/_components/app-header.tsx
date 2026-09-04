@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { AuthUser } from "../lib/types";
 import { useClubBranding } from "../home/_components/club-branding";
+import { Notice } from "@rotaract/notices";
 
 type AppHeaderProps = {
   user: AuthUser;
@@ -52,7 +53,13 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center justify-center gap-2 sm:gap-3">
+          <div className="flex h-10 w-10 items-center justify-center ">
+            <span className="h-5 w-5">
+              <Notice />
+            </span>
+          </div>
+
           <div className="relative" ref={profileRef}>
             <button
               type="button"
@@ -105,6 +112,7 @@ export function AppHeader({ user, onLogout }: AppHeaderProps) {
               </div>
             ) : null}
           </div>
+
           <button
             type="button"
             onClick={onLogout}

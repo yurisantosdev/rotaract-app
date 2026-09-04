@@ -145,16 +145,16 @@ export function CalendarWorkspace({
     <section className="mt-8 flex flex-col gap-4 lg:flex-row">
       <div className="min-w-0 flex-1 rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+          <div className="w-full md:text-start text-center">
             <h2 className="text-lg font-semibold text-zinc-900 sm:text-xl">
               {monthLabel} {visibleMonth.getFullYear()}
             </h2>
-            <p className="mt-1 hidden text-sm text-zinc-500 md:block">
+            <p className="mt-1 text-sm text-zinc-500">
               Eventos, reuniões e compromissos do clube.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex justify-between items-center gap-2">
             <button
               type="button"
               onClick={goToToday}
@@ -162,22 +162,26 @@ export function CalendarWorkspace({
             >
               Hoje
             </button>
-            <button
-              type="button"
-              onClick={goToPreviousMonth}
-              aria-label="Mês anterior"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-zinc-700 transition hover:bg-zinc-50"
-            >
-              <CaretLeftIcon className="h-4 w-4" weight="bold" />
-            </button>
-            <button
-              type="button"
-              onClick={goToNextMonth}
-              aria-label="Próximo mês"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-zinc-700 transition hover:bg-zinc-50"
-            >
-              <CaretRightIcon className="h-4 w-4" weight="bold" />
-            </button>
+
+            <div className="flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={goToPreviousMonth}
+                aria-label="Mês anterior"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-zinc-700 transition hover:bg-zinc-50"
+              >
+                <CaretLeftIcon className="h-4 w-4" weight="bold" />
+              </button>
+              <button
+                type="button"
+                onClick={goToNextMonth}
+                aria-label="Próximo mês"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-zinc-700 transition hover:bg-zinc-50"
+              >
+                <CaretRightIcon className="h-4 w-4" weight="bold" />
+              </button>
+            </div>
+
             <Tooltip label="Novo evento">
               <Button
                 aria-label="Novo evento"
@@ -302,11 +306,10 @@ export function CalendarWorkspace({
             type="button"
             onClick={() => setKindFilter(null)}
             aria-pressed={!kindFilter}
-            className={`rounded-full px-2 py-1 text-[10px] font-semibold ring-1 ring-inset transition ${
-              !kindFilter
-                ? "bg-zinc-800 text-white ring-zinc-800"
-                : "bg-zinc-100 text-zinc-600 ring-zinc-200 hover:bg-zinc-200"
-            }`}
+            className={`rounded-full px-2 py-1 text-[10px] font-semibold ring-1 ring-inset transition ${!kindFilter
+              ? "bg-zinc-800 text-white ring-zinc-800"
+              : "bg-zinc-100 text-zinc-600 ring-zinc-200 hover:bg-zinc-200"
+              }`}
           >
             Todos
           </button>
@@ -320,11 +323,10 @@ export function CalendarWorkspace({
                   setKindFilter((current) => (current === item.id ? null : item.id))
                 }
                 aria-pressed={selected}
-                className={`rounded-full px-2 py-1 text-[10px] font-semibold ring-1 ring-inset transition ${
-                  selected
-                    ? EVENT_KIND_STYLES[item.id].hover
-                    : EVENT_KIND_STYLES[item.id].chip
-                }`}
+                className={`rounded-full px-2 py-1 text-[10px] font-semibold ring-1 ring-inset transition ${selected
+                  ? EVENT_KIND_STYLES[item.id].hover
+                  : EVENT_KIND_STYLES[item.id].chip
+                  }`}
               >
                 {item.label}
               </button>

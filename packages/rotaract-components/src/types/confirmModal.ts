@@ -4,6 +4,7 @@ export type ConfirmModalProps = {
   description?: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  loading?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 };

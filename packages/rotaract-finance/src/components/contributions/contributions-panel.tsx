@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { CheckCircleIcon, ArrowCounterClockwiseIcon, HandshakeIcon, TrashIcon } from "@phosphor-icons/react";
 import { ConfirmModal, Tooltip } from "@rotaract/components";
 import { formatBRL } from "../../services/money";
@@ -30,9 +30,9 @@ function compareReferences(a: string, b: string): number {
 
 type ContributionsPanelProps = {
   contributions: Contribution[];
-  onToggle: (ids: string[]) => void;
-  onExempt: (ids: string[]) => void;
-  onRemove: (ids: string[]) => void;
+  onToggle: (ids: string[]) => void | Promise<void>;
+  onExempt: (ids: string[]) => void | Promise<void>;
+  onRemove: (ids: string[]) => void | Promise<void>;
   onGenerate: (payload: {
     memberIds: string[];
     references: string[];
@@ -40,10 +40,25 @@ type ContributionsPanelProps = {
   }) => void | Promise<void>;
 };
 
+type BusyKind = "pay" | "pending" | "exempt" | "remove";
+type BusyState = {
+  ids: string[];
+  kind: BusyKind;
+  scope: "row" | "bulk";
+};
+
 const checkboxClassName =
   "h-4 w-4 rounded border-zinc-300 text-rotaract-pink focus:ring-rotaract-pink/30";
 
-function iconButtonClassName(hover: string, disabled: boolean): string {
+function iconButtonClassName(
+  hover: string,
+  disabled: boolean,
+  loading: boolean
+): string {
+  if (loading) {
+    return "rounded-full p-1.5 text-sm text-zinc-500 transition cursor-wait";
+  }
+
   return `rounded-full p-1.5 text-sm text-zinc-500 transition ${disabled
     ? "cursor-not-allowed opacity-40"
     : hover
@@ -53,26 +68,38 @@ function iconButtonClassName(hover: string, disabled: boolean): string {
 function ActionButton({
   label,
   disabled,
+  loading,
   hover,
   onClick,
   children,
 }: {
   label: string;
   disabled?: boolean;
+  loading?: boolean;
   hover: string;
   onClick: () => void;
   children: ReactNode;
 }) {
+  const isLoading = Boolean(loading);
+
   return (
-    <Tooltip label={label}>
+    <Tooltip label={isLoading ? "Carregando..." : label}>
       <button
         type="button"
-        aria-label={label}
-        disabled={disabled}
+        aria-label={isLoading ? "Carregando" : label}
+        aria-busy={isLoading || undefined}
+        disabled={Boolean(disabled) || isLoading}
         onClick={onClick}
-        className={iconButtonClassName(hover, Boolean(disabled))}
+        className={iconButtonClassName(hover, Boolean(disabled), isLoading)}
       >
-        {children}
+        {isLoading ? (
+          <span
+            className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-zinc-200 border-t-rotaract-pink motion-reduce:animate-none"
+            aria-hidden
+          />
+        ) : (
+          children
+        )}
       </button>
     </Tooltip>
   );
@@ -93,6 +120,8 @@ export function ContributionsPanel({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
   const [openModal, setOpenModal] = useState(false);
+  const [busy, setBusy] = useState<BusyState | null>(null);
+  const busyRef = useRef(false);
 
   const references = useMemo(
     () =>
@@ -168,10 +197,35 @@ export function ContributionsPanel({
     );
   }
 
-  function runBulk(ids: string[], action: (ids: string[]) => void) {
-    if (ids.length === 0) return;
-    action(ids);
-    setSelectedIds([]);
+  const isBusy = busy !== null;
+  const isRemoving = busy?.kind === "remove";
+
+  async function runAction(
+    ids: string[],
+    kind: BusyKind,
+    scope: "row" | "bulk",
+    action: (ids: string[]) => void | Promise<void>
+  ) {
+    if (ids.length === 0 || busyRef.current) return;
+
+    busyRef.current = true;
+    setBusy({ ids, kind, scope });
+    try {
+      await action(ids);
+      if (scope === "bulk") setSelectedIds([]);
+    } finally {
+      busyRef.current = false;
+      setBusy(null);
+    }
+  }
+
+  function isActionLoading(
+    kind: BusyKind,
+    scope: "row" | "bulk",
+    id?: string
+  ): boolean {
+    if (!busy || busy.kind !== kind || busy.scope !== scope) return false;
+    return id ? busy.ids.includes(id) : true;
   }
 
   return (
@@ -262,14 +316,25 @@ export function ContributionsPanel({
               ? `Deseja realmente excluir a mensalidade de “${deleteTarget.name}”? Esta ação não pode ser desfeita.`
               : undefined
         }
-        confirmLabel="Excluir"
-        onClose={() => setDeleteIds([])}
-        onConfirm={() => {
-          onRemove(deleteIds);
-          setSelectedIds((current) =>
-            current.filter((id) => !deleteIds.includes(id))
-          );
+        confirmLabel={isRemoving ? "Excluindo..." : "Excluir"}
+        loading={isRemoving}
+        onClose={() => {
+          if (isRemoving) return;
           setDeleteIds([]);
+        }}
+        onConfirm={() => {
+          void runAction(
+            deleteIds,
+            "remove",
+            deleteIds.length > 1 ? "bulk" : "row",
+            async (ids) => {
+              await onRemove(ids);
+              setSelectedIds((current) =>
+                current.filter((id) => !ids.includes(id))
+              );
+              setDeleteIds([]);
+            }
+          );
         }}
       />
 
@@ -280,6 +345,7 @@ export function ContributionsPanel({
               <input
                 type="checkbox"
                 checked={allVisibleSelected}
+                disabled={isBusy}
                 ref={(node) => {
                   if (node) {
                     node.indeterminate = hasSelection && !allVisibleSelected;
@@ -301,11 +367,14 @@ export function ContributionsPanel({
                 </span>
                 <ActionButton
                   label="Confirmar pagamento"
-                  disabled={pendingSelected.length === 0}
+                  disabled={pendingSelected.length === 0 || isBusy}
+                  loading={isActionLoading("pay", "bulk")}
                   hover="hover:bg-emerald-50 hover:text-zinc-800"
                   onClick={() =>
-                    runBulk(
+                    void runAction(
                       pendingSelected.map((item) => item.id),
+                      "pay",
+                      "bulk",
                       onToggle
                     )
                   }
@@ -314,11 +383,14 @@ export function ContributionsPanel({
                 </ActionButton>
                 <ActionButton
                   label="Marcar pendente"
-                  disabled={revertSelected.length === 0}
+                  disabled={revertSelected.length === 0 || isBusy}
+                  loading={isActionLoading("pending", "bulk")}
                   hover="hover:bg-amber-50 hover:text-zinc-800"
                   onClick={() =>
-                    runBulk(
+                    void runAction(
                       revertSelected.map((item) => item.id),
+                      "pending",
+                      "bulk",
                       onToggle
                     )
                   }
@@ -327,11 +399,14 @@ export function ContributionsPanel({
                 </ActionButton>
                 <ActionButton
                   label="Isentar"
-                  disabled={exemptableSelected.length === 0}
+                  disabled={exemptableSelected.length === 0 || isBusy}
+                  loading={isActionLoading("exempt", "bulk")}
                   hover="hover:bg-sky-50 hover:text-zinc-800"
                   onClick={() =>
-                    runBulk(
+                    void runAction(
                       exemptableSelected.map((item) => item.id),
+                      "exempt",
+                      "bulk",
                       onExempt
                     )
                   }
@@ -340,6 +415,7 @@ export function ContributionsPanel({
                 </ActionButton>
                 <ActionButton
                   label="Excluir"
+                  disabled={isBusy}
                   hover="hover:bg-rose-50 hover:text-zinc-800"
                   onClick={() => setDeleteIds(visibleSelected)}
                 >
@@ -361,11 +437,13 @@ export function ContributionsPanel({
             <li
               key={item.id}
               className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between mt-3"
+              aria-busy={busy?.ids.includes(item.id) || undefined}
             >
               <label className="flex min-w-0 cursor-pointer items-start gap-3">
                 <input
                   type="checkbox"
                   checked={visibleSelected.includes(item.id)}
+                  disabled={isBusy}
                   onChange={() => toggleSelected(item.id)}
                   className={`${checkboxClassName} mt-1`}
                 />
@@ -383,18 +461,24 @@ export function ContributionsPanel({
                   {item.status === "pendente" ? (
                     <ActionButton
                       label="Confirmar pagamento"
-                      disabled={hasSelection}
+                      disabled={hasSelection || isBusy}
+                      loading={isActionLoading("pay", "row", item.id)}
                       hover="hover:bg-emerald-50 hover:text-zinc-800"
-                      onClick={() => onToggle([item.id])}
+                      onClick={() =>
+                        void runAction([item.id], "pay", "row", onToggle)
+                      }
                     >
                       <CheckCircleIcon className="h-4 w-4 text-emerald-600 group-hover/tooltip:text-emerald-700" />
                     </ActionButton>
                   ) : (
                     <ActionButton
                       label="Marcar pendente"
-                      disabled={hasSelection}
+                      disabled={hasSelection || isBusy}
+                      loading={isActionLoading("pending", "row", item.id)}
                       hover="hover:bg-amber-50 hover:text-zinc-800"
-                      onClick={() => onToggle([item.id])}
+                      onClick={() =>
+                        void runAction([item.id], "pending", "row", onToggle)
+                      }
                     >
                       <ArrowCounterClockwiseIcon className="h-4 w-4 text-amber-600 group-hover/tooltip:text-amber-700" />
                     </ActionButton>
@@ -402,16 +486,19 @@ export function ContributionsPanel({
                   {item.status !== "isento" ? (
                     <ActionButton
                       label="Isentar"
-                      disabled={hasSelection}
+                      disabled={hasSelection || isBusy}
+                      loading={isActionLoading("exempt", "row", item.id)}
                       hover="hover:bg-sky-50 hover:text-zinc-800"
-                      onClick={() => onExempt([item.id])}
+                      onClick={() =>
+                        void runAction([item.id], "exempt", "row", onExempt)
+                      }
                     >
                       <HandshakeIcon className="h-4 w-4 text-sky-600 group-hover/tooltip:text-sky-700" />
                     </ActionButton>
                   ) : null}
                   <ActionButton
                     label="Excluir"
-                    disabled={hasSelection}
+                    disabled={hasSelection || isBusy}
                     hover="hover:bg-rose-50 hover:text-zinc-800"
                     onClick={() => setDeleteIds([item.id])}
                   >

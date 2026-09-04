@@ -13,6 +13,7 @@ import { financeRouter } from "@rotaract/finance/server";
 import { settingsRouter } from "@rotaract/settings/server";
 import { membersRouter } from "@rotaract/members/server";
 import { calendarRouter } from "@rotaract/calendar/server";
+import { noticesRouter } from "@rotaract/notices/server";
 
 setDefaultResultOrder("ipv4first");
 
@@ -182,7 +183,7 @@ app.use("/api/finance", requireAuth, financeRouter);
 app.use("/api/settings", requireAuth, settingsRouter);
 app.use("/api/members", requireAuth, membersRouter);
 app.use("/api/calendar", requireAuth, calendarRouter);
-
+app.use("/api/notices", requireAuth, noticesRouter);
 
 export default app;
 

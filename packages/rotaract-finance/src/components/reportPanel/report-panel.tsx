@@ -3,8 +3,7 @@
 import { formatBRL } from "../../services/money";
 import type { Movement } from "../../types/movement";
 import type { Contribution } from "../../types/contributions";
-import { Tooltip } from "@rotaract/components";
-import { MicrosoftExcelLogoIcon } from "@phosphor-icons/react";
+import { ButtonExcel } from "@rotaract/components";
 import { DescriptionReportPanel } from "./DescriptionReportPanel";
 
 type ReportPanelProps = {
@@ -43,15 +42,9 @@ export function ReportPanel({
           </span>
         </div>
 
-        <Tooltip label="Baixar resumo">
-          <div className="cursor-pointer bg-emerald-500 hover:bg-emerald-600 p-3 rounded-full">
-            <MicrosoftExcelLogoIcon
-              className="h-4 w-4"
-              onClick={onDownload}
-              color="white"
-            />
-          </div>
-        </Tooltip>
+        <ButtonExcel
+          onClick={() => onDownload()}
+        />
       </div>
 
       <span className="md:hidden flex mt-3">

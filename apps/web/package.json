@@ -16,6 +16,7 @@
     "@rotaract/finance": "*",
     "@rotaract/members": "*",
     "@rotaract/calendar": "*",
+    "@rotaract/notices": "*",
     "@rotaract/settings": "*",
     "next": "16.3.2",
     "react": "19.2.8",

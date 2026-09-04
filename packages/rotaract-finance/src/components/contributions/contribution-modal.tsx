@@ -52,9 +52,13 @@ export function ContributionModal({
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadingMembers, setLoadingMembers] = useState(true);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setLoadingMembers(true);
+      return;
+    }
 
     const controller = new AbortController();
     const nextReferences = remainingReferences();
@@ -62,16 +66,25 @@ export function ContributionModal({
     setQuery("");
     setSelectedIds([]);
     setValue("");
+    setLoadingMembers(true);
     setSelectedReferences(nextReferences[0] ? [nextReferences[0]] : []);
 
     listMembers(controller.signal)
-      .then(setMembers)
+      .then((items) => {
+        if (controller.signal.aborted) return;
+        setMembers(items);
+      })
       .catch((caught: unknown) => {
         if (caught instanceof DOMException && caught.name === "AbortError") {
           return;
         }
         setMembers([]);
         setError("Não foi possível carregar os membros.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoadingMembers(false);
+        }
       });
 
     listSettings(controller.signal)
@@ -159,6 +172,8 @@ export function ContributionModal({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (loadingMembers || saving) return;
+
     const parsedValue = parseMoneyInput(value);
 
     if (selectedReferences.length === 0) {
@@ -259,7 +274,7 @@ export function ContributionModal({
             <button
               type="button"
               onClick={toggleAll}
-              disabled={visibleSelectableIds.length === 0}
+              disabled={loadingMembers || visibleSelectableIds.length === 0}
               className="text-sm font-medium text-rotaract-pink transition hover:text-rotaract-magenta disabled:text-zinc-400"
             >
               {allSelected ? "Limpar seleção" : "Selecionar todos"}
@@ -272,12 +287,30 @@ export function ContributionModal({
             onKeyDown={(event) => {
               if (event.key === "Enter") event.preventDefault();
             }}
+            disabled={loadingMembers}
             className={`${inputClassName} mb-2`}
             placeholder="Buscar por nome ou e-mail"
             autoComplete="off"
           />
-          <ul className="max-h-56 overflow-y-auto rounded-2xl border border-zinc-200 divide-y divide-zinc-100">
-            {filteredMembers.length === 0 ? (
+          <ul
+            className="max-h-56 overflow-y-auto rounded-2xl border border-zinc-200 divide-y divide-zinc-100"
+            aria-busy={loadingMembers || undefined}
+          >
+            {loadingMembers ? (
+              <li
+                className="flex flex-col items-center justify-center gap-3 px-4 py-10"
+                role="status"
+                aria-live="polite"
+              >
+                <span
+                  className="h-8 w-8 animate-spin rounded-full border-[3px] border-zinc-200 border-t-rotaract-pink motion-reduce:animate-none"
+                  aria-hidden
+                />
+                <span className="text-sm font-medium text-zinc-600">
+                  Carregando membros...
+                </span>
+              </li>
+            ) : filteredMembers.length === 0 ? (
               <li className="px-4 py-6 text-center text-sm text-zinc-500">
                 Nenhum membro encontrado.
               </li>
@@ -338,7 +371,7 @@ export function ContributionModal({
           </button>
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || loadingMembers}
             className="h-12 rounded-full bg-rotaract-pink px-5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(255,45,122,0.28)] transition hover:bg-rotaract-magenta disabled:opacity-60"
           >
             {saving ? "Gerando..." : "Gerar mensalidades"}

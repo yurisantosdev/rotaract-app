@@ -151,7 +151,7 @@ export function FinancePage({
   }
 
   function handleToggleContribution(ids: string[]) {
-    if (ids.length === 0) return;
+    if (ids.length === 0) return Promise.resolve();
 
     const controller = new AbortController();
     const jobs = ids.flatMap((id) => {
@@ -167,9 +167,9 @@ export function FinancePage({
       ];
     });
 
-    if (jobs.length === 0) return;
+    if (jobs.length === 0) return Promise.resolve();
 
-    void Promise.all(jobs)
+    return Promise.all(jobs)
       .then((updated) => {
         const statusById = new Map(updated.map((item) => [item.id, item.status]));
         setContributions((current) =>
@@ -185,11 +185,11 @@ export function FinancePage({
   }
 
   function handleExemptContribution(ids: string[]) {
-    if (ids.length === 0) return;
+    if (ids.length === 0) return Promise.resolve();
 
     const controller = new AbortController();
 
-    void Promise.all(
+    return Promise.all(
       ids.map((id) => exemptContribution(id, controller.signal))
     )
       .then((updated) => {
@@ -207,12 +207,12 @@ export function FinancePage({
   }
 
   function handleRemoveContribution(ids: string[]) {
-    if (ids.length === 0) return;
+    if (ids.length === 0) return Promise.resolve();
 
     const controller = new AbortController();
     const idSet = new Set(ids);
 
-    void Promise.all(ids.map((id) => removeContribution(id, controller.signal)))
+    return Promise.all(ids.map((id) => removeContribution(id, controller.signal)))
       .then(() => {
         setContributions((current) =>
           current.filter((item) => !idSet.has(item.id))

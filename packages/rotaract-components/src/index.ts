@@ -4,6 +4,7 @@ export { ConfirmModal } from "./components/confirmModal";
 export { Modal } from "./components/modal";
 export { Tooltip } from "./components/tooltip";
 export { Button } from "./components/button";
+export { ButtonExcel } from "./components/buttonExcel";
 export { Loading } from "./components/loading";
 export { DatePicker } from "./components/date-picker";
 export { TimeSelect } from "./components/time-select";
