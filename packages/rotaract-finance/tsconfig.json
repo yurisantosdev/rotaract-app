@@ -21,6 +21,7 @@
     "paths": {
       "@/*": ["./*"],
       "@rotaract/components": ["../rotaract-components/src/index.ts"],
+      "@rotaract/members": ["../rotaract-members/src/index.ts"],
       "@rotaract/settings": ["../rotaract-settings/src/index.ts"]
     }
   },

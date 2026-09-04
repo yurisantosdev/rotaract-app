@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon } from "@phosphor-icons/react";
 import { Button, DatePicker, Modal } from "@rotaract/components";
-import { MemberAvatar } from "./member-avatar";
+import { MemberAvatar } from "@rotaract/members";
 import {
   dateTimeInputToIso,
   toDateInputValue,
@@ -307,11 +307,10 @@ export function EventFormModal({
                 <button
                   type="button"
                   onClick={togglePersonalEvent}
-                  className={`text-sm font-medium transition ${
-                    personalEvent
-                      ? "text-rotaract-magenta"
-                      : "text-rotaract-pink hover:text-rotaract-magenta"
-                  }`}
+                  className={`text-sm font-medium transition ${personalEvent
+                    ? "text-rotaract-magenta"
+                    : "text-rotaract-pink hover:text-rotaract-magenta"
+                    }`}
                 >
                   {personalEvent ? "Remover evento pessoal" : "Evento pessoal"}
                 </button>

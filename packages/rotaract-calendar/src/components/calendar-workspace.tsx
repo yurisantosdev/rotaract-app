@@ -9,7 +9,7 @@ import {
 } from "@phosphor-icons/react";
 import { Button, ConfirmModal, Tooltip } from "@rotaract/components";
 import { EventFormModal } from "./event-form-modal";
-import { MemberAvatar } from "./member-avatar";
+import { MemberAvatar } from "@rotaract/members";
 import {
   MONTH_LABELS,
   WEEKDAY_LABELS,

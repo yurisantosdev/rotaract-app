@@ -1,20 +1,18 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { CheckIcon } from "@phosphor-icons/react";
 import { Modal } from "@rotaract/components";
+import { MemberAvatar } from "@rotaract/members";
+import { listSettings } from "@rotaract/settings";
 import { formatMoneyFromNumber, formatMoneyInput, parseMoneyInput } from "../../services/money";
 import { listMembers, type Member } from "../../services/members";
 import { inputClassName } from "../../types/movement";
 import { MONTHS, type Contribution } from "../../types/contributions";
-import { listSettings } from "@rotaract/settings";
 
 function remainingReferences(now = new Date()): string[] {
   const year = now.getFullYear();
   return MONTHS.slice(now.getMonth()).map((month) => `${month}/${year}`);
-}
-
-function shortName(name: string): string {
-  return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).join(" ");
 }
 
 function normalizeSearch(value: string): string {
@@ -119,7 +117,8 @@ export function ContributionModal({
     return members.filter((member) => {
       const name = normalizeSearch(member.name);
       const email = normalizeSearch(member.email ?? "");
-      return name.includes(term) || email.includes(term);
+      const role = normalizeSearch(member.role);
+      return name.includes(term) || email.includes(term) || role.includes(term);
     });
   }, [members, query]);
 
@@ -139,6 +138,10 @@ export function ContributionModal({
   const allReferencesSelected =
     references.length > 0 &&
     references.every((item) => selectedReferences.includes(item));
+  const selectedMembers = members.filter(
+    (member) =>
+      selectedIds.includes(member.id) && selectableIds.includes(member.id)
+  );
 
   function toggleAll() {
     setSelectedIds((current) => {
@@ -217,7 +220,7 @@ export function ContributionModal({
       description="Escolha as referências, o valor e os membros. Combinações que já existirem não serão duplicadas."
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="px-5 py-5 sm:px-6">
+      <form onSubmit={handleSubmit} className="max-h-[min(72vh,40rem)] overflow-y-auto px-5 py-5 sm:px-6">
         <div className="grid gap-4">
           <div>
             <div className="mb-1.5 flex items-center justify-between">
@@ -269,8 +272,15 @@ export function ContributionModal({
         </div>
 
         <div className="mt-5">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm text-zinc-600">Membros</span>
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-sm text-zinc-600">Membros</p>
+              <p className="mt-0.5 text-xs text-zinc-400">
+                {selectedMembers.length === 0
+                  ? "Nenhum selecionado ainda"
+                  : `${selectedMembers.length} ${selectedMembers.length === 1 ? "membro" : "membros"}`}
+              </p>
+            </div>
             <button
               type="button"
               onClick={toggleAll}
@@ -280,6 +290,23 @@ export function ContributionModal({
               {allSelected ? "Limpar seleção" : "Selecionar todos"}
             </button>
           </div>
+
+          {selectedMembers.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {selectedMembers.map((member) => (
+                <button
+                  key={member.id}
+                  type="button"
+                  onClick={() => toggleMember(member.id)}
+                  className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white py-1 pl-1 pr-3 text-xs font-medium text-zinc-700 transition hover:border-rose-200 hover:text-rose-600"
+                >
+                  <MemberAvatar member={member} size="xs" />
+                  {member.name.split(" ")[0]}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
           <input
             type="search"
             value={query}
@@ -288,12 +315,12 @@ export function ContributionModal({
               if (event.key === "Enter") event.preventDefault();
             }}
             disabled={loadingMembers}
-            className={`${inputClassName} mb-2`}
-            placeholder="Buscar por nome ou e-mail"
+            className={`${inputClassName} mt-3`}
+            placeholder="Buscar por nome ou cargo"
             autoComplete="off"
           />
           <ul
-            className="max-h-56 overflow-y-auto rounded-2xl border border-zinc-200 divide-y divide-zinc-100"
+            className="mt-3 max-h-56 divide-y divide-zinc-100 overflow-y-auto rounded-2xl border border-zinc-200"
             aria-busy={loadingMembers || undefined}
           >
             {loadingMembers ? (
@@ -319,35 +346,57 @@ export function ContributionModal({
                 const missing = selectedReferences.filter(
                   (item) => !existingKeys.has(`${member.id}::${item}`)
                 );
-                const generated = selectedReferences.length > 0 && missing.length === 0;
-                const checked = generated || selectedIds.includes(member.id);
+                const generated =
+                  selectedReferences.length > 0 && missing.length === 0;
+                const selected =
+                  !generated && selectedIds.includes(member.id);
                 return (
                   <li key={member.id}>
-                    <label
-                      className={`flex cursor-pointer items-center gap-3 px-4 py-3 text-sm ${generated ? "cursor-not-allowed bg-zinc-50 text-zinc-400" : "text-zinc-800 hover:bg-zinc-50"}`}
+                    <button
+                      type="button"
+                      disabled={generated}
+                      onClick={() => toggleMember(member.id)}
+                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${
+                        generated
+                          ? "cursor-not-allowed bg-zinc-50"
+                          : selected
+                            ? "bg-rotaract-pink/5"
+                            : "hover:bg-zinc-50"
+                      }`}
                     >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        disabled={generated}
-                        onChange={() => toggleMember(member.id)}
-                        className="h-4 w-4 rounded border-zinc-300 text-rotaract-pink focus:ring-rotaract-pink/30"
-                      />
+                      <MemberAvatar member={member} size="sm" />
                       <span className="min-w-0 flex-1">
-                        <span className="block font-medium">
-                          {shortName(member.name)}
+                        <span
+                          className={`block truncate text-sm font-medium ${
+                            generated ? "text-zinc-400" : "text-zinc-900"
+                          }`}
+                        >
+                          {member.name}
                         </span>
-                        {generated ? (
-                          <span className="block text-xs text-zinc-400">
-                            Já gerada para as referências selecionadas
-                          </span>
-                        ) : member.email ? (
-                          <span className="block text-xs text-zinc-400">
-                            {member.email}
-                          </span>
+                        <span
+                          className={`block truncate text-xs ${
+                            generated ? "text-zinc-400" : "text-zinc-500"
+                          }`}
+                        >
+                          {generated
+                            ? "Já gerada para as referências selecionadas"
+                            : member.role}
+                        </span>
+                      </span>
+                      <span
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                          generated
+                            ? "border-zinc-200 bg-zinc-100 text-zinc-300"
+                            : selected
+                              ? "border-rotaract-pink bg-rotaract-pink text-white"
+                              : "border-zinc-300 bg-white"
+                        }`}
+                      >
+                        {generated || selected ? (
+                          <CheckIcon className="h-3 w-3" weight="bold" />
                         ) : null}
                       </span>
-                    </label>
+                    </button>
                   </li>
                 );
               })

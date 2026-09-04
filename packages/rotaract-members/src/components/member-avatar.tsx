@@ -2,12 +2,13 @@ import { initialsFromName, type Member } from "../types/member";
 
 type MemberAvatarProps = {
   member: Pick<Member, "name" | "photo">;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "xs";
 };
 
 const sizeClass = {
   sm: "h-10 w-10 text-xs",
   md: "h-12 w-12 text-sm",
+  xs: "h-7 w-7 text-[10px]",
 };
 
 export function MemberAvatar({ member, size = "md" }: MemberAvatarProps) {
