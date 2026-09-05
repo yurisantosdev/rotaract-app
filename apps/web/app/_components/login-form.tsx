@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, MouseEvent, useState } from "react";
 import { useDispatch } from "react-redux";
 import { loadMembers } from "@rotaract/members";
+import { loadNotices } from "@rotaract/notices";
 import { apiFetch } from "../lib/api";
 import { setSession } from "../lib/auth";
 import type { AppDispatch } from "../store";
@@ -73,7 +74,7 @@ export function LoginForm() {
       }
 
       setSession(data.token, remember);
-      await dispatch(loadMembers());
+      await Promise.all([dispatch(loadMembers()), dispatch(loadNotices())]);
       router.push("/home");
       router.refresh();
     } catch {

@@ -9,12 +9,12 @@ export async function listNotices(signal: AbortSignal): Promise<Notices[]> {
   });
 
   if (!response.ok) {
-    throw new Error("Não foi possível carregar as configurações");
+    throw new Error("Não foi possível carregar as notificações");
   }
 
   const data: unknown = await response.json();
   if (!Array.isArray(data)) {
-    throw new Error("Resposta inválida da API de configurações");
+    throw new Error("Resposta inválida da API de notificações");
   }
 
   return data;

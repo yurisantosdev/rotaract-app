@@ -1,5 +1,5 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
-import type { Member } from "../../types/member";
+import type { Member } from "../types/member";
 import MembersActionType from "./actionType";
 
 export type MembersStatus = "idle" | "loading" | "succeeded" | "failed";

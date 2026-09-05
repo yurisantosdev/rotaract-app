@@ -7,8 +7,8 @@ import { Loading, ReturnModule, TitleModule } from "@rotaract/components";
 import { MembersStats } from "./components/members-stats";
 import { MembersPanel } from "./components/members-panel";
 import type { Member, MemberPayload } from "./types/member";
-import { membersAdd, membersUpdate } from "./redux/members/actions";
-import { useMembers, useMembersStatus } from "./redux/members/hooks";
+import { membersAdd, membersUpdate } from "./redux/actions";
+import { useMembers, useMembersStatus } from "./redux/hooks";
 import { createMembers, updateMembers } from "./services/members";
 
 export type MembersPageProps = {

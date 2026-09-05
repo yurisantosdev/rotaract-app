@@ -1,6 +1,6 @@
 import type { Dispatch } from "@reduxjs/toolkit";
-import { listMembers } from "../../services/members";
-import type { Member } from "../../types/member";
+import { listMembers } from "../services/members";
+import type { Member } from "../types/member";
 import MembersActionType from "./actionType";
 import type { MembersAction, MembersRootState } from "./reduce";
 

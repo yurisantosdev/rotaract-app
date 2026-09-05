@@ -2,34 +2,22 @@
 
 import { BellRingingIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
-import { listNotices, readAllNotices } from "../services/notices";
-import type { Notices } from "../types/notices";
-import { NoticesModal } from "./notices-modal";
+import { useDispatch } from "react-redux";
+import { noticesAdd, noticesUpdate } from "../redux/actions";
+import { useNotices } from "../redux/hooks";
+import { readAllNotices } from "../services/notices";
 import { ListNotices } from "./listNotices";
+import { NoticesModal } from "./notices-modal";
 
 export function Notice() {
-  const [notices, setNotices] = useState<Notices[]>([]);
+  const dispatch = useDispatch();
+  const notices = useNotices();
   const [open, setOpen] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [markingAll, setMarkingAll] = useState<boolean>(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const unreadCount = notices.filter((notice) => !notice.read).length;
   const badge = unreadCount > 5 ? "+5" : String(unreadCount);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    listNotices(controller.signal)
-      .then(setNotices)
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-        setNotices([]);
-      });
-
-    return () => controller.abort();
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -65,14 +53,12 @@ export function Notice() {
     setMarkingAll(true);
 
     try {
-      await Promise.all(
+      const updated = await Promise.all(
         unreadIds.map((id) => readAllNotices(id, controller.signal))
       );
-      setNotices((current) =>
-        current.map((notice) =>
-          unreadIds.includes(notice.id) ? { ...notice, read: true } : notice
-        )
-      );
+      updated.forEach((notice) => {
+        dispatch(noticesUpdate(notice));
+      });
     } catch (error: unknown) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
@@ -164,7 +150,9 @@ export function Notice() {
         open={openModal}
         onClose={() => setOpenModal(false)}
         onCreated={(created) => {
-          setNotices((current) => [...created, ...current]);
+          created.forEach((notice) => {
+            dispatch(noticesAdd(notice));
+          });
         }}
       />
     </div>

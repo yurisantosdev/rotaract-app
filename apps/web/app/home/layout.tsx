@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useDispatch } from "react-redux";
 import { loadMembers, membersClean } from "@rotaract/members";
+import { loadNotices, noticesClean } from "@rotaract/notices";
 import { AppHeader } from "../_components/app-header";
 import { apiFetch } from "../lib/api";
 import { clearSession, getToken } from "../lib/auth";
@@ -35,11 +36,13 @@ export default function HomeLayout({
     void Promise.all([
       apiFetch<AuthUser>("/api/auth/me", { token }),
       dispatch(loadMembers()),
+      dispatch(loadNotices()),
     ])
       .then(([{ ok, data }]) => {
         if (cancelled) return;
         if (!ok || !data.name) {
           dispatch(membersClean());
+          dispatch(noticesClean());
           clearSession();
           router.replace("/");
           return;
@@ -49,6 +52,7 @@ export default function HomeLayout({
       .catch(() => {
         if (cancelled) return;
         dispatch(membersClean());
+        dispatch(noticesClean());
         clearSession();
         router.replace("/");
       });
@@ -60,6 +64,7 @@ export default function HomeLayout({
 
   function handleLogout() {
     dispatch(membersClean());
+    dispatch(noticesClean());
     clearSession();
     router.replace("/");
     router.refresh();
