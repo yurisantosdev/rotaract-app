@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import "./globals.css";
 import { ReduxProvider } from "./redux-provider";
 
@@ -17,6 +18,14 @@ export const metadata: Metadata = {
   description: "Rotaract Club",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  minimumScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,6 +34,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+        <Script src="/disable-mobile-zoom.js" strategy="beforeInteractive" />
         <ReduxProvider>{children}</ReduxProvider>
       </body>
     </html>
