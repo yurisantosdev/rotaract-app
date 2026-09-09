@@ -1,23 +1,15 @@
 "use client";
 
-import { ConfigPage } from "@rotaract/settings";
-import { useClubBranding } from "../_components/club-branding";
+import { ProjectsPage } from "@rotaract/projects";
 import { useMemberSession } from "../_components/member-session";
 
-export default function ProjectsPage() {
+export default function ProjetosPage() {
   const { user } = useMemberSession();
-  const { setBranding } = useClubBranding();
-
   return (
-    <ConfigPage
+    <ProjectsPage
       userName={user.name}
+      currentUserId={user.id}
       backHref="/home"
-      onSaved={(settings) => {
-        setBranding({
-          name: settings.clubName.trim() || "Rotaract Club Chapecó",
-          logo: settings.logoUrl || "/logo.jpg",
-        });
-      }}
     />
   );
 }

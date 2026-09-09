@@ -7,6 +7,7 @@ const config = {
     "../../packages/rotaract-members/src/**/*.{ts,tsx}",
     "../../packages/rotaract-calendar/src/**/*.{ts,tsx}",
     "../../packages/rotaract-notices/src/**/*.{ts,tsx}",
+    "../../packages/rotaract-projects/src/**/*.{ts,tsx}",
     "../../packages/rotaract-components/src/**/*.{ts,tsx}",
   ],
   theme: {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { UpcomingEvents } from "@rotaract/calendar";
 import { useMemberSession } from "./_components/member-session";
 import {
@@ -12,6 +12,7 @@ import {
   PencilRulerIcon
 } from "@phosphor-icons/react";
 import { ContributionsOverdue } from "@rotaract/finance";
+import { CardModule } from "./_components/cardModule";
 
 function greetingForHour(hour: number) {
   if (hour < 12) return "Bom dia";
@@ -76,70 +77,14 @@ const modules = [
   },
   {
     title: "Projetos",
-    description: "Tesouraria, mensalidades e prestações de contas.",
-    href: "/home/finance",
-    action: "Abrir tesouraria",
+    description: "Gerenciamento de projetos do clube.",
+    href: "/home/projects",
+    action: "Abrir projetos",
     icon: (
       <PencilRulerIcon size={25} />
     ),
   },
 ] as const;
-
-function ArrowIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-4 w-4 transition group-hover:translate-x-0.5"
-      fill="none"
-      aria-hidden
-    >
-      <path
-        d="M5 12h14M13 6l6 6-6 6"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function ModuleCard({
-  icon,
-  title,
-  description,
-  action,
-}: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  action: string;
-}) {
-  return (
-    <>
-      <span className="flex items-start justify-between gap-3">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rotaract-pink/10 text-rotaract-pink transition group-hover:bg-rotaract-pink group-hover:text-white group-hover:shadow-[0_10px_28px_rgba(255,45,122,0.28)]">
-          {icon}
-        </span>
-        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-          Disponível
-        </span>
-      </span>
-      <span className="mt-5 block">
-        <span className="block text-lg font-semibold tracking-tight text-zinc-900">
-          {title}
-        </span>
-        <span className="mt-1 block text-sm leading-relaxed text-zinc-500">
-          {description}
-        </span>
-      </span>
-      <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-rotaract-pink">
-        {action}
-        <ArrowIcon />
-      </span>
-    </>
-  );
-}
 
 export default function HomePage() {
   const { user } = useMemberSession();
@@ -217,7 +162,7 @@ export default function HomePage() {
                   href={module.href}
                   className="group flex h-full flex-col rounded-[1.5rem] border border-zinc-200/80 bg-white p-5 shadow-[0_12px_40px_rgba(24,24,27,0.04)] transition hover:-translate-y-0.5 hover:border-rotaract-pink/30 hover:shadow-[0_20px_48px_rgba(255,45,122,0.10)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rotaract-pink/20 sm:p-6"
                 >
-                  <ModuleCard
+                  <CardModule
                     icon={module.icon}
                     title={module.title}
                     description={module.description}

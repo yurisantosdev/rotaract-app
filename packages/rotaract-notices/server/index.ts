@@ -4,3 +4,4 @@ export type {
   NoticesResponse,
   NoticesTypeDoc,
 } from "./types/Notices";
+export { createNotice } from "./services/createNotice";

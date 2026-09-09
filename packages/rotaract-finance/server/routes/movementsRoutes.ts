@@ -1,9 +1,9 @@
 import { Router } from "express";
-import * as movementsController from "../controllers/movementsController";
+import * as controller from "../controllers/movementsController";
 
 export const movementsRoutes = Router();
 
-movementsRoutes.get("/", movementsController.list);
-movementsRoutes.post("/", movementsController.create);
-movementsRoutes.put("/:id", movementsController.update);
-movementsRoutes.delete("/:id", movementsController.remove);
+movementsRoutes.get("/", controller.list);
+movementsRoutes.post("/", controller.create);
+movementsRoutes.put("/:id", controller.update);
+movementsRoutes.delete("/:id", controller.remove);

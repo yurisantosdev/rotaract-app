@@ -11,7 +11,7 @@ export function startCronJobs(): void {
 
   // Executa às 8:00 todos os dias
   // Verifica as mensalidades vencidas e altera seu status para vencido
-  cron.schedule("* * * * *", async () => {
+  cron.schedule("0 8 * * *", async () => {
     console.log("Executando tarefa:", new Date());
 
     try {

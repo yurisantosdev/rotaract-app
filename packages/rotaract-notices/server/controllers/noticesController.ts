@@ -75,8 +75,16 @@ function parseNoticesBody(
   };
 }
 
-export async function list(_req: Request, res: Response): Promise<void> {
-  const itens = await Notices.find().sort({ createdAt: -1 }).lean();
+export async function list(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const userId = req.user?.sub;
+  if (!userId || !mongoose.isValidObjectId(userId)) {
+    res.status(401).json({ error: "Token de autenticação necessário" });
+    return;
+  }
+
+  const itens = await Notices.find({ memberId: new mongoose.Types.ObjectId(userId) })
+    .sort({ createdAt: -1 })
+    .lean();
   res.json(itens.map((item) => serializar(item as unknown as NoticesTypeDoc)));
 }
 

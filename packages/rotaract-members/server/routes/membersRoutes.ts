@@ -1,8 +1,8 @@
 import { Router } from "express";
-import * as membersController from "../controllers/membersController";
+import * as controller from "../controllers/membersController";
 
 export const membersRoutes = Router();
 
-membersRoutes.get("/", membersController.list);
-membersRoutes.post("/", membersController.create);
-membersRoutes.put("/:id", membersController.update);
+membersRoutes.get("/", controller.list);
+membersRoutes.post("/", controller.create);
+membersRoutes.put("/:id", controller.update);

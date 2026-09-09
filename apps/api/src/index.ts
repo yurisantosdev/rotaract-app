@@ -14,6 +14,8 @@ import { settingsRouter } from "@rotaract/settings/server";
 import { membersRouter } from "@rotaract/members/server";
 import { calendarRouter } from "@rotaract/calendar/server";
 import { noticesRouter } from "@rotaract/notices/server";
+import { projectsRoutes, tasksRoutes } from "@rotaract/projects/server";
+
 import { startCronJobs } from "@rotaract/scripts/server";
 
 setDefaultResultOrder("ipv4first");
@@ -185,6 +187,8 @@ app.use("/api/settings", requireAuth, settingsRouter);
 app.use("/api/members", requireAuth, membersRouter);
 app.use("/api/calendar", requireAuth, calendarRouter);
 app.use("/api/notices", requireAuth, noticesRouter);
+app.use("/api/projects", requireAuth, projectsRoutes);
+app.use("/api/tasks", requireAuth, tasksRoutes);
 
 export default app;
 

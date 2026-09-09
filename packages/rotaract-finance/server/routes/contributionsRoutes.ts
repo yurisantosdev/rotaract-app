@@ -1,12 +1,12 @@
 import { Router } from "express";
-import * as contributionsController from "../controllers/contributionsController";
+import * as controller from "../controllers/contributionsController";
 
 export const contributionsRoutes = Router();
 
-contributionsRoutes.get("/", contributionsController.list);
-contributionsRoutes.get("/overdue", contributionsController.listOverdue);
-contributionsRoutes.post("/", contributionsController.create);
-contributionsRoutes.post("/generate", contributionsController.generate);
-contributionsRoutes.patch("/:id/exempt", contributionsController.exempt);
-contributionsRoutes.put("/:id", contributionsController.update);
-contributionsRoutes.delete("/:id", contributionsController.remove);
+contributionsRoutes.get("/", controller.list);
+contributionsRoutes.get("/overdue", controller.listOverdue);
+contributionsRoutes.post("/", controller.create);
+contributionsRoutes.post("/generate", controller.generate);
+contributionsRoutes.patch("/:id/exempt", controller.exempt);
+contributionsRoutes.put("/:id", controller.update);
+contributionsRoutes.delete("/:id", controller.remove);

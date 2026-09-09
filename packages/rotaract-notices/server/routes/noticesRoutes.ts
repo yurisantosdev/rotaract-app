@@ -1,9 +1,9 @@
 import { Router } from "express";
-import * as noticesController from "../controllers/noticesController";
+import * as controller from "../controllers/noticesController";
 
 export const noticesRoutes = Router();
 
-noticesRoutes.get("/", noticesController.list);
-noticesRoutes.post("/", noticesController.create);
-noticesRoutes.delete("/:id", noticesController.remove);
-noticesRoutes.get("/read-all/:id", noticesController.readAll);
+noticesRoutes.get("/", controller.list);
+noticesRoutes.post("/", controller.create);
+noticesRoutes.delete("/:id", controller.remove);
+noticesRoutes.get("/read-all/:id", controller.readAll);

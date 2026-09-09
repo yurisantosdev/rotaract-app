@@ -1,8 +1,8 @@
 import { Router } from "express";
-import * as settingsController from "../controllers/settingsController";
+import * as controller from "../controllers/settingsController";
 
 export const settingsRoutes = Router();
 
-settingsRoutes.get("/", settingsController.list);
-settingsRoutes.post("/", settingsController.create);
-settingsRoutes.put("/:id", settingsController.update);
+settingsRoutes.get("/", controller.list);
+settingsRoutes.post("/", controller.create);
+settingsRoutes.put("/:id", controller.update);
