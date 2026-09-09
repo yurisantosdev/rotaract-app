@@ -28,7 +28,7 @@ export function Notice() {
         return;
       }
 
-      void dispatch(loadNotices({ force: true }));
+      void dispatch<any>(loadNotices({ force: true }));
     }
 
     const intervalId = window.setInterval(refreshNotices, 3000);
