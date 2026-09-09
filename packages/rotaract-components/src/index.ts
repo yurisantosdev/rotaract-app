@@ -6,6 +6,7 @@ export { Tooltip } from "./components/tooltip";
 export { Button } from "./components/button";
 export { ButtonExcel } from "./components/buttonExcel";
 export { Loading } from "./components/loading";
+export { CelebrationConfetti } from "./components/celebration-confetti";
 export { DatePicker } from "./components/date-picker";
 export { TimeSelect } from "./components/time-select";
 export type { DatePickerProps, DatePickerLabelFormat } from "./types/datePicker";

@@ -1,9 +1,10 @@
 "use client";
 
 import { BellRingingIcon, ChecksIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
+import { CelebrationConfetti } from "@rotaract/components";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
-import { noticesAdd, noticesUpdate } from "../redux/actions";
+import { loadNotices, noticesAdd, noticesUpdate } from "../redux/actions";
 import { useNotices } from "../redux/hooks";
 import { readAllNotices } from "../services/notices";
 import { ListNotices } from "./listNotices";
@@ -15,9 +16,29 @@ export function Notice() {
   const [open, setOpen] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [markingAll, setMarkingAll] = useState<boolean>(false);
+  const [celebrate, setCelebrate] = useState(false);
+  const [celebrationBurst, setCelebrationBurst] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
   const unreadCount = notices.filter((notice) => !notice.read).length;
   const badge = unreadCount > 5 ? "+5" : String(unreadCount);
+
+  useEffect(() => {
+    function refreshNotices() {
+      if (document.hidden || markingAll) {
+        return;
+      }
+
+      void dispatch(loadNotices({ force: true }));
+    }
+
+    const intervalId = window.setInterval(refreshNotices, 3000);
+    document.addEventListener("visibilitychange", refreshNotices);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", refreshNotices);
+    };
+  }, [dispatch, markingAll]);
 
   useEffect(() => {
     if (!open) return;
@@ -59,6 +80,8 @@ export function Notice() {
       updated.forEach((notice) => {
         dispatch(noticesUpdate(notice));
       });
+      setCelebrate(true);
+      setCelebrationBurst((burst) => burst + 1);
     } catch (error: unknown) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
@@ -70,6 +93,11 @@ export function Notice() {
 
   return (
     <div className="relative" ref={panelRef}>
+      <CelebrationConfetti
+        key={celebrationBurst}
+        active={celebrate}
+        onComplete={() => setCelebrate(false)}
+      />
       <button
         type="button"
         className="relative inline-flex cursor-pointer items-center justify-center"

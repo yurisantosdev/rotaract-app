@@ -8,7 +8,7 @@ import {
   TrashIcon,
   CheckIcon,
 } from "@phosphor-icons/react";
-import { Button, ConfirmModal, Tooltip } from "@rotaract/components";
+import { Button, CelebrationConfetti, ConfirmModal, Tooltip } from "@rotaract/components";
 import { MemberAvatar, type Member } from "@rotaract/members";
 import { formatDate } from "../lib/dates";
 import { findMember, firstName, membersByIds } from "../lib/members";
@@ -30,7 +30,6 @@ import {
   TaskFilter,
   TASK_FILTERS,
 } from "../types/tasks";
-import { CelebrationConfetti } from "./celebration-confetti";
 import { ProjectFormModal } from "./project-form-modal";
 import { TaskFormModal } from "./task-form-modal";
 

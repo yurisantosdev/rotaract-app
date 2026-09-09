@@ -40,11 +40,12 @@ export const noticesClean = (): NoticesAction => {
   return { type: NoticesActionType.NOTICES_CLEAN };
 };
 
-export function loadNotices(): NoticesThunk {
+export function loadNotices(options?: { force?: boolean }): NoticesThunk {
   return (dispatch, getState) => {
     const current = getState().notices;
+    const force = options?.force === true;
 
-    if (current.status === "succeeded") {
+    if (!force && current.status === "succeeded") {
       return Promise.resolve(current.items);
     }
 
@@ -52,7 +53,10 @@ export function loadNotices(): NoticesThunk {
       return pendingLoad;
     }
 
-    dispatch(noticesRequest());
+    const silent = force && current.status === "succeeded";
+    if (!silent) {
+      dispatch(noticesRequest());
+    }
 
     pendingLoad = listNotices(new AbortController().signal)
       .then((items) => {
@@ -64,13 +68,15 @@ export function loadNotices(): NoticesThunk {
           return undefined;
         }
 
-        dispatch(
-          noticesFailure(
-            error instanceof Error
-              ? error.message
-              : "Não foi possível carregar as notificações"
-          )
-        );
+        if (!silent) {
+          dispatch(
+            noticesFailure(
+              error instanceof Error
+                ? error.message
+                : "Não foi possível carregar as notificações"
+            )
+          );
+        }
         return undefined;
       })
       .finally(() => {
