@@ -4,6 +4,7 @@ import * as contributionsController from "../controllers/contributionsController
 export const contributionsRoutes = Router();
 
 contributionsRoutes.get("/", contributionsController.list);
+contributionsRoutes.get("/overdue", contributionsController.listOverdue);
 contributionsRoutes.post("/", contributionsController.create);
 contributionsRoutes.post("/generate", contributionsController.generate);
 contributionsRoutes.patch("/:id/exempt", contributionsController.exempt);

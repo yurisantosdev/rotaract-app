@@ -2,12 +2,18 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CheckIcon } from "@phosphor-icons/react";
-import { Modal } from "@rotaract/components";
+import { DatePicker, Modal } from "@rotaract/components";
 import { MemberAvatar, useMembers, useMembersError, useMembersStatus } from "@rotaract/members";
 import { listSettings } from "@rotaract/settings";
 import { formatMoneyFromNumber, formatMoneyInput, parseMoneyInput } from "../../services/money";
 import { inputClassName } from "../../types/movement";
-import { MONTHS, type Contribution } from "../../types/contributions";
+import {
+  dueDateForReference,
+  isISODate,
+  MONTHS,
+  type Contribution,
+  type GenerateContributionsPayload,
+} from "../../types/contributions";
 
 function remainingReferences(now = new Date()): string[] {
   const year = now.getFullYear();
@@ -22,15 +28,24 @@ function normalizeSearch(value: string): string {
     .trim();
 }
 
+function referenceFieldId(reference: string): string {
+  return `contribution-due-${normalizeSearch(reference).replace(/\//g, "-")}`;
+}
+
+function datesForReferences(
+  items: string[],
+  current: Record<string, string> = {}
+): Record<string, string> {
+  return Object.fromEntries(
+    items.map((item) => [item, current[item] || dueDateForReference(item)])
+  );
+}
+
 type ContributionModalProps = {
   open: boolean;
   contributions: Contribution[];
   onClose: () => void;
-  onGenerate: (payload: {
-    memberIds: string[];
-    references: string[];
-    value: number;
-  }) => void | Promise<void>;
+  onGenerate: (payload: GenerateContributionsPayload) => void | Promise<void>;
 };
 
 export function ContributionModal({
@@ -48,6 +63,9 @@ export function ContributionModal({
   const [selectedReferences, setSelectedReferences] = useState<string[]>(
     references[0] ? [references[0]] : []
   );
+  const [dueDates, setDueDates] = useState<Record<string, string>>(() =>
+    datesForReferences(references[0] ? [references[0]] : [])
+  );
   const [query, setQuery] = useState("");
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
@@ -58,11 +76,13 @@ export function ContributionModal({
 
     const controller = new AbortController();
     const nextReferences = remainingReferences();
+    const initialReferences = nextReferences[0] ? [nextReferences[0]] : [];
     setError("");
     setQuery("");
     setSelectedIds([]);
     setValue("");
-    setSelectedReferences(nextReferences[0] ? [nextReferences[0]] : []);
+    setSelectedReferences(initialReferences);
+    setDueDates(datesForReferences(initialReferences));
 
     listSettings(controller.signal)
       .then((items) => {
@@ -127,6 +147,9 @@ export function ContributionModal({
     (member) =>
       selectedIds.includes(member.id) && selectableIds.includes(member.id)
   );
+  const orderedSelectedReferences = references.filter((item) =>
+    selectedReferences.includes(item)
+  );
 
   function toggleAll() {
     setSelectedIds((current) => {
@@ -138,15 +161,33 @@ export function ContributionModal({
   }
 
   function toggleAllReferences() {
-    setSelectedReferences(allReferencesSelected ? [] : references);
+    if (allReferencesSelected) {
+      setSelectedReferences([]);
+      setDueDates({});
+      return;
+    }
+
+    setSelectedReferences(references);
+    setDueDates((current) => datesForReferences(references, current));
   }
 
   function toggleReference(item: string) {
+    const selected = selectedReferences.includes(item);
     setSelectedReferences((current) =>
-      current.includes(item)
-        ? current.filter((value) => value !== item)
-        : [...current, item]
+      selected ? current.filter((value) => value !== item) : [...current, item]
     );
+    setDueDates((current) => {
+      if (selected) {
+        const next = { ...current };
+        delete next[item];
+        return next;
+      }
+
+      return {
+        ...current,
+        [item]: current[item] || dueDateForReference(item),
+      };
+    });
   }
 
   function toggleMember(id: string) {
@@ -164,8 +205,18 @@ export function ContributionModal({
 
     const parsedValue = parseMoneyInput(value);
 
-    if (selectedReferences.length === 0) {
+    const payloadReferences = selectedReferences.map((item) => ({
+      reference: item,
+      date: dueDates[item] ?? "",
+    }));
+
+    if (payloadReferences.length === 0) {
       setError("Selecione ao menos uma referência.");
+      return;
+    }
+
+    if (payloadReferences.some((item) => !isISODate(item.date))) {
+      setError("Informe a data de vencimento de cada referência.");
       return;
     }
 
@@ -185,7 +236,7 @@ export function ContributionModal({
     try {
       await onGenerate({
         memberIds,
-        references: selectedReferences,
+        references: payloadReferences,
         value: parsedValue,
       });
       onClose();
@@ -238,6 +289,40 @@ export function ContributionModal({
               })}
             </div>
           </div>
+          {orderedSelectedReferences.length > 0 ? (
+            <div>
+              <span className="mb-1.5 block text-sm text-zinc-600">Vencimento</span>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {orderedSelectedReferences.map((item) => {
+                  const fieldId = referenceFieldId(item);
+                  const defaultDate = dueDateForReference(item);
+                  return (
+                    <div key={item}>
+                      <label
+                        htmlFor={fieldId}
+                        className="mb-1.5 block text-xs text-zinc-500"
+                      >
+                        {item}
+                      </label>
+                      <DatePicker
+                        id={fieldId}
+                        value={dueDates[item] ?? ""}
+                        onChange={(nextDate) =>
+                          setDueDates((current) => ({
+                            ...current,
+                            [item]: nextDate,
+                          }))
+                        }
+                        baseDate={defaultDate}
+                        fixedPopover
+                        allowClear={false}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
           <label>
             <span className="mb-1.5 block text-sm text-zinc-600">Valor</span>
             <span className="relative block">
@@ -341,27 +426,24 @@ export function ContributionModal({
                       type="button"
                       disabled={generated}
                       onClick={() => toggleMember(member.id)}
-                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${
-                        generated
+                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${generated
                           ? "cursor-not-allowed bg-zinc-50"
                           : selected
                             ? "bg-rotaract-pink/5"
                             : "hover:bg-zinc-50"
-                      }`}
+                        }`}
                     >
                       <MemberAvatar member={member} size="sm" />
                       <span className="min-w-0 flex-1">
                         <span
-                          className={`block truncate text-sm font-medium ${
-                            generated ? "text-zinc-400" : "text-zinc-900"
-                          }`}
+                          className={`block truncate text-sm font-medium ${generated ? "text-zinc-400" : "text-zinc-900"
+                            }`}
                         >
                           {member.name}
                         </span>
                         <span
-                          className={`block truncate text-xs ${
-                            generated ? "text-zinc-400" : "text-zinc-500"
-                          }`}
+                          className={`block truncate text-xs ${generated ? "text-zinc-400" : "text-zinc-500"
+                            }`}
                         >
                           {generated
                             ? "Já gerada para as referências selecionadas"
@@ -369,13 +451,12 @@ export function ContributionModal({
                         </span>
                       </span>
                       <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                          generated
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${generated
                             ? "border-zinc-200 bg-zinc-100 text-zinc-300"
                             : selected
                               ? "border-rotaract-pink bg-rotaract-pink text-white"
                               : "border-zinc-300 bg-white"
-                        }`}
+                          }`}
                       >
                         {generated || selected ? (
                           <CheckIcon className="h-3 w-3" weight="bold" />

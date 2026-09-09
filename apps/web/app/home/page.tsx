@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
+import { UpcomingEvents } from "@rotaract/calendar";
 import { useMemberSession } from "./_components/member-session";
+import {
+  CalendarBlankIcon,
+  GearIcon,
+  CurrencyCircleDollarIcon,
+  UsersThreeIcon,
+  PencilRulerIcon
+} from "@phosphor-icons/react";
+import { ContributionsOverdue } from "@rotaract/finance";
 
 function greetingForHour(hour: number) {
   if (hour < 12) return "Bom dia";
@@ -35,15 +44,7 @@ const modules = [
     href: "/home/finance",
     action: "Abrir tesouraria",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
-        <path
-          d="M4 9.5h16V18a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18V9.5Zm1.2-1.5 1.4-2.6A1.5 1.5 0 0 1 7.9 4.5h8.2a1.5 1.5 0 0 1 1.3.9L18.8 8M15.5 14h3"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <CurrencyCircleDollarIcon size={25} />
     ),
   },
   {
@@ -52,15 +53,7 @@ const modules = [
     href: "/home/calendar",
     action: "Abrir agenda",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
-        <path
-          d="M7 4v3M17 4v3M4.5 8h15M6 6.5h12A1.5 1.5 0 0 1 19.5 8v10A1.5 1.5 0 0 1 18 19.5H6A1.5 1.5 0 0 1 4.5 18V8A1.5 1.5 0 0 1 6 6.5Z"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <CalendarBlankIcon size={25} />
     ),
   },
   {
@@ -69,15 +62,7 @@ const modules = [
     href: "/home/members",
     action: "Abrir membros",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
-        <path
-          d="M9 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM16.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3.5 18.5c.8-2.8 3-4.5 5.5-4.5s4.7 1.7 5.5 4.5M15 14c2.2 0 4 1.4 4.7 3.5"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <UsersThreeIcon size={25} />
     ),
   },
   {
@@ -86,19 +71,16 @@ const modules = [
     href: "/home/settings",
     action: "Abrir configurações",
     icon: (
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden>
-        <path
-          d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
-          stroke="currentColor"
-          strokeWidth="1.7"
-        />
-        <path
-          d="M19.2 13.1a7.6 7.6 0 0 0 0-2.2l1.7-1.3-1.6-2.8-2 .8a7.7 7.7 0 0 0-1.9-1.1L15 4.4h-6l-.4 2.1a7.7 7.7 0 0 0-1.9 1.1l-2-.8-1.6 2.8 1.7 1.3a7.6 7.6 0 0 0 0 2.2L2.5 14.4l1.6 2.8 2-.8a7.7 7.7 0 0 0 1.9 1.1l.4 2.1h6l.4-2.1a7.7 7.7 0 0 0 1.9-1.1l2 .8 1.6-2.8-1.7-1.3Z"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <GearIcon size={25} />
+    ),
+  },
+  {
+    title: "Projetos",
+    description: "Tesouraria, mensalidades e prestações de contas.",
+    href: "/home/finance",
+    action: "Abrir tesouraria",
+    icon: (
+      <PencilRulerIcon size={25} />
     ),
   },
 ] as const;
@@ -200,14 +182,24 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-2 justify-center">
-            <p className="rounded-full border border-zinc-200/80 bg-white/80 px-3 py-1.5 text-xs font-medium text-zinc-600 backdrop-blur">
-              {now ? formatToday(now) : "Rotaract Club Chapecó"}
-            </p>
-            <p className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
-              {modules.length} módulos disponíveis
-            </p>
+          <div>
+            <div className="flex md:justify-end justify-center items-center gap-2">
+              <ContributionsOverdue />
+            </div>
+
+            <div className="flex shrink-0 flex-wrap items-center gap-2 justify-center mt-4">
+              <p className="rounded-full border border-zinc-200/80 bg-white/80 px-3 py-1.5 text-xs font-medium text-zinc-600 backdrop-blur">
+                {now ? formatToday(now) : "Rotaract Club Chapecó"}
+              </p>
+              <p className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
+                {modules.length} módulos disponíveis
+              </p>
+            </div>
           </div>
+        </section>
+
+        <section className="home-rise mt-8 sm:mt-10" style={{ animationDelay: "60ms" }}>
+          <UpcomingEvents />
         </section>
 
         <section className="mt-8 sm:mt-10" aria-labelledby="modules-title">

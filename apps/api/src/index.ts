@@ -14,6 +14,7 @@ import { settingsRouter } from "@rotaract/settings/server";
 import { membersRouter } from "@rotaract/members/server";
 import { calendarRouter } from "@rotaract/calendar/server";
 import { noticesRouter } from "@rotaract/notices/server";
+import { startCronJobs } from "@rotaract/scripts/server";
 
 setDefaultResultOrder("ipv4first");
 
@@ -221,6 +222,8 @@ async function iniciarServidorLocal(): Promise<void> {
       "MongoDB não conectou no startup; novas tentativas ocorrerão a cada request."
     );
   }
+
+  startCronJobs();
 }
 
 iniciarServidorLocal().catch((err) => {

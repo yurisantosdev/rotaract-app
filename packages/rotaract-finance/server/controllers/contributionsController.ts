@@ -4,6 +4,7 @@ import { Contribution } from "../models/Contribution";
 import { Movement } from "../models/Movement";
 import type { AuthenticatedRequest } from "../types/express";
 import {
+  CONTRIBUTION_MONTHS,
   CONTRIBUTION_STATUS,
   type ContributionResponse,
   type ContributionStatus,
@@ -23,6 +24,7 @@ function serializar(doc: ContributionTypeDoc, fallbackName = ""): ContributionRe
     reference: doc.reference,
     value: doc.value,
     status: doc.status ?? "pendente",
+    date: doc.date ?? todayISO(),
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -77,6 +79,113 @@ function todayISO(): string {
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
   return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function parseISODate(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day, 12, 0, 0, 0);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return `${match[1]}-${match[2]}-${match[3]}`;
+}
+
+function dueDateForReference(reference: string, day = 10): string | null {
+  const [monthName, yearRaw] = reference.split("/");
+  const monthIndex = (CONTRIBUTION_MONTHS as readonly string[]).indexOf(
+    monthName?.trim() ?? ""
+  );
+  const year = Number(yearRaw);
+
+  if (monthIndex < 0 || !Number.isInteger(year) || year < 1900) {
+    return null;
+  }
+
+  const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+  const clamped = Math.min(Math.max(day, 1), lastDay);
+
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(clamped).padStart(2, "0")}`;
+}
+
+type GenerateReference = {
+  reference: string;
+  date: string;
+};
+
+function parseGenerateReferences(body: {
+  references?: unknown;
+  reference?: unknown;
+}):
+  | { ok: true; data: GenerateReference[] }
+  | { ok: false; erro: string } {
+  const raw = Array.isArray(body.references)
+    ? body.references
+    : typeof body.reference === "string"
+      ? [body.reference]
+      : [];
+
+  const parsed: GenerateReference[] = [];
+  const seen = new Set<string>();
+
+  for (const item of raw) {
+    if (typeof item === "string") {
+      const reference = item.trim();
+      if (!reference || seen.has(reference)) continue;
+
+      const date = dueDateForReference(reference);
+      if (!date) {
+        return { ok: false, erro: `Referência inválida: ${reference}` };
+      }
+
+      seen.add(reference);
+      parsed.push({ reference, date });
+      continue;
+    }
+
+    if (typeof item !== "object" || item === null) {
+      return { ok: false, erro: "Referências inválidas" };
+    }
+
+    const referenceValue = (item as { reference?: unknown }).reference;
+    const reference =
+      typeof referenceValue === "string" ? referenceValue.trim() : "";
+    if (!reference) {
+      return { ok: false, erro: "Cada referência precisa de um nome" };
+    }
+    if (seen.has(reference)) continue;
+
+    const date =
+      parseISODate((item as { date?: unknown }).date) ??
+      dueDateForReference(reference);
+    if (!date) {
+      return {
+        ok: false,
+        erro: `Data de vencimento inválida para ${reference}`,
+      };
+    }
+
+    seen.add(reference);
+    parsed.push({ reference, date });
+  }
+
+  if (parsed.length === 0) {
+    return { ok: false, erro: "Selecione ao menos uma referência" };
+  }
+
+  return { ok: true, data: parsed };
 }
 
 async function removeMovementForContribution(
@@ -215,6 +324,23 @@ export async function list(_req: Request, res: Response): Promise<void> {
   );
 }
 
+export async function listOverdue(_req: Request, res: Response): Promise<void> {
+  const itens = await Contribution.find({ status: "vencido" }).sort({ createdAt: -1 }).lean();
+  const missingNameIds = itens
+    .filter((item) => typeof item.name !== "string" || !item.name.trim())
+    .map((item) => item.memberId);
+  const names = await memberNamesByIds(missingNameIds);
+
+  res.json(
+    itens.map((item) =>
+      serializar(
+        item as unknown as ContributionTypeDoc,
+        names.get(item.memberId.toString()) ?? ""
+      )
+    )
+  );
+}
+
 export async function create(req: AuthenticatedRequest, res: Response): Promise<void> {
   const userId = req.user?.sub;
   if (!userId || !mongoose.isValidObjectId(userId)) {
@@ -276,24 +402,16 @@ export async function generate(req: AuthenticatedRequest, res: Response): Promis
     return;
   }
 
-  const rawReferences = Array.isArray(references)
-    ? references
-    : typeof reference === "string"
-      ? [reference]
-      : [];
-  const trimmedReferences = Array.from(
-    new Set(
-      rawReferences
-        .filter((item): item is string => typeof item === "string")
-        .map((item) => item.trim())
-        .filter(Boolean)
-    )
-  );
-
-  if (trimmedReferences.length === 0) {
-    res.status(400).json({ erro: "Selecione ao menos uma referência" });
+  const parsedReferences = parseGenerateReferences({ references, reference });
+  if (!parsedReferences.ok) {
+    res.status(400).json({ erro: parsedReferences.erro });
     return;
   }
+
+  const trimmedReferences = parsedReferences.data.map((item) => item.reference);
+  const dateByReference = new Map(
+    parsedReferences.data.map((item) => [item.reference, item.date])
+  );
 
   const parsedValue = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
@@ -328,6 +446,7 @@ export async function generate(req: AuthenticatedRequest, res: Response): Promis
         name: names.get(memberId.toString()) ?? "",
         reference: item,
         value: parsedValue,
+        date: dateByReference.get(item) ?? todayISO(),
         status: "pendente" as const,
       }))
   );

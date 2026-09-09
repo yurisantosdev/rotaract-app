@@ -3,6 +3,7 @@ import { initialsFromName, type Member } from "../types/member";
 type MemberAvatarProps = {
   member: Pick<Member, "name" | "photo">;
   size?: "sm" | "md" | "xs";
+  className?: string;
 };
 
 const sizeClass = {
@@ -11,11 +12,11 @@ const sizeClass = {
   xs: "h-7 w-7 text-[10px]",
 };
 
-export function MemberAvatar({ member, size = "md" }: MemberAvatarProps) {
+export function MemberAvatar({ member, size = "md", className }: MemberAvatarProps) {
   return (
     <span
       aria-hidden
-      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-rotaract-pink/10 font-semibold text-rotaract-pink ${sizeClass[size]}`}
+      className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-rotaract-pink/10 font-semibold text-rotaract-pink ${sizeClass[size]} ${className}`}
     >
       {member.photo ? (
         <img

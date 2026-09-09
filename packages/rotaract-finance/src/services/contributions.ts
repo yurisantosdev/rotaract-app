@@ -1,4 +1,4 @@
-import { Contribution } from "../types/contributions";
+import { Contribution, GenerateContributionsPayload } from "../types/contributions";
 
 const CONTRIBUTIONS_URL = "/api/finance/contributions";
 
@@ -15,6 +15,24 @@ export async function listContributions(signal: AbortSignal): Promise<Contributi
   const data: unknown = await response.json();
   if (!Array.isArray(data)) {
     throw new Error("Resposta inválida da API de mensalidades");
+  }
+
+  return data;
+}
+
+export async function listContributionsOverdue(signal: AbortSignal): Promise<Contribution[]> {
+  const response = await fetch(`${CONTRIBUTIONS_URL}/overdue`, {
+    signal,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Não foi possível carregar as mensalidades atrasadas");
+  }
+
+  const data: unknown = await response.json();
+  if (!Array.isArray(data)) {
+    throw new Error("Resposta inválida da API de mensalidades atrasadas");
   }
 
   return data;
@@ -86,11 +104,7 @@ export type GenerateContributionsResult = {
 
 export async function generateContributions(
   signal: AbortSignal,
-  payload: {
-    memberIds: string[];
-    references: string[];
-    value: number;
-  }
+  payload: GenerateContributionsPayload
 ): Promise<GenerateContributionsResult> {
   const response = await fetch(`${CONTRIBUTIONS_URL}/generate`, {
     method: "POST",

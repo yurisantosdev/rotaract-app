@@ -23,6 +23,7 @@ function applyCurrencyColumn(sheet: XLSX.WorkSheet, column: string, startRow: nu
 function contributionStatusLabel(status: Contribution["status"]): string {
   if (status === "pago") return "Pago";
   if (status === "isento") return "Isento";
+  if (status === "vencido") return "Vencido";
   return "Pendente";
 }
 

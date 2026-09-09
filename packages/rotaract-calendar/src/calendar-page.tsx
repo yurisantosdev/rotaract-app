@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCircleIcon } from "@phosphor-icons/react";
 import { Loading, ReturnModule, TitleModule } from "@rotaract/components";
 import { useMembers, useMembersStatus } from "@rotaract/members";
 import { CalendarStats } from "./components/calendar-stats";
 import { CalendarWorkspace } from "./components/calendar-workspace";
-import { dateTimeInputToIso, toDateInputValue, toTimeInputValue } from "./lib/dates";
+import { calendarToEvent } from "./lib/calendar-event";
+import { toDateInputValue, toTimeInputValue } from "./lib/dates";
 import { createCalendar, listCalendar, removeCalendar, updateCalendar } from "./services/calendar";
-import type { Calendar, CalendarPayload } from "./types/calendar";
+import type { CalendarPayload } from "./types/calendar";
 import type { CalendarEvent, CalendarEventPayload } from "./types/event";
 
 export type CalendarPageProps = {
@@ -16,22 +16,6 @@ export type CalendarPageProps = {
   currentUserId?: string;
   backHref?: string;
 };
-
-function calendarToEvent(calendar: Calendar): CalendarEvent {
-  const startTime = calendar.all_day ? "00:00" : calendar.hour_start || "00:00";
-  const endTime = calendar.all_day ? "23:59" : calendar.hour_end || "23:59";
-
-  return {
-    id: calendar.id,
-    title: calendar.title,
-    notes: calendar.description || undefined,
-    startsAt: dateTimeInputToIso(calendar.date_start, startTime),
-    endsAt: dateTimeInputToIso(calendar.date_end, endTime),
-    allDay: calendar.all_day,
-    kind: calendar.type,
-    memberIds: calendar.members,
-  };
-}
 
 function eventToCalendarPayload(payload: CalendarEventPayload): CalendarPayload {
   const start = new Date(payload.startsAt);
@@ -59,7 +43,6 @@ export function CalendarPage({
   const members = useMembers();
   const membersStatus = useMembersStatus();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [notice, setNotice] = useState("");
   const [loadError, setLoadError] = useState("");
   const [isLoadingCalendar, setIsLoadingCalendar] = useState(true);
   const isLoading =
@@ -73,7 +56,6 @@ export function CalendarPage({
     return createCalendar(controller.signal, eventToCalendarPayload(payload)).then(
       (created) => {
         setEvents((current) => [calendarToEvent(created), ...current]);
-        setNotice("Evento cadastrado.");
       }
     );
   }
@@ -88,7 +70,6 @@ export function CalendarPage({
             item.id === updated.id ? calendarToEvent(updated) : item
           )
         );
-        setNotice("Evento atualizado.");
       }
     );
   }
@@ -100,7 +81,6 @@ export function CalendarPage({
       .then(() => {
         setEvents((current) => current.filter((item) => item.id !== id));
         setLoadError("");
-        setNotice("Evento removido da agenda.");
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") {
@@ -154,16 +134,6 @@ export function CalendarPage({
       {loadError ? (
         <p className="mt-5 text-sm text-rose-700" role="alert">
           {loadError}
-        </p>
-      ) : null}
-
-      {notice ? (
-        <p
-          className="mt-5 inline-flex items-center gap-1.5 text-sm text-emerald-700"
-          role="status"
-        >
-          <CheckCircleIcon size={16} weight="fill" aria-hidden />
-          {notice}
         </p>
       ) : null}
 

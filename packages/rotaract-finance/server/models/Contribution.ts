@@ -27,6 +27,11 @@ const contributionSchema = new mongoose.Schema(
       required: true,
       min: 0.01,
     },
+    date: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     status: {
       type: String,
       required: false,

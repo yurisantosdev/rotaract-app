@@ -3,8 +3,8 @@
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { CheckCircleIcon, ArrowCounterClockwiseIcon, HandshakeIcon, TrashIcon } from "@phosphor-icons/react";
 import { ConfirmModal, Tooltip } from "@rotaract/components";
-import { formatBRL } from "../../services/money";
-import { Contribution, ContributionStatus, MONTHS } from "../../types/contributions";
+import { formatBRL, formatDate } from "../../services/money";
+import { Contribution, ContributionStatus, MONTHS, isUnpaidContribution, type GenerateContributionsPayload } from "../../types/contributions";
 import { inputClassName } from "../../types/movement";
 import { downloadContributionsReport } from "../../services/report";
 import { ContributionModal } from "./contribution-modal";
@@ -33,11 +33,7 @@ type ContributionsPanelProps = {
   onToggle: (ids: string[]) => void | Promise<void>;
   onExempt: (ids: string[]) => void | Promise<void>;
   onRemove: (ids: string[]) => void | Promise<void>;
-  onGenerate: (payload: {
-    memberIds: string[];
-    references: string[];
-    value: number;
-  }) => void | Promise<void>;
+  onGenerate: (payload: GenerateContributionsPayload) => void | Promise<void>;
 };
 
 type BusyKind = "pay" | "pending" | "exempt" | "remove";
@@ -161,11 +157,17 @@ export function ContributionsPanel({
   const hasSelection = visibleSelected.length > 0;
   const allVisibleSelected =
     filtered.length > 0 && visibleSelected.length === filtered.length;
-  const pendingSelected = selectedItems.filter((item) => item.status === "pendente");
-  const revertSelected = selectedItems.filter((item) => item.status !== "pendente");
+  const pendingSelected = selectedItems.filter((item) =>
+    isUnpaidContribution(item.status)
+  );
+  const revertSelected = selectedItems.filter(
+    (item) => item.status === "pago" || item.status === "isento"
+  );
   const exemptableSelected = selectedItems.filter((item) => item.status !== "isento");
 
-  const pendingCount = contributions.filter((item) => item.status === "pendente").length;
+  const pendingCount = contributions.filter((item) =>
+    isUnpaidContribution(item.status)
+  ).length;
   const received = contributions
     .filter((item) => item.status === "pago")
     .reduce((sum, item) => sum + item.value, 0);
@@ -248,55 +250,53 @@ export function ContributionsPanel({
         <TextContributions pendingCount={pendingCount} received={received} />
       </span>
 
-      <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-        <input
-          type="search"
-          value={query}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setSelectedIds([]);
-          }}
-          className={inputClassName}
-          placeholder="Buscar por nome"
-          autoComplete="off"
-        />
-
-        <div className="flex rounded-full border border-zinc-200 bg-zinc-50 p-1">
-          {(
-            [
-              ["todos", "Todos"],
-              ["pendente", "Pendentes"],
-              ["pago", "Pagos"],
-              ["isento", "Isentos"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setFilter(value)}
-              className={`h-9 rounded-full w-full px-3 text-sm font-medium transition ${statusFilter === value
-                ? "bg-white text-zinc-900 shadow-sm"
-                : "text-zinc-500 hover:text-zinc-800"
-                }`}
-            >
-              {label}
-            </button>
-          ))}
+      <div className="mt-5 flex justify-center gap-2 sm:flex-row">
+        <div className="w-[50%]">
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setSelectedIds([]);
+            }}
+            className={inputClassName}
+            placeholder="Buscar por nome"
+            autoComplete="off"
+          />
         </div>
 
-        <select
-          value={activeReference}
-          onChange={(event) => setReference(event.target.value)}
-          className={`${inputClassName} sm:max-w-xs`}
-          aria-label="Mês de referência"
-        >
-          <option value="todos">Todas as referências</option>
-          {references.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
+        <div className="w-[30%]">
+          <select
+            value={statusFilter}
+            onChange={(event) =>
+              setFilter(event.target.value as "todos" | ContributionStatus)
+            }
+            className={`${inputClassName} sm:max-w-xs`}
+            aria-label="Status da mensalidade"
+          >
+            <option value="todos">Todos</option>
+            <option value="pendente">Pendentes</option>
+            <option value="vencido">Vencidos</option>
+            <option value="pago">Pagos</option>
+            <option value="isento">Isentos</option>
+          </select>
+        </div>
+
+        <div className="w-[30%]">
+          <select
+            value={activeReference}
+            onChange={(event) => setReference(event.target.value)}
+            className={`${inputClassName} sm:max-w-xs`}
+            aria-label="Mês de referência"
+          >
+            <option value="todos">Todas as referências</option>
+            {references.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <ContributionModal
@@ -451,6 +451,7 @@ export function ContributionsPanel({
                   <span className="block font-medium text-zinc-900">{item.name}</span>
                   <span className="mt-1 block text-sm text-zinc-500">
                     {item.reference} · {formatBRL(item.value)}
+                    {item.date ? ` · vence ${formatDate(item.date)}` : ""}
                   </span>
                 </span>
               </label>
@@ -458,7 +459,7 @@ export function ContributionsPanel({
                 <StatusContribution status={item} />
 
                 <div className="flex gap-2 mr-4">
-                  {item.status === "pendente" ? (
+                  {isUnpaidContribution(item.status) ? (
                     <ActionButton
                       label="Confirmar pagamento"
                       disabled={hasSelection || isBusy}

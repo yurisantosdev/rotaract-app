@@ -19,7 +19,7 @@ import {
 import { TitleModule, ReturnModule } from "@rotaract/components";
 import { CardsPrincipal } from "./components/cardsPrincipal";
 import { Loading } from "@rotaract/components";
-import { Contribution } from "./types/contributions";
+import { Contribution, isUnpaidContribution, type GenerateContributionsPayload } from "./types/contributions";
 import { exemptContribution, generateContributions, listContributions, removeContribution, updateContribution } from "./services/contributions";
 import { downloadFinanceReport } from "./services/report";
 
@@ -81,7 +81,9 @@ export function FinancePage({
     const monthExpense = movements
       .filter((item) => item.type === "saida" && isInCurrentMonth(item.date))
       .reduce((sum, item) => sum + item.value, 0);
-    const pending = contributions.filter((item) => item.status === "pendente");
+    const pending = contributions.filter((item) =>
+      isUnpaidContribution(item.status)
+    );
 
     return {
       balance: income - expense,
@@ -157,8 +159,9 @@ export function FinancePage({
     const jobs = ids.flatMap((id) => {
       const contribution = contributions.find((item) => item.id === id);
       if (!contribution) return [];
-      const nextStatus =
-        contribution.status === "pendente" ? "pago" : "pendente";
+      const nextStatus = isUnpaidContribution(contribution.status)
+        ? "pago"
+        : "pendente";
       return [
         updateContribution(id, controller.signal, {
           ...contribution,
@@ -222,11 +225,7 @@ export function FinancePage({
       .catch(() => undefined);
   }
 
-  function handleGenerateContributions(payload: {
-    memberIds: string[];
-    references: string[];
-    value: number;
-  }) {
+  function handleGenerateContributions(payload: GenerateContributionsPayload) {
     const controller = new AbortController();
 
     return generateContributions(controller.signal, payload).then((result) => {
