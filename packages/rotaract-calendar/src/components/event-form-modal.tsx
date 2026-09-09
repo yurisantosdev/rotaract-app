@@ -376,7 +376,7 @@ export function EventFormModal({
                 value={memberQuery}
                 onChange={(changeEvent) => setMemberQuery(changeEvent.target.value)}
                 className={`${MEMBER_INPUT_CLASS} mt-3`}
-                placeholder="Buscar por nome ou cargo"
+                placeholder="Pesquisar..."
               />
               <ul className="mt-3 max-h-48 divide-y divide-zinc-100 overflow-y-auto rounded-2xl border border-zinc-200">
                 {selectableMembers.length === 0 ? (

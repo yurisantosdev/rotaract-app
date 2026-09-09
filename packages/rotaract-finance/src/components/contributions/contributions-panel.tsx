@@ -260,7 +260,7 @@ export function ContributionsPanel({
               setSelectedIds([]);
             }}
             className={inputClassName}
-            placeholder="Buscar por nome"
+            placeholder="Pesquisar..."
             autoComplete="off"
           />
         </div>

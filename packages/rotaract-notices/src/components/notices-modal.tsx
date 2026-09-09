@@ -234,7 +234,7 @@ export function NoticesModal({ open, onClose, onCreated }: NoticesModalProps) {
             }}
             disabled={loadingMembers}
             className={`${NOTICE_INPUT_CLASS} mt-3`}
-            placeholder="Buscar por nome ou cargo"
+            placeholder="Pesquisar..."
             autoComplete="off"
           />
           <ul
@@ -267,9 +267,8 @@ export function NoticesModal({ open, onClose, onCreated }: NoticesModalProps) {
                     <button
                       type="button"
                       onClick={() => toggleMember(member.id)}
-                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${
-                        selected ? "bg-rotaract-pink/5" : "hover:bg-zinc-50"
-                      }`}
+                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${selected ? "bg-rotaract-pink/5" : "hover:bg-zinc-50"
+                        }`}
                     >
                       <MemberAvatar member={member} size="sm" />
                       <span className="min-w-0 flex-1">
@@ -281,11 +280,10 @@ export function NoticesModal({ open, onClose, onCreated }: NoticesModalProps) {
                         </span>
                       </span>
                       <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                          selected
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${selected
                             ? "border-rotaract-pink bg-rotaract-pink text-white"
                             : "border-zinc-300 bg-white"
-                        }`}
+                          }`}
                       >
                         {selected ? (
                           <CheckIcon className="h-3 w-3" weight="bold" />

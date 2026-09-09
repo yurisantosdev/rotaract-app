@@ -135,7 +135,7 @@ export function MembersPanel({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           className={MEMBER_INPUT_CLASS}
-          placeholder="Buscar por nome, e-mail, telefone ou cargo"
+          placeholder="Pesquisar..."
         />
         <div className="md:w-[40%] w-full md:mt-0 mt-4 flex justify-between overflow-x-auto rounded-full border border-zinc-200 bg-zinc-50 p-1">
           {MEMBER_FILTERS.map((item) => (

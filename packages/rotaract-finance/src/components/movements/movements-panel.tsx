@@ -212,7 +212,7 @@ export function MovementsPanel({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           className={inputClassName}
-          placeholder="Buscar por descrição ou categoria"
+          placeholder="Pesquisar..."
         />
         <div className="flex rounded-full border border-zinc-200 bg-zinc-50 p-1">
           {(

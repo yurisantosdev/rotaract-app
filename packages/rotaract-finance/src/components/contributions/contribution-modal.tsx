@@ -386,7 +386,7 @@ export function ContributionModal({
             }}
             disabled={loadingMembers}
             className={`${inputClassName} mt-3`}
-            placeholder="Buscar por nome ou cargo"
+            placeholder="Pesquisar..."
             autoComplete="off"
           />
           <ul
@@ -427,10 +427,10 @@ export function ContributionModal({
                       disabled={generated}
                       onClick={() => toggleMember(member.id)}
                       className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${generated
-                          ? "cursor-not-allowed bg-zinc-50"
-                          : selected
-                            ? "bg-rotaract-pink/5"
-                            : "hover:bg-zinc-50"
+                        ? "cursor-not-allowed bg-zinc-50"
+                        : selected
+                          ? "bg-rotaract-pink/5"
+                          : "hover:bg-zinc-50"
                         }`}
                     >
                       <MemberAvatar member={member} size="sm" />
@@ -452,10 +452,10 @@ export function ContributionModal({
                       </span>
                       <span
                         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${generated
-                            ? "border-zinc-200 bg-zinc-100 text-zinc-300"
-                            : selected
-                              ? "border-rotaract-pink bg-rotaract-pink text-white"
-                              : "border-zinc-300 bg-white"
+                          ? "border-zinc-200 bg-zinc-100 text-zinc-300"
+                          : selected
+                            ? "border-rotaract-pink bg-rotaract-pink text-white"
+                            : "border-zinc-300 bg-white"
                           }`}
                       >
                         {generated || selected ? (

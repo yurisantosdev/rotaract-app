@@ -91,7 +91,7 @@ export function ProjectsPanel({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             className={PROJECT_INPUT_CLASS}
-            placeholder="Buscar por título, descrição ou responsável"
+            placeholder="Pesquisar..."
           />
         </div>
         <div className="w-[30%]">

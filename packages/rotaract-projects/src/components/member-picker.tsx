@@ -122,7 +122,7 @@ export function MemberPicker({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             className={`${PROJECT_INPUT_CLASS} mt-3`}
-            placeholder="Buscar por nome ou cargo"
+            placeholder="Pesquisar..."
           />
           <ul className="mt-3 max-h-48 divide-y divide-zinc-100 overflow-y-auto rounded-2xl border border-zinc-200">
             {options.length === 0 ? (
@@ -137,9 +137,8 @@ export function MemberPicker({
                     <button
                       type="button"
                       onClick={() => toggle(member.id)}
-                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${
-                        selectedMember ? "bg-rotaract-pink/5" : "hover:bg-zinc-50"
-                      }`}
+                      className={`flex w-full items-center gap-3 px-3 py-2.5 text-left transition ${selectedMember ? "bg-rotaract-pink/5" : "hover:bg-zinc-50"
+                        }`}
                     >
                       <MemberAvatar member={member} size="sm" />
                       <span className="min-w-0 flex-1">
@@ -151,11 +150,10 @@ export function MemberPicker({
                         </span>
                       </span>
                       <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
-                          selectedMember
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${selectedMember
                             ? "border-rotaract-pink bg-rotaract-pink text-white"
                             : "border-zinc-300 bg-white"
-                        }`}
+                          }`}
                       >
                         {selectedMember ? (
                           <CheckIcon className="h-3 w-3" weight="bold" />
