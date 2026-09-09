@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRingingIcon, XIcon } from "@phosphor-icons/react";
+import { BellRingingIcon, ChecksIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { noticesAdd, noticesUpdate } from "../redux/actions";
@@ -108,41 +108,55 @@ export function Notice() {
         <div
           role="dialog"
           aria-labelledby="notices-dialog-title"
-          className="fixed inset-x-4 top-16 z-50 mt-2 max-h-[min(28rem,calc(100dvh-5.5rem))] overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_16px_40px_rgba(24,24,27,0.12)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:w-96"
+          className="fixed inset-x-4 top-16 z-50 mt-2 flex max-h-[min(28rem,calc(100dvh-5.5rem))] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-[0_16px_40px_rgba(24,24,27,0.12)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:w-96"
         >
-          <div className="flex items-center justify-between gap-2">
-            <p
-              id="notices-dialog-title"
-              className="text-xs font-medium uppercase tracking-[0.24em] text-rotaract-pink"
-            >
-              Notificações
-            </p>
+          <div className="shrink-0 border-b border-zinc-100 px-4 py-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p
+                  id="notices-dialog-title"
+                  className="text-xs font-medium uppercase tracking-[0.24em] text-rotaract-pink"
+                >
+                  Notificações
+                </p>
+                <p className="mt-1 text-xs text-zinc-500">
+                  {unreadCount > 0
+                    ? `${unreadCount} ${unreadCount === 1 ? "não lida" : "não lidas"}`
+                    : "Tudo em dia"}
+                </p>
+              </div>
 
-            {unreadCount > 0 ? (
-              <button
-                type="button"
-                onClick={() => void handleReadAll()}
-                disabled={markingAll}
-                className="text-xs font-medium text-rotaract-pink transition hover:text-rotaract-magenta disabled:cursor-wait disabled:opacity-60 hover:underline"
-              >
-                {markingAll ? "Marcando..." : "Ler todas"}
-              </button>
-            ) : null}
+              {unreadCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => void handleReadAll()}
+                  disabled={markingAll}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800 disabled:cursor-wait disabled:opacity-60"
+                >
+                  <ChecksIcon className="h-3.5 w-3.5" weight="bold" aria-hidden />
+                  {markingAll ? "Marcando..." : "Ler todas"}
+                </button>
+              ) : null}
+            </div>
           </div>
 
-          <div className="mt-2 w-full flex justify-end items-center">
-            <p
-              className="text-sm font-medium text-rotaract-pink transition hover:text-rotaract-magenta disabled:cursor-wait disabled:opacity-60 hover:underline cursor-pointer"
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+            <ListNotices notices={notices} />
+          </div>
+
+          <div className="shrink-0 border-t border-zinc-100 p-3">
+            <button
+              type="button"
               onClick={() => {
                 setOpen(false);
-                setOpenModal(true)
+                setOpenModal(true);
               }}
+              className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white text-sm font-medium text-zinc-700 transition hover:border-rotaract-pink/40 hover:bg-rotaract-pink/5 hover:text-rotaract-pink"
             >
+              <PlusIcon className="h-4 w-4" weight="bold" aria-hidden />
               Criar notificação
-            </p>
+            </button>
           </div>
-
-          <ListNotices notices={notices} />
         </div>
       ) : null}
 

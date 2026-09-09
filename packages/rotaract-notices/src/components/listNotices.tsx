@@ -21,13 +21,13 @@ export function ListNotices({ notices }: ListNoticesProps) {
   }
 
   return (
-    <span>
+    <div>
       {notices.length === 0 ? (
-        <p className="mt-3 text-sm text-zinc-500">
+        <p className="py-6 text-center text-sm text-zinc-500">
           Nenhuma notificação por enquanto.
         </p>
       ) : (
-        <ul className="mt-3 max-h-72 space-y-3 overflow-y-auto">
+        <ul className="space-y-3">
           {notices.map((notice) => (
             <li
               key={notice.id}
@@ -55,6 +55,6 @@ export function ListNotices({ notices }: ListNoticesProps) {
           ))}
         </ul>
       )}
-    </span>
-  )
+    </div>
+  );
 }
