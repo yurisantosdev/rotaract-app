@@ -156,7 +156,7 @@ export function CelebrationConfetti({
   useEffect(() => {
     if (!active) return;
 
-    const canvas = canvasRef.current;
+    const canvas: any = canvasRef.current;
     if (!canvas) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
