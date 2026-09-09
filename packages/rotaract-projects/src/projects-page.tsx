@@ -219,6 +219,7 @@ export function ProjectsPage({
             <TitleModule
               module="Módulo projetos"
               title={selected.title}
+              description={selected.description}
             />
           </div>
         </div>

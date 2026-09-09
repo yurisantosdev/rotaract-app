@@ -32,6 +32,7 @@ import {
 } from "../types/tasks";
 import { ProjectFormModal } from "./project-form-modal";
 import { TaskFormModal } from "./task-form-modal";
+import { EditDeleteProject } from "./editDeleteProject";
 
 export function ProjectDetail({
   project,
@@ -147,7 +148,7 @@ export function ProjectDetail({
       <section className="home-rise rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex md:flex-wrap justify-between items-center gap-2">
               <span
                 className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${PROJECT_STATUS_STYLES[status]}`}
               >
@@ -156,32 +157,21 @@ export function ProjectDetail({
               <span className="text-xs text-zinc-400">
                 Criado em {formatDate(project.createdAt.slice(0, 10))}
               </span>
+
+              <div className="md:hidden flex">
+                <EditDeleteProject
+                  onEdit={() => setProjectFormOpen(true)}
+                  onDelete={() => setConfirmRemoveProject(true)}
+                />
+              </div>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-zinc-600">
-              {project.description}
-            </p>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <Tooltip label="Editar projeto">
-              <button
-                type="button"
-                aria-label="Editar projeto"
-                onClick={() => setProjectFormOpen(true)}
-                className="rounded-full p-1.5 text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-800"
-              >
-                <PencilSimpleIcon className="h-4 w-4" />
-              </button>
-            </Tooltip>
-            <Tooltip label="Excluir projeto">
-              <button
-                type="button"
-                aria-label="Excluir projeto"
-                onClick={() => setConfirmRemoveProject(true)}
-                className="rounded-full p-1.5 text-zinc-400 transition hover:bg-rose-50 hover:text-rose-600"
-              >
-                <TrashIcon className="h-4 w-4" />
-              </button>
-            </Tooltip>
+
+          <div className="md:flex hidden">
+            <EditDeleteProject
+              onEdit={() => setProjectFormOpen(true)}
+              onDelete={() => setConfirmRemoveProject(true)}
+            />
           </div>
         </div>
 
@@ -414,11 +404,10 @@ export function ProjectDetail({
                           type="button"
                           onClick={() => onChangeTaskStatus(task.id, item.id)}
                           aria-pressed={selected}
-                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ring-inset transition ${
-                            selected
-                              ? TASK_STATUS_STYLES[item.id].selected
-                              : TASK_STATUS_STYLES[item.id].chip
-                          }`}
+                          className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ring-inset transition ${selected
+                            ? TASK_STATUS_STYLES[item.id].selected
+                            : TASK_STATUS_STYLES[item.id].chip
+                            }`}
                         >
                           {selected ? (
                             <CheckIcon className="h-3 w-3" weight="bold" aria-hidden />
