@@ -246,8 +246,9 @@ export function MovementsPanel({
           filtered.map((movement) => (
             <li
               key={movement.id}
+              className="overflow-x-hidden"
             >
-              <p className="truncate font-medium text-zinc-900">
+              <p className="truncate font-medium text-zinc-900 max-w-[150px]">
                 {movement.description}
               </p>
 
