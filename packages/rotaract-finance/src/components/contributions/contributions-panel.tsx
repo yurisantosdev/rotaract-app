@@ -436,7 +436,7 @@ export function ContributionsPanel({
           filtered.map((item) => (
             <li
               key={item.id}
-              className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between mt-3"
+              className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between mt-3 overflow-x-hidden"
               aria-busy={busy?.ids.includes(item.id) || undefined}
             >
               <label className="flex min-w-0 cursor-pointer items-start gap-3">
