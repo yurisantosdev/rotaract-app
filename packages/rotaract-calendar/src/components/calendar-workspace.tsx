@@ -143,7 +143,7 @@ export function CalendarWorkspace({
 
   return (
     <section className="mt-8 flex flex-col gap-4 lg:flex-row">
-      <div className="min-w-0 flex-1 rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
+      <div className="min-w-0 flex-1 rounded-3xl border border-zinc-200 bg-white md:p-4 p-2 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="w-full md:text-start text-center">
             <h2 className="text-lg font-semibold text-zinc-900 sm:text-xl">
@@ -205,7 +205,7 @@ export function CalendarWorkspace({
 
         <div className="grid grid-cols-7 gap-1">
           {monthGrid.map((day) => {
-            const dayEvents = visibleEvents.filter((event) =>
+            const dayEvents = visibleEvents.filter((event: CalendarEvent) =>
               eventOccursOnDay(event.startsAt, event.endsAt, day)
             );
             const inCurrentMonth = day.getMonth() === visibleMonth.getMonth();
