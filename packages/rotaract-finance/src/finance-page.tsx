@@ -243,14 +243,14 @@ export function FinancePage({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <main className="mx-auto w-full min-w-0 max-w-6xl px-4 py-10 sm:px-6">
       {isLoading ? <Loading /> : null}
       <ReturnModule backHref={backHref} />
 
       <TitleModule
         module="Módulo financeiro"
         title="Tesouraria"
-        description={`Olá, ${firstName}. O módulo financeiro foi desenvolvido para centralizar e organizar suas informações financeiras, permitindo acompanhar receitas, despesas, contas, movimentações e outros dados importantes de forma simples e organizada.`}
+        description={`Olá, ${firstName}. O módulo financeiro centraliza suas informações, facilitando o controle de receitas, despesas, contas e mensalidades`}
       />
 
       <CardsPrincipal totals={totals} />
@@ -258,7 +258,7 @@ export function FinancePage({
       <div
         role="tablist"
         aria-label="Áreas da tesouraria"
-        className="mt-8 flex gap-1 overflow-x-auto rounded-full border border-zinc-200 bg-white p-1"
+        className="mt-8 grid grid-cols-3 gap-1 rounded-full border border-zinc-200 bg-white p-1"
       >
         {tabs.map((item) => (
           <button
@@ -267,17 +267,17 @@ export function FinancePage({
             role="tab"
             aria-selected={tab === item.id}
             onClick={() => setTab(item.id)}
-            className={`h-10 shrink-0 rounded-full px-4 text-sm font-medium transition ${tab === item.id
+            className={`h-10 min-w-0 rounded-full px-1.5 text-xs font-medium transition sm:px-4 sm:text-sm ${tab === item.id
               ? "bg-rotaract-pink text-white"
               : "text-zinc-500 hover:text-zinc-800"
               }`}
           >
-            {item.label}
+            <span className="block truncate">{item.label}</span>
           </button>
         ))}
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 min-w-0">
         {tab === "movimentos" ? (
           <MovementsPanel
             movements={movements}

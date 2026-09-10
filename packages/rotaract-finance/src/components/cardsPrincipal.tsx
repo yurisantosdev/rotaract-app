@@ -4,7 +4,7 @@ import { formatBRL } from '../services/money'
 
 export function CardsPrincipal({ totals }: any) {
   return (
-    <section className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <section className="mt-8 grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-4">
       <Card
         title="Saldo atual"
         number={totals.balance}

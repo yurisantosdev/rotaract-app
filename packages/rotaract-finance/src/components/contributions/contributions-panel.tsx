@@ -231,9 +231,9 @@ export function ContributionsPanel({
   }
 
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
-      <div className="flex justify-between items-center gap-3">
-        <div>
+    <section className="min-w-0 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold text-zinc-900">Mensalidades</h2>
           <span className="md:flex hidden">
             <TextContributions pendingCount={pendingCount} received={received} />
@@ -339,8 +339,8 @@ export function ContributionsPanel({
       />
 
       {filtered.length > 0 ? (
-        <div className="flex justify-between items-center gap-2 mt-5">
-          <div>
+        <div className="mt-5 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <label className="flex cursor-pointer items-center gap-3 text-sm text-zinc-600">
               <input
                 type="checkbox"
@@ -358,9 +358,9 @@ export function ContributionsPanel({
             </label>
           </div>
 
-          <div>
+          <div className="min-w-0">
             {hasSelection ? (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-end gap-2">
                 <span className="text-sm text-zinc-500">
                   {visibleSelected.length} selecionada
                   {visibleSelected.length === 1 ? "" : "s"}
@@ -447,18 +447,18 @@ export function ContributionsPanel({
                   onChange={() => toggleSelected(item.id)}
                   className={`${checkboxClassName} mt-1`}
                 />
-                <span>
-                  <span className="block font-medium text-zinc-900">{item.name}</span>
-                  <span className="mt-1 block text-sm text-zinc-500">
+                <span className="min-w-0">
+                  <span className="block truncate font-medium text-zinc-900">{item.name}</span>
+                  <span className="mt-1 block truncate text-sm text-zinc-500">
                     {item.reference} · {formatBRL(item.value)}
                     {item.date ? ` · vence ${formatDate(item.date)}` : ""}
                   </span>
                 </span>
               </label>
-              <div className="flex items-center gap-3 md:justify-center justify-between md:ml-0 ml-4">
+              <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 sm:justify-end md:ml-0">
                 <StatusContribution status={item} />
 
-                <div className="flex gap-2 mr-4">
+                <div className="flex shrink-0 gap-2">
                   {isUnpaidContribution(item.status) ? (
                     <ActionButton
                       label="Confirmar pagamento"

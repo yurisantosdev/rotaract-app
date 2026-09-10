@@ -72,7 +72,7 @@ export default function HomeLayout({
 
   return (
     user ? (
-      <div className="min-h-dvh bg-rotaract-mist text-rotaract-ink">
+      <div className="min-h-dvh overflow-x-hidden bg-rotaract-mist text-rotaract-ink">
         <ClubBrandingProvider>
           <AppHeader user={user} onLogout={handleLogout} />
           <MemberSessionProvider user={user}>{children}</MemberSessionProvider>

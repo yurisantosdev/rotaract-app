@@ -32,9 +32,9 @@ export function ReportPanel({
   }, {});
 
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
-      <div className="flex gap-3 items-center justify-between">
-        <div>
+    <section className="min-w-0 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold text-zinc-900">Relatório</h2>
 
           <span className="md:flex hidden">
@@ -56,13 +56,13 @@ export function ReportPanel({
           <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             Entradas
           </dt>
-          <dd className="mt-1 text-xl font-semibold text-emerald-600">{formatBRL(income)}</dd>
+          <dd className="mt-1 truncate text-lg font-semibold text-emerald-600 sm:text-xl">{formatBRL(income)}</dd>
         </div>
         <div className="rounded-2xl bg-rotaract-mist p-4">
           <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
             Saídas
           </dt>
-          <dd className="mt-1 text-xl font-semibold text-rose-500">{formatBRL(expense)}</dd>
+          <dd className="mt-1 truncate text-lg font-semibold text-rose-500 sm:text-xl">{formatBRL(expense)}</dd>
         </div>
         <div className="rounded-2xl bg-rotaract-mist p-4">
           <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -79,10 +79,10 @@ export function ReportPanel({
         {Object.entries(byCategory).map(([category, total]) => (
           <li
             key={category}
-            className="flex items-center justify-between rounded-2xl border border-zinc-100 px-4 py-3 text-sm"
+            className="flex min-w-0 items-center justify-between gap-3 rounded-2xl border border-zinc-100 px-4 py-3 text-sm"
           >
-            <span className="text-zinc-600">{category}</span>
-            <span className={total >= 0 ? "font-medium text-emerald-600" : "font-medium text-rose-500"}>
+            <span className="min-w-0 truncate text-zinc-600">{category}</span>
+            <span className={`shrink-0 ${total >= 0 ? "font-medium text-emerald-600" : "font-medium text-rose-500"}`}>
               {formatBRL(total)}
             </span>
           </li>

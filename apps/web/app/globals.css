@@ -10,8 +10,10 @@
 html,
 body {
   min-height: 100%;
-  touch-action: pan-x pan-y;
-  -ms-touch-action: pan-x pan-y;
+  max-width: 100%;
+  overflow-x: hidden;
+  touch-action: pan-y;
+  -ms-touch-action: pan-y;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }

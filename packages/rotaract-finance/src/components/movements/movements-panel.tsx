@@ -148,15 +148,15 @@ export function MovementsPanel({
   }
 
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
-      <div className="flex justify-between items-center gap-3">
-        <div>
+    <section className="min-w-0 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
+      <div className="flex min-w-0 items-center justify-between gap-3">
+        <div className="min-w-0">
           <h2 className="text-lg font-semibold text-zinc-900">Movimentações</h2>
           <p className="mt-1 text-sm text-zinc-500 md:flex hidden">
             Filtre, registre e acompanhe entradas e saídas do clube.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <ButtonExcel
             onClick={() => downloadMovementsReport(filtered)}
           />
@@ -214,7 +214,7 @@ export function MovementsPanel({
           className={inputClassName}
           placeholder="Pesquisar..."
         />
-        <div className="flex rounded-full border border-zinc-200 bg-zinc-50 p-1">
+        <div className="grid min-w-0 grid-cols-3 gap-1 rounded-full border border-zinc-200 bg-zinc-50 p-1">
           {(
             [
               ["todos", "Todos"],
@@ -226,12 +226,12 @@ export function MovementsPanel({
               key={value}
               type="button"
               onClick={() => setTypeFilter(value)}
-              className={`h-9 rounded-full px-3 w-full text-sm font-medium transition ${typeFilter === value
+              className={`h-9 min-w-0 rounded-full px-2 text-xs font-medium transition sm:px-3 sm:text-sm ${typeFilter === value
                 ? "bg-white text-zinc-900 shadow-sm"
                 : "text-zinc-500 hover:text-zinc-800"
                 }`}
             >
-              {label}
+              <span className="block truncate">{label}</span>
             </button>
           ))}
         </div>
@@ -247,17 +247,16 @@ export function MovementsPanel({
             <li
               key={movement.id}
             >
-              <p
-                className="font-medium text-zinc-900 truncate max-w-[200px]">
+              <p className="truncate font-medium text-zinc-900">
                 {movement.description}
               </p>
 
-              <div className="flex justify-between items-center gap-3">
-                <p className="mt-1 text-sm text-zinc-500">
+              <div className="flex min-w-0 items-center justify-between gap-3">
+                <p className="mt-1 min-w-0 truncate text-sm text-zinc-500">
                   {formatDate(movement.date)} · {movement.category}
                 </p>
                 <span
-                  className={`text-sm mr-3 md:mr-4 font-semibold ${movement.type === "entrada" ? "text-emerald-600" : "text-rose-500"
+                  className={`shrink-0 text-sm font-semibold ${movement.type === "entrada" ? "text-emerald-600" : "text-rose-500"
                     }`}
                 >
                   {movement.type === "entrada" ? "+" : "−"}
@@ -265,7 +264,7 @@ export function MovementsPanel({
                 </span>
               </div>
 
-              <div className="flex items-center justify-end gap-2 mr-3 md:mr-4">
+              <div className="flex items-center justify-end gap-2">
                 <Tooltip label="Excluir">
                   <button
                     type="button"
