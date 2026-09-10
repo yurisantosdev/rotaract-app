@@ -37,3 +37,16 @@ export function clearSession(): void {
   sessionStorage.removeItem(COOKIE_NAME);
   document.cookie = `${COOKIE_NAME}=; Path=/; Max-Age=0`;
 }
+
+const LOGIN_NOTICE_KEY = "login_notice";
+
+export function setLoginNotice(message: string): void {
+  sessionStorage.setItem(LOGIN_NOTICE_KEY, message);
+}
+
+export function consumeLoginNotice(): string | null {
+  const value = sessionStorage.getItem(LOGIN_NOTICE_KEY);
+  if (!value) return null;
+  sessionStorage.removeItem(LOGIN_NOTICE_KEY);
+  return value;
+}

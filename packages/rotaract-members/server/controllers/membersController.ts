@@ -178,7 +178,7 @@ export async function update(req: Request, res: Response): Promise<void> {
       dados.password = await hashPassword(password);
     }
 
-    if (typeof photo === "string" && photo.trim()) {
+    if (typeof photo === "string") {
       dados.photo = photo.trim();
     }
 

@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, MouseEvent, useState } from "react";
+import { FormEvent, MouseEvent, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { loadMembers } from "@rotaract/members";
 import { loadNotices } from "@rotaract/notices";
 import { apiFetch } from "../lib/api";
-import { setSession } from "../lib/auth";
+import { consumeLoginNotice, setSession } from "../lib/auth";
 import type { AppDispatch } from "../store";
 
 type Status = "idle" | "loading";
@@ -27,6 +27,11 @@ export function LoginForm() {
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [spotlight, setSpotlight] = useState({ x: 180, y: 80 });
+
+  useEffect(() => {
+    const notice = consumeLoginNotice();
+    if (notice) setInfo(notice);
+  }, []);
 
   function moveSpotlight(event: MouseEvent<HTMLDivElement>) {
     const rect = event.currentTarget.getBoundingClientRect();

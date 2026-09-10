@@ -7,7 +7,7 @@ import { loadMembers, membersClean } from "@rotaract/members";
 import { loadNotices, noticesClean } from "@rotaract/notices";
 import { AppHeader } from "../_components/app-header";
 import { apiFetch } from "../lib/api";
-import { clearSession, getToken } from "../lib/auth";
+import { clearSession, getToken, setLoginNotice } from "../lib/auth";
 import type { AuthUser } from "../lib/types";
 import type { AppDispatch } from "../store";
 import { ClubBrandingProvider } from "./_components/club-branding";
@@ -70,11 +70,21 @@ export default function HomeLayout({
     router.refresh();
   }
 
+  function handleReloginRequired() {
+    setLoginNotice("E-mail ou senha atualizados. Entre novamente para continuar.");
+    handleLogout();
+  }
+
   return (
     user ? (
       <div className="min-h-dvh overflow-x-hidden bg-rotaract-mist text-rotaract-ink">
         <ClubBrandingProvider>
-          <AppHeader user={user} onLogout={handleLogout} />
+          <AppHeader
+            user={user}
+            onLogout={handleLogout}
+            onUserUpdated={setUser}
+            onReloginRequired={handleReloginRequired}
+          />
           <MemberSessionProvider user={user}>{children}</MemberSessionProvider>
         </ClubBrandingProvider>
       </div>
