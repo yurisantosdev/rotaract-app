@@ -19,6 +19,8 @@ import {
   type EventKind,
 } from "../types/event";
 
+const VISIBLE_SELECTED_MEMBERS = 3;
+
 type EventFormModalProps = {
   open: boolean;
   selectedDate: Date;
@@ -68,7 +70,9 @@ export function EventFormModal({
     setStartTime(event && !event.allDay ? toTimeInputValue(start) : "19:30");
     setEndTime(event && !event.allDay ? toTimeInputValue(end) : "21:00");
     setAllDay(event?.allDay ?? false);
-    setMemberIds(event?.memberIds ?? []);
+    setMemberIds(
+      event?.memberIds ?? (currentUserId ? [currentUserId] : [])
+    );
     setMemberQuery("");
     setPersonalEvent(
       Boolean(
@@ -303,34 +307,20 @@ export function EventFormModal({
               </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-3">
-              {currentUserId ? (
-                <button
-                  type="button"
-                  onClick={togglePersonalEvent}
-                  className={`text-sm font-medium transition ${personalEvent
-                    ? "text-rotaract-magenta"
-                    : "text-rotaract-pink hover:text-rotaract-magenta"
-                    }`}
-                >
-                  {personalEvent ? "Remover evento pessoal" : "Evento pessoal"}
-                </button>
-              ) : null}
-              {members.length > 0 && !personalEvent ? (
-                <button
-                  type="button"
-                  onClick={toggleAllMembers}
-                  disabled={selectableIds.length === 0}
-                  className="text-sm font-medium text-rotaract-pink transition hover:text-rotaract-magenta disabled:text-zinc-400"
-                >
-                  {allSelected ? "Limpar seleção" : "Selecionar todos"}
-                </button>
-              ) : null}
+              <button
+                type="button"
+                onClick={toggleAllMembers}
+                disabled={selectableIds.length === 0}
+                className="text-sm font-medium text-rotaract-pink transition hover:text-rotaract-magenta disabled:text-zinc-400"
+              >
+                {allSelected ? "Limpar" : "Selecionar todos"}
+              </button>
             </div>
           </div>
 
           {selectedMembers.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
-              {selectedMembers.map((member) => (
+              {selectedMembers.slice(0, VISIBLE_SELECTED_MEMBERS).map((member) => (
                 <button
                   key={member.id}
                   type="button"
@@ -342,6 +332,14 @@ export function EventFormModal({
                   {member.name.split(" ")[0]}
                 </button>
               ))}
+              {selectedMembers.length > VISIBLE_SELECTED_MEMBERS ? (
+                <span
+                  className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-medium text-zinc-500"
+                  aria-label={`Mais ${selectedMembers.length - VISIBLE_SELECTED_MEMBERS} participantes`}
+                >
+                  +{selectedMembers.length - VISIBLE_SELECTED_MEMBERS}
+                </span>
+              ) : null}
             </div>
           ) : null}
 

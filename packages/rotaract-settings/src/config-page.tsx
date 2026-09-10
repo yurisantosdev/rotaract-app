@@ -52,7 +52,6 @@ export function ConfigPage({
     formatMoneyFromNumber(0)
   );
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,19 +84,16 @@ export function ConfigPage({
 
     if (name.length < 3) {
       setError("Informe o nome do clube com pelo menos 3 caracteres.");
-      setNotice("");
       return;
     }
 
     if (!Number.isFinite(fee) || fee <= 0) {
       setError("Informe um valor de mensalidade maior que zero.");
-      setNotice("");
       return;
     }
 
     if (!isImageDataUrl(logoUrl)) {
       setError("Envie uma logomarca em PNG, JPG ou WEBP.");
-      setNotice("");
       return;
     }
 
@@ -117,7 +113,6 @@ export function ConfigPage({
       const next = toClubSettings(result);
       setSaved(next);
       setClubName(next.clubName);
-      setNotice("Configurações salvas.");
       onSaved?.(next);
     } catch {
       setError("Não foi possível salvar as configurações.");
@@ -246,15 +241,6 @@ export function ConfigPage({
               {error}
             </p>
           ) : null}
-          {notice && !error ? (
-            <p
-              className="mb-3 inline-flex items-center gap-1.5 text-sm text-emerald-700"
-              role="status"
-            >
-              <CheckCircleIcon size={16} weight="fill" aria-hidden />
-              {notice}
-            </p>
-          ) : null}
 
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <button
@@ -284,7 +270,6 @@ export function ConfigPage({
         onClose={() => setDiscardOpen(false)}
         onConfirm={() => {
           resetTo(saved);
-          setNotice("");
           setDiscardOpen(false);
         }}
       />
