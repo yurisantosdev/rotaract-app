@@ -8,7 +8,13 @@ import {
   TrashIcon,
   CheckIcon,
 } from "@phosphor-icons/react";
-import { Button, CelebrationConfetti, ConfirmModal, Tooltip } from "@rotaract/components";
+import {
+  Button,
+  CelebrationConfetti,
+  ConfirmModal,
+  Tooltip,
+  useAnimatedNumber,
+} from "@rotaract/components";
 import { MemberAvatar, type Member } from "@rotaract/members";
 import { formatDate } from "../lib/dates";
 import { findMember, firstName, membersByIds } from "../lib/members";
@@ -31,8 +37,33 @@ import {
   TASK_FILTERS,
 } from "../types/tasks";
 import { ProjectFormModal } from "./project-form-modal";
+import { ProjectProgressBar } from "./project-progress-bar";
 import { TaskFormModal } from "./task-form-modal";
 import { EditDeleteProject } from "./editDeleteProject";
+
+function TaskStatCard({
+  title,
+  value,
+  description,
+}: {
+  title: string;
+  value: number;
+  description: string;
+}) {
+  const displayed = useAnimatedNumber(value);
+
+  return (
+    <article className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+        {title}
+      </p>
+      <p className="mt-2 text-xl font-semibold tabular-nums text-zinc-900">
+        {Math.round(displayed)}
+      </p>
+      <p className="mt-1 text-sm text-zinc-500">{description}</p>
+    </article>
+  );
+}
 
 export function ProjectDetail({
   project,
@@ -217,21 +248,17 @@ export function ProjectDetail({
           </article>
         </div>
 
-        <div className="mt-5">
-          <div className="flex items-center justify-between text-xs text-zinc-500">
-            <span>
-              {progress.completed}/{progress.total}{" "}
-              {progress.total === 1 ? "tarefa concluída" : "tarefas concluídas"}
-            </span>
-            <span className="tabular-nums">{progress.percent}%</span>
-          </div>
-          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-200">
-            <div
-              className="h-full rounded-full bg-rotaract-pink transition-[width] duration-500"
-              style={{ width: `${progress.percent}%` }}
-            />
-          </div>
-        </div>
+        <ProjectProgressBar
+          completed={progress.completed}
+          total={progress.total}
+          percent={progress.percent}
+          className="mt-5"
+          delayMs={180}
+          itemLabel={{
+            singular: "tarefa concluída",
+            plural: "tarefas concluídas",
+          }}
+        />
       </section>
 
       <section
@@ -255,42 +282,26 @@ export function ProjectDetail({
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <article className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-              Tarefas
-            </p>
-            <p className="mt-2 text-xl font-semibold tabular-nums text-zinc-900">
-              {tasks.length}
-            </p>
-            <p className="mt-1 text-sm text-zinc-500">Neste projeto</p>
-          </article>
-          <article className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-              Abertas
-            </p>
-            <p className="mt-2 text-xl font-semibold tabular-nums text-zinc-900">
-              {openTasks}
-            </p>
-            <p className="mt-1 text-sm text-zinc-500">Ainda em andamento</p>
-          </article>
-          <article className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-              Concluídas
-            </p>
-            <p className="mt-2 text-xl font-semibold tabular-nums text-zinc-900">
-              {completedTasks}
-            </p>
-            <p className="mt-1 text-sm text-zinc-500">Já finalizadas</p>
-          </article>
-          <article className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-              Atrasadas
-            </p>
-            <p className="mt-2 text-xl font-semibold tabular-nums text-zinc-900">
-              {overdueTasks}
-            </p>
-            <p className="mt-1 text-sm text-zinc-500">Fora do prazo combinado</p>
-          </article>
+          <TaskStatCard
+            title="Tarefas"
+            value={tasks.length}
+            description="Neste projeto"
+          />
+          <TaskStatCard
+            title="Abertas"
+            value={openTasks}
+            description="Ainda em andamento"
+          />
+          <TaskStatCard
+            title="Concluídas"
+            value={completedTasks}
+            description="Já finalizadas"
+          />
+          <TaskStatCard
+            title="Atrasadas"
+            value={overdueTasks}
+            description="Fora do prazo combinado"
+          />
         </div>
 
         <div className="mt-5 flex overflow-x-auto rounded-full border border-zinc-200 bg-zinc-50 p-1">

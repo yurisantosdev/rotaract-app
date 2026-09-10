@@ -250,8 +250,8 @@ export function ContributionsPanel({
         <TextContributions pendingCount={pendingCount} received={received} />
       </span>
 
-      <div className="mt-5 flex justify-center gap-2 sm:flex-row">
-        <div className="w-[50%]">
+      <div className="mt-5 md:flex md:justify-center md:gap-2">
+        <div className="md:w-[50%] md:mt-0 w-full mt-2">
           <input
             type="search"
             value={query}
@@ -265,7 +265,7 @@ export function ContributionsPanel({
           />
         </div>
 
-        <div className="w-[30%]">
+        <div className="md:w-[30%] md:mt-0 w-full mt-2">
           <select
             value={statusFilter}
             onChange={(event) =>
@@ -282,7 +282,7 @@ export function ContributionsPanel({
           </select>
         </div>
 
-        <div className="w-[30%]">
+        <div className="md:w-[30%] md:mt-0 w-full mt-2">
           <select
             value={activeReference}
             onChange={(event) => setReference(event.target.value)}

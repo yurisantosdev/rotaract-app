@@ -5,7 +5,7 @@ export type Tab = "movimentos" | "mensalidades" | "relatorio";
 export const tabs: { id: Tab; label: string }[] = [
   { id: "movimentos", label: "Movimentações" },
   { id: "mensalidades", label: "Mensalidades" },
-  { id: "relatorio", label: "Prestação de contas" },
+  { id: "relatorio", label: "Relatório" },
 ];
 
 export const inputClassName =

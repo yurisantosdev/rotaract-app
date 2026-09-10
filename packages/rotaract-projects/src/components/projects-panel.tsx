@@ -22,6 +22,7 @@ import {
 } from "../types/projects";
 import type { Task } from "../types/tasks";
 import { ProjectFormModal } from "./project-form-modal";
+import { ProjectProgressBar } from "./project-progress-bar";
 
 type ProjectsPanelProps = {
   projects: Project[];
@@ -177,21 +178,12 @@ export function ProjectsPanel({
                     </span>
                   </div>
 
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between text-xs text-zinc-500">
-                      <span>
-                        {progress.completed}/{progress.total}{" "}
-                        {progress.total === 1 ? "tarefa" : "tarefas"}
-                      </span>
-                      <span className="tabular-nums">{progress.percent}%</span>
-                    </div>
-                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-200">
-                      <div
-                        className="h-full rounded-full bg-rotaract-pink"
-                        style={{ width: `${progress.percent}%` }}
-                      />
-                    </div>
-                  </div>
+                  <ProjectProgressBar
+                    completed={progress.completed}
+                    total={progress.total}
+                    percent={progress.percent}
+                    delayMs={180 + index * 70}
+                  />
 
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-2">

@@ -9,5 +9,6 @@ export { Loading } from "./components/loading";
 export { CelebrationConfetti } from "./components/celebration-confetti";
 export { DatePicker } from "./components/date-picker";
 export { TimeSelect } from "./components/time-select";
+export { useAnimatedNumber } from "./hooks/use-animated-number";
 export type { DatePickerProps, DatePickerLabelFormat } from "./types/datePicker";
 export type { TimeSelectProps } from "./types/timeSelect";

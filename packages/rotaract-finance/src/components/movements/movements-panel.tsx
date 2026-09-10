@@ -248,7 +248,7 @@ export function MovementsPanel({
               key={movement.id}
             >
               <p
-                className="font-medium text-zinc-900">
+                className="font-medium text-zinc-900 truncate max-w-[200px]">
                 {movement.description}
               </p>
 

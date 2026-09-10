@@ -35,7 +35,7 @@ export function ReportPanel({
     <section className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
       <div className="flex gap-3 items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-zinc-900">Prestação de contas</h2>
+          <h2 className="text-lg font-semibold text-zinc-900">Relatório</h2>
 
           <span className="md:flex hidden">
             <DescriptionReportPanel />
