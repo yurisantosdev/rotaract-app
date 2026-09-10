@@ -310,7 +310,7 @@ export function ProjectDetail({
               key={item.id}
               type="button"
               onClick={() => setTaskFilter(item.id)}
-              className={`h-9 flex-1 shrink-0 rounded-full px-3 text-sm font-medium transition ${taskFilter === item.id
+              className={`h-9 flex-1 shrink-0 rounded-full md:px-3 px-0 md:text-sm text-xs font-medium transition ${taskFilter === item.id
                 ? "bg-white text-zinc-900 shadow-sm"
                 : "text-zinc-500 hover:text-zinc-800"
                 }`}

@@ -86,7 +86,7 @@ export function ProjectsPanel({
         </Tooltip>
       </div>
 
-      <div className="mt-5 flex justify-center gap-2 sm:flex-row">
+      <div className="mt-5 md:flex md:justify-center md:gap-2">
         <div className="min-w-0 flex-1">
           <input
             value={query}
@@ -95,7 +95,7 @@ export function ProjectsPanel({
             placeholder="Pesquisar..."
           />
         </div>
-        <div className="w-[30%]">
+        <div className="md:w-[30%] w-full md:mt-0 mt-2">
           <select
             value={filter}
             onChange={(event) =>
