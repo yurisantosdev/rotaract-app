@@ -40,6 +40,7 @@ export function ConfirmModal({
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
+        event.stopImmediatePropagation();
         if (!loadingRef.current) onCloseRef.current();
         return;
       }
@@ -63,10 +64,10 @@ export function ConfirmModal({
       }
     }
 
-    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keydown", onKeyDown, true);
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keydown", onKeyDown, true);
       document.body.style.overflow = previousOverflow;
       previousFocus?.focus();
     };
@@ -85,7 +86,7 @@ export function ConfirmModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-zinc-950/45 p-3 backdrop-blur-md sm:items-center sm:p-6"
+      className="fixed inset-0 z-[90] flex items-end justify-center bg-zinc-950/45 p-3 backdrop-blur-md sm:items-center sm:p-6"
       onMouseDown={handleBackdropMouseDown}
     >
       <div

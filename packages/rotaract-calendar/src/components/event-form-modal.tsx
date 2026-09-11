@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { CheckIcon } from "@phosphor-icons/react";
+import { CheckIcon, TrashIcon } from "@phosphor-icons/react";
 import { AlertError, AlertSuccess, Button, DatePicker, Modal } from "@rotaract/components";
 import { MemberAvatar } from "@rotaract/members";
 import {
@@ -29,6 +29,7 @@ type EventFormModalProps = {
   currentUserId?: string;
   onClose: () => void;
   onSave: (payload: CalendarEventPayload) => void | Promise<void>;
+  onDelete?: () => void;
 };
 
 export function EventFormModal({
@@ -39,6 +40,7 @@ export function EventFormModal({
   currentUserId,
   onClose,
   onSave,
+  onDelete,
 }: EventFormModalProps) {
   const titleRef = useRef<HTMLInputElement>(null);
   const isEdit = Boolean(event);
@@ -425,26 +427,41 @@ export function EventFormModal({
           </p>
         ) : null}
 
-        <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={saving}
-            className="h-12 rounded-full px-5 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Cancelar
-          </button>
-          <Button
-            type="submit"
-            loading={saving}
-            title={
-              saving
-                ? "Salvando..."
-                : isEdit
-                  ? "Salvar alterações"
-                  : `Cadastrar ${eventKindLabel(kind).toLowerCase()}`
-            }
-          />
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          {isEdit && onDelete ? (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={saving}
+              className="inline-flex h-12 cursor-pointer items-center justify-center gap-1.5 rounded-full px-5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <TrashIcon className="h-4 w-4" />
+              Excluir agendamento
+            </button>
+          ) : (
+            <span className="hidden sm:block" />
+          )}
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={saving}
+              className="h-12 cursor-pointer rounded-full px-5 text-sm font-semibold text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Cancelar
+            </button>
+            <Button
+              type="submit"
+              loading={saving}
+              title={
+                saving
+                  ? "Salvando..."
+                  : isEdit
+                    ? "Salvar alterações"
+                    : `Cadastrar ${eventKindLabel(kind).toLowerCase()}`
+              }
+            />
+          </div>
         </div>
       </form>
     </Modal>

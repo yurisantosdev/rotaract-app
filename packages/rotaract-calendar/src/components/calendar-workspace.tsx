@@ -477,6 +477,9 @@ export function CalendarWorkspace({
         currentUserId={currentUserId}
         onClose={closeForm}
         onSave={handleSave}
+        onDelete={
+          editingEvent ? () => setEventToDelete(editingEvent) : undefined
+        }
       />
 
       <ConfirmModal

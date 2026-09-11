@@ -28,6 +28,40 @@ const MONTHS = [
   "Dezembro",
 ] as const;
 
+const MONTHS_SHORT = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+] as const;
+
+const YEAR_GRID_SIZE = 12;
+
+type CalendarView = "days" | "months" | "years";
+
+function getYearRangeStart(year: number): number {
+  return Math.floor(year / YEAR_GRID_SIZE) * YEAR_GRID_SIZE;
+}
+
+function pickerCellClass(isSelected: boolean, isCurrent: boolean): string {
+  return [
+    "flex h-full w-full cursor-pointer items-center justify-center rounded-xl text-xs font-medium transition",
+    isSelected
+      ? "bg-rotaract-pink text-white"
+      : isCurrent
+        ? "bg-rotaract-pink/10 text-rotaract-pink ring-1 ring-rotaract-pink/30"
+        : "text-zinc-700 hover:bg-rotaract-mist",
+  ].join(" ");
+}
+
 function toInputValue(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -102,9 +136,12 @@ export function DatePicker({
 }: DatePickerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState<CalendarView>("days");
+  const viewRef = useRef<CalendarView>("days");
   const [popoverPosition, setPopoverPosition] = useState<{ top: number; left: number } | null>(
     null
   );
+  viewRef.current = view;
 
   const today = useMemo(() => {
     const now = new Date();
@@ -124,6 +161,10 @@ export function DatePicker({
     const anchor = selectedDate ?? reference;
     return new Date(anchor.getFullYear(), anchor.getMonth(), 1, 12, 0, 0, 0);
   });
+
+  useEffect(() => {
+    if (!open) setView("days");
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -171,6 +212,14 @@ export function DatePicker({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       event.stopPropagation();
+      if (viewRef.current === "years") {
+        setView("months");
+        return;
+      }
+      if (viewRef.current === "months") {
+        setView("days");
+        return;
+      }
       setOpen(false);
     }
 
@@ -199,8 +248,44 @@ export function DatePicker({
 
   function pickDate(date: Date) {
     onChange(toInputValue(date));
+    setView("days");
     if (!showTime) setOpen(false);
   }
+
+  function shiftVisibleMonth(years: number, months = 0) {
+    setVisibleMonth(
+      new Date(visibleMonth.getFullYear() + years, visibleMonth.getMonth() + months, 1, 12, 0, 0, 0)
+    );
+  }
+
+  function handleHeaderClick() {
+    if (view === "days") setView("months");
+    else if (view === "months") setView("years");
+    else setView("months");
+  }
+
+  function pickMonth(monthIndex: number) {
+    setVisibleMonth(new Date(visibleMonth.getFullYear(), monthIndex, 1, 12, 0, 0, 0));
+    setView("days");
+  }
+
+  function pickYear(year: number) {
+    setVisibleMonth(new Date(year, visibleMonth.getMonth(), 1, 12, 0, 0, 0));
+    setView("months");
+  }
+
+  const yearRangeStart = getYearRangeStart(visibleMonth.getFullYear());
+  const yearGrid = Array.from(
+    { length: YEAR_GRID_SIZE },
+    (_, index) => yearRangeStart + index
+  );
+
+  const headerLabel =
+    view === "days"
+      ? `${MONTHS[visibleMonth.getMonth()]} ${visibleMonth.getFullYear()}`
+      : view === "months"
+        ? String(visibleMonth.getFullYear())
+        : `${yearRangeStart} – ${yearRangeStart + YEAR_GRID_SIZE - 1}`;
 
   const dateLabel = selectedDate
     ? labelFormat === "short"
@@ -227,71 +312,145 @@ export function DatePicker({
           <div className="mb-2 flex items-center justify-between">
             <button
               type="button"
-              aria-label="Mês anterior"
-              onClick={() =>
-                setVisibleMonth(
-                  new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1, 12, 0, 0, 0)
-                )
+              aria-label={
+                view === "days"
+                  ? "Mês anterior"
+                  : view === "months"
+                    ? "Ano anterior"
+                    : "Anos anteriores"
               }
+              onClick={() => {
+                if (view === "days") shiftVisibleMonth(0, -1);
+                else if (view === "months") shiftVisibleMonth(-1);
+                else shiftVisibleMonth(-YEAR_GRID_SIZE);
+              }}
               className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-zinc-500 transition hover:bg-rotaract-mist hover:text-zinc-900"
             >
               <ChevronLeftIcon />
             </button>
-            <p className="text-sm font-semibold text-zinc-900">
-              {MONTHS[visibleMonth.getMonth()]} {visibleMonth.getFullYear()}
-            </p>
             <button
               type="button"
-              aria-label="Próximo mês"
-              onClick={() =>
-                setVisibleMonth(
-                  new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1, 12, 0, 0, 0)
-                )
+              aria-expanded={view !== "days"}
+              aria-label={
+                view === "days"
+                  ? "Escolher mês e ano"
+                  : view === "months"
+                    ? "Escolher ano"
+                    : "Voltar para meses"
               }
+              onClick={handleHeaderClick}
+              className="inline-flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1 rounded-xl px-2 py-1 text-sm font-semibold text-zinc-900 transition hover:bg-rotaract-mist"
+            >
+              <span className="truncate">{headerLabel}</span>
+              <span
+                className={[
+                  "shrink-0 text-zinc-400 transition-transform",
+                  view === "years" ? "rotate-180" : "",
+                ].join(" ")}
+              >
+                <ChevronDownIcon />
+              </span>
+            </button>
+            <button
+              type="button"
+              aria-label={
+                view === "days"
+                  ? "Próximo mês"
+                  : view === "months"
+                    ? "Próximo ano"
+                    : "Próximos anos"
+              }
+              onClick={() => {
+                if (view === "days") shiftVisibleMonth(0, 1);
+                else if (view === "months") shiftVisibleMonth(1);
+                else shiftVisibleMonth(YEAR_GRID_SIZE);
+              }}
               className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl text-zinc-500 transition hover:bg-rotaract-mist hover:text-zinc-900"
             >
               <ChevronRightIcon />
             </button>
           </div>
 
-          <div className="mb-1 grid grid-cols-7 gap-1">
-            {WEEKDAYS.map((label, index) => (
-              <div
-                key={`${label}-${index}`}
-                className="py-1 text-center text-[10px] font-semibold uppercase tracking-wide text-zinc-400"
-              >
-                {label}
+          {view === "days" ? (
+            <>
+              <div className="mb-1 grid grid-cols-7 gap-1">
+                {WEEKDAYS.map((label, index) => (
+                  <div
+                    key={`${label}-${index}`}
+                    className="py-1 text-center text-[10px] font-semibold uppercase tracking-wide text-zinc-400"
+                  >
+                    {label}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="grid grid-cols-7 gap-1">
-            {monthGrid.map((day) => {
-              const inCurrentMonth = day.getMonth() === visibleMonth.getMonth();
-              const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
-              const isToday = isSameDay(day, today);
+              <div className="grid grid-cols-7 gap-1">
+                {monthGrid.map((day) => {
+                  const inCurrentMonth = day.getMonth() === visibleMonth.getMonth();
+                  const isSelected = selectedDate ? isSameDay(day, selectedDate) : false;
+                  const isToday = isSameDay(day, today);
 
-              return (
-                <button
-                  key={day.toISOString()}
-                  type="button"
-                  onClick={() => pickDate(day)}
-                  className={[
-                    "flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-xs font-medium transition",
-                    isSelected
-                      ? "bg-rotaract-pink text-white"
-                      : isToday
-                        ? "bg-rotaract-pink/10 text-rotaract-pink ring-1 ring-rotaract-pink/30"
-                        : inCurrentMonth
-                          ? "text-zinc-700 hover:bg-rotaract-mist"
-                          : "text-zinc-300 hover:bg-zinc-50",
-                  ].join(" ")}
-                >
-                  {day.getDate()}
-                </button>
-              );
-            })}
-          </div>
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      type="button"
+                      onClick={() => pickDate(day)}
+                      className={[
+                        "flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-xs font-medium transition",
+                        isSelected
+                          ? "bg-rotaract-pink text-white"
+                          : isToday
+                            ? "bg-rotaract-pink/10 text-rotaract-pink ring-1 ring-rotaract-pink/30"
+                            : inCurrentMonth
+                              ? "text-zinc-700 hover:bg-rotaract-mist"
+                              : "text-zinc-300 hover:bg-zinc-50",
+                      ].join(" ")}
+                    >
+                      {day.getDate()}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="grid min-h-[15.5rem] grid-cols-3 grid-rows-4 gap-1.5">
+              {view === "months"
+                ? MONTHS_SHORT.map((label, monthIndex) => {
+                    const isSelected =
+                      selectedDate?.getMonth() === monthIndex &&
+                      selectedDate.getFullYear() === visibleMonth.getFullYear();
+                    const isCurrent =
+                      today.getMonth() === monthIndex &&
+                      today.getFullYear() === visibleMonth.getFullYear();
+
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => pickMonth(monthIndex)}
+                        className={pickerCellClass(isSelected, isCurrent)}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })
+                : yearGrid.map((year) => {
+                    const isSelected = selectedDate?.getFullYear() === year;
+                    const isCurrent = today.getFullYear() === year;
+
+                    return (
+                      <button
+                        key={year}
+                        type="button"
+                        onClick={() => pickYear(year)}
+                        className={pickerCellClass(isSelected, isCurrent)}
+                      >
+                        {year}
+                      </button>
+                    );
+                  })}
+            </div>
+          )}
         </div>
 
         {showTime ? (
@@ -501,6 +660,24 @@ function ChevronRightIcon() {
       aria-hidden
     >
       <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M6 9l6 6 6-6" />
     </svg>
   );
 }
