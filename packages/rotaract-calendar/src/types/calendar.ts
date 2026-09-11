@@ -10,6 +10,12 @@ export type Member = {
   status: MemberStatus;
 };
 
+export type CalendarPageProps = {
+  userName: string;
+  currentUserId?: string;
+  backHref?: string;
+};
+
 export const MEMBER_INPUT_CLASS =
   "h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none ring-rotaract-pink/20 transition placeholder:text-zinc-400 focus:border-rotaract-pink/50 focus:bg-white focus:ring-4";
 

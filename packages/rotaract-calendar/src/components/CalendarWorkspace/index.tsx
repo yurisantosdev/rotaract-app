@@ -1,48 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CaretLeftIcon,
   CaretRightIcon,
   PlusIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { Button, ConfirmModal, Pagination, Tooltip, usePagination } from "@rotaract/components";
-import { EventFormModal } from "./event-form-modal";
+import { Button, ConfirmModal, Pagination, Tooltip } from "@rotaract/components";
+import { EventFormModal } from "../EventFormModal";
 import { MemberAvatar } from "@rotaract/members";
 import {
-  MONTH_LABELS,
   WEEKDAY_LABELS,
-  buildMonthGrid,
   eventOccursOnDay,
   formatEventDate,
   formatEventTimeRange,
   isSameDay,
-} from "../lib/dates";
-import type { Member } from "../types/calendar";
+} from "../../lib/dates";
 import {
   EVENT_KINDS,
   EVENT_KIND_STYLES,
   eventKindLabel,
   type CalendarEvent,
-  type CalendarEventPayload,
-  type EventKind,
-} from "../types/event";
-
-type CalendarWorkspaceProps = {
-  events: CalendarEvent[];
-  members: Member[];
-  currentUserId?: string;
-  onCreate: (payload: CalendarEventPayload) => void | Promise<void>;
-  onUpdate: (id: string, payload: CalendarEventPayload) => void | Promise<void>;
-  onRemove: (id: string) => void | Promise<void>;
-};
-
-function membersForEvent(event: CalendarEvent, members: Member[]): Member[] {
-  return event.memberIds
-    .map((id) => members.find((member) => member.id === id))
-    .filter((member): member is Member => Boolean(member));
-}
+} from "../../types/event";
+import { CalendarWorkspaceProps } from "./types";
+import { useCalendarWorkspace } from "./services";
 
 export function CalendarWorkspace({
   events,
@@ -52,98 +33,38 @@ export function CalendarWorkspace({
   onUpdate,
   onRemove,
 }: CalendarWorkspaceProps) {
-  const [visibleMonth, setVisibleMonth] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  });
-  const [selectedDate, setSelectedDate] = useState(() => new Date());
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
-  const [eventToDelete, setEventToDelete] = useState<CalendarEvent | null>(null);
-  const [hoveredEvent, setHoveredEvent] = useState<CalendarEvent | null>(null);
-  const [hoverPosition, setHoverPosition] = useState<{ top: number; left: number } | null>(null);
-  const [kindFilter, setKindFilter] = useState<EventKind | null>(null);
-  const hoverHideTimeout = useRef<number | null>(null);
 
-  const monthGrid = useMemo(() => buildMonthGrid(visibleMonth), [visibleMonth]);
-  const today = useMemo(() => new Date(), []);
-
-  const visibleEvents = useMemo(
-    () => (kindFilter ? events.filter((event) => event.kind === kindFilter) : events),
-    [events, kindFilter]
-  );
-
-  const selectedDayEvents = useMemo(
-    () =>
-      visibleEvents
-        .filter((event) => eventOccursOnDay(event.startsAt, event.endsAt, selectedDate))
-        .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
-    [visibleEvents, selectedDate]
-  );
-
-  const selectedDayPagination = usePagination(selectedDayEvents, {
-    resetKey: `${selectedDate.toDateString()}|${kindFilter ?? "todos"}`,
-  });
-
-  useEffect(() => {
-    return () => {
-      if (hoverHideTimeout.current) window.clearTimeout(hoverHideTimeout.current);
-    };
-  }, []);
-
-  function showEventPreview(event: CalendarEvent, target: HTMLElement) {
-    if (hoverHideTimeout.current) window.clearTimeout(hoverHideTimeout.current);
-    const rect = target.getBoundingClientRect();
-    setHoveredEvent(event);
-    setHoverPosition({ top: rect.top, left: rect.left + rect.width / 2 });
-  }
-
-  function hideEventPreview() {
-    hoverHideTimeout.current = window.setTimeout(() => {
-      setHoveredEvent(null);
-      setHoverPosition(null);
-    }, 80);
-  }
-
-  function goToPreviousMonth() {
-    setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1));
-  }
-
-  function goToNextMonth() {
-    setVisibleMonth(new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1));
-  }
-
-  function goToToday() {
-    const now = new Date();
-    setVisibleMonth(new Date(now.getFullYear(), now.getMonth(), 1));
-    setSelectedDate(now);
-  }
-
-  function openCreateForm(day?: Date) {
-    if (day) setSelectedDate(day);
-    setEditingEvent(null);
-    setFormOpen(true);
-  }
-
-  function openEditForm(event: CalendarEvent) {
-    setEditingEvent(event);
-    setSelectedDate(new Date(event.startsAt));
-    setFormOpen(true);
-  }
-
-  function closeForm() {
-    setFormOpen(false);
-    setEditingEvent(null);
-  }
-
-  function handleSave(payload: CalendarEventPayload) {
-    if (editingEvent) {
-      return onUpdate(editingEvent.id, payload);
-    }
-    return onCreate(payload);
-  }
-
-  const monthLabel = MONTH_LABELS[visibleMonth.getMonth()] ?? "";
+  const {
+    membersForEvent,
+    monthLabel,
+    visibleMonth,
+    selectedDate,
+    formOpen,
+    editingEvent,
+    eventToDelete,
+    hoveredEvent,
+    hoverPosition,
+    kindFilter,
+    handleSave,
+    closeForm,
+    openCreateForm,
+    openEditForm,
+    showEventPreview,
+    hideEventPreview,
+    goToPreviousMonth,
+    goToNextMonth,
+    goToToday,
+    visibleEvents,
+    setSelectedDate,
+    selectedDayPagination,
+    monthGrid,
+    today,
+    setHoveredEvent,
+    setHoverPosition,
+    setKindFilter,
+    selectedDayEvents,
+    setEventToDelete
+  } = useCalendarWorkspace({ events, onUpdate, onCreate });
 
   return (
     <section className="mt-8 flex flex-col gap-4 lg:flex-row">

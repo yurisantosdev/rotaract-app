@@ -1,55 +1,24 @@
 "use client";
 
 import { CalendarBlankIcon } from "@phosphor-icons/react";
-import { Pagination, usePagination } from "@rotaract/components";
-import { useCallback, useEffect, useState } from "react";
-import { listCalendarPendingAccept } from "../services/calendar";
-import type { Calendar } from "../types/calendar";
-import { InviteEventCard } from "./InviteEventCard";
+import { Pagination } from "@rotaract/components";
+import { InviteEventCard } from "../InviteEventCard";
+import type { CardAcceptProps } from "./types";
+import { useCardAccept } from "./services";
 
-export type CardAcceptProps = {
-  currentUserId: string;
-};
+export type { CardAcceptProps } from "./types";
 
 export function CardAccept({ currentUserId }: CardAcceptProps) {
-  const [pendingCalendars, setPendingCalendars] = useState<Calendar[]>([]);
-  const [ready, setReady] = useState(false);
-  const pagination = usePagination(pendingCalendars);
+  const data = useCardAccept();
 
-  const loadPendingAccept = useCallback((signal: AbortSignal) => {
-    return listCalendarPendingAccept(signal)
-      .then((list) => {
-        if (signal.aborted) return;
-        setPendingCalendars(list);
-        setReady(true);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-        setPendingCalendars([]);
-        setReady(true);
-      });
-  }, []);
+  if (!data) return null;
 
-  useEffect(() => {
-    const controller = new AbortController();
-    void loadPendingAccept(controller.signal);
-    return () => controller.abort();
-  }, [loadPendingAccept]);
-
-  async function refreshPendingAccept() {
-    const controller = new AbortController();
-    await loadPendingAccept(controller.signal);
-  }
-
-  if (!ready || pendingCalendars.length === 0) {
-    return null;
-  }
-
-  const count = pendingCalendars.length;
-  const title =
-    count === 1 ? "Novo convite para você" : "Novos convites para você";
+  const {
+    title,
+    count,
+    refreshPendingAccept,
+    pagination
+  } = data;
 
   return (
     <section

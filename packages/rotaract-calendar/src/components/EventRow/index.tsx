@@ -1,24 +1,23 @@
 import React from 'react'
-import { CalendarEvent, EVENT_KIND_STYLES, eventKindLabel } from '../types/event';
-import { formatEventTimeRange } from '../lib/dates';
-
-type EventRowProps = {
-  event: CalendarEvent;
-  now: Date;
-  dateLabel?: string;
-}
+import { eventKindLabel } from '../../types/event';
+import { formatEventTimeRange } from '../../lib/dates';
+import { EventRowProps } from './types';
+import { useEventRow } from './services';
 
 export function EventRow({
   event,
   now,
   dateLabel,
 }: EventRowProps) {
-  function isEventEnded(event: CalendarEvent, now: Date): boolean {
-    return new Date(event.endsAt).getTime() < now.getTime();
-  }
 
-  const ended = isEventEnded(event, now);
-  const kindStyles = EVENT_KIND_STYLES[event.kind] ?? EVENT_KIND_STYLES.outro;
+  const data = useEventRow({ event, now });
+
+  if (!data) return null;
+
+  const {
+    ended,
+    kindStyles
+  } = data;
 
   return (
     <li>

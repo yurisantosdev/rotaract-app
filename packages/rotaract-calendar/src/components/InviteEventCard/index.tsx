@@ -1,93 +1,30 @@
 "use client";
 
 import { CheckIcon, ClockIcon, XIcon } from "@phosphor-icons/react";
-import { AlertSuccess, Button } from "@rotaract/components";
-import { useState } from "react";
-import { calendarToEvent } from "../lib/calendar-event";
-import { formatEventTimeRange, isSameDay } from "../lib/dates";
-import { respondToCalendarInvite } from "../services/calendar";
-import type { Calendar } from "../types/calendar";
+import { Button } from "@rotaract/components";
 import {
-  EVENT_KIND_STYLES,
   eventKindLabel,
-  type CalendarEvent,
-} from "../types/event";
-
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function inviteDateParts(iso: string) {
-  const date = new Date(iso);
-  return {
-    weekday: capitalize(
-      date.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "")
-    ),
-    day: String(date.getDate()).padStart(2, "0"),
-    month: capitalize(
-      date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")
-    ),
-  };
-}
-
-function formatInviteWhen(event: CalendarEvent): string {
-  const start = new Date(event.startsAt);
-  const end = new Date(event.endsAt);
-  const time = formatEventTimeRange(event.startsAt, event.endsAt, event.allDay);
-
-  if (isSameDay(start, end)) return time;
-
-  const endDay = end.toLocaleDateString("pt-BR", {
-    day: "numeric",
-    month: "short",
-  });
-
-  return `${time} · até ${endDay}`;
-}
-
-type InviteEventCardProps = {
-  calendar: Calendar;
-  currentUserId: string;
-  onResponded: () => void | Promise<void>;
-};
+} from "../../types/event";
+import { InviteEventCardProps } from "./types";
+import { useInviteEventCard } from "./services";
 
 export function InviteEventCard({
   calendar,
   currentUserId,
   onResponded,
 }: InviteEventCardProps) {
-  const [action, setAction] = useState<"accepted" | "rejected" | null>(null);
-  const [error, setError] = useState("");
-
-  const event = calendarToEvent(calendar);
-  const date = inviteDateParts(event.startsAt);
-  const kindStyles = EVENT_KIND_STYLES[event.kind] ?? EVENT_KIND_STYLES.outro;
-  const busy = action !== null;
-
-  async function respond(accept: "accepted" | "rejected") {
-    if (busy) return;
-
-    const controller = new AbortController();
-    setAction(accept);
-    setError("");
-
-    try {
-      await respondToCalendarInvite(calendar, currentUserId, accept, controller.signal);
-      await onResponded();
-
-      AlertSuccess(`Convite ${accept === "accepted" ? "aceito" : "recusado"} com sucesso`);
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") {
-        return;
-      }
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Não foi possível atualizar o convite."
-      );
-      setAction(null);
-    }
-  }
+  const data = useInviteEventCard({ calendar, currentUserId, onResponded });
+  if (!data) return null;
+  const {
+    formatInviteWhen,
+    event,
+    date,
+    kindStyles,
+    error,
+    busy,
+    respond,
+    action
+  } = data;
 
   return (
     <article
