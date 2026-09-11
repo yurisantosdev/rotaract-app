@@ -40,7 +40,20 @@ const calendarSchema = new mongoose.Schema(
       trim: true,
     },
     members: {
-      type: [String],
+      type: [
+        {
+          _id: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+          },
+          accept: {
+            type: String,
+            enum: ["pending", "accepted", "rejected"],
+            required: true,
+            default: "pending",
+          },
+        },
+      ],
       required: true,
     },
   },

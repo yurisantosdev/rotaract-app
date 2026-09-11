@@ -1,4 +1,10 @@
-import { Calendar, CalendarPayload, TypeCalendar } from "../types/calendar";
+import {
+  Calendar,
+  CalendarPayload,
+  type CalendarMemberStatus,
+  type MemberAcceptStatus,
+  TypeCalendar,
+} from "../types/calendar";
 
 const CALENDAR_URL = "/api/calendar";
 
@@ -45,6 +51,26 @@ function parseId(row: Record<string, unknown>): string {
   return "";
 }
 
+function parseAccept(value: unknown): MemberAcceptStatus {
+  if (value === "accepted" || value === "rejected" || value === "pending") {
+    return value;
+  }
+  return "pending";
+}
+
+function parseMemberStatus(item: unknown): CalendarMemberStatus | null {
+  if (typeof item === "string" && item) {
+    return { id: item, accept: "pending" };
+  }
+  if (!item || typeof item !== "object") return null;
+
+  const row = item as Record<string, unknown>;
+  const id = parseId(row);
+  if (!id) return null;
+
+  return { id, accept: parseAccept(row.accept) };
+}
+
 function parseCalendar(data: unknown): Calendar {
   if (!data || typeof data !== "object") {
     throw new Error("Resposta inválida da API de agendamentos");
@@ -56,6 +82,13 @@ function parseCalendar(data: unknown): Calendar {
     throw new Error("Resposta inválida da API de agendamentos");
   }
 
+  const memberStatuses = Array.isArray(row.members)
+    ? row.members.flatMap((item) => {
+        const member = parseMemberStatus(item);
+        return member ? [member] : [];
+      })
+    : [];
+
   return {
     id,
     title: row.title,
@@ -66,9 +99,8 @@ function parseCalendar(data: unknown): Calendar {
     hour_end: asString(row.hour_end),
     all_day: row.all_day === true,
     description: asString(row.description),
-    members: Array.isArray(row.members)
-      ? row.members.filter((item): item is string => typeof item === "string")
-      : [],
+    members: memberStatuses.map((member) => member.id),
+    memberStatuses,
     createdAt: typeof row.createdAt === "string" ? new Date(row.createdAt) : new Date(),
     updatedAt: typeof row.updatedAt === "string" ? new Date(row.updatedAt) : new Date(),
   };
@@ -101,6 +133,30 @@ export async function listCalendar(signal: AbortSignal): Promise<Calendar[]> {
   const data: unknown = await response.json();
   if (!Array.isArray(data)) {
     throw new Error("Resposta inválida da API de agendamentos");
+  }
+
+  return data.flatMap((item) => {
+    try {
+      return [parseCalendar(item)];
+    } catch {
+      return [];
+    }
+  });
+}
+
+export async function listCalendarPendingAccept(signal: AbortSignal): Promise<Calendar[]> {
+  const response = await fetch(`${CALENDAR_URL}/pending-accept`, {
+    signal,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new Error("Não foi possível carregar os agendamentos pendentes de aceitação");
+  }
+
+  const data: unknown = await response.json();
+  if (!Array.isArray(data)) {
+    throw new Error("Resposta inválida da API de agendamentos pendentes de aceitação");
   }
 
   return data.flatMap((item) => {
@@ -155,6 +211,37 @@ export async function updateCalendar(
   }
 
   return parseCalendar(await response.json());
+}
+
+export async function respondToCalendarInvite(
+  calendar: Calendar,
+  userId: string,
+  accept: Exclude<MemberAcceptStatus, "pending">,
+  signal: AbortSignal
+): Promise<Calendar> {
+  const statuses =
+    calendar.memberStatuses.length > 0
+      ? calendar.memberStatuses
+      : calendar.members.map((id) => ({ id, accept: "pending" as const }));
+
+  if (!statuses.some((member) => member.id === userId)) {
+    throw new Error("Você não faz parte deste agendamento");
+  }
+
+  return updateCalendar(calendar.id, signal, {
+    title: calendar.title,
+    type: calendar.type,
+    date_start: calendar.date_start,
+    date_end: calendar.date_end,
+    hour_start: calendar.hour_start,
+    hour_end: calendar.hour_end,
+    all_day: calendar.all_day,
+    description: calendar.description,
+    members: statuses.map((member) => ({
+      _id: member.id,
+      accept: member.id === userId ? accept : member.accept,
+    })),
+  });
 }
 
 export async function removeCalendar(

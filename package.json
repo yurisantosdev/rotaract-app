@@ -31,6 +31,7 @@
     "@rotaract/members": "^0.1.0",
     "@rotaract/notices": "^0.1.0",
     "@rotaract/projects": "^0.1.0",
-    "@rotaract/scripts": "^0.1.0"
+    "@rotaract/scripts": "^0.1.0",
+    "react-toastify": "^11.1.0"
   }
 }

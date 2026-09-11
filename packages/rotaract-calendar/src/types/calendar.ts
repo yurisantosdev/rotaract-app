@@ -30,6 +30,13 @@ export function initialsFromName(name: string): string {
   return `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
 }
 
+export type MemberAcceptStatus = "pending" | "accepted" | "rejected";
+
+export type CalendarMemberStatus = {
+  id: string;
+  accept: MemberAcceptStatus;
+};
+
 export type Calendar = {
   id: string;
   title: string;
@@ -41,8 +48,14 @@ export type Calendar = {
   all_day: boolean;
   description: string;
   members: string[];
+  memberStatuses: CalendarMemberStatus[];
   createdAt: Date;
   updatedAt: Date;
+};
+
+export type CalendarPayloadMember = string | {
+  _id: string;
+  accept?: MemberAcceptStatus;
 };
 
 export type CalendarPayload = {
@@ -54,5 +67,5 @@ export type CalendarPayload = {
   hour_end: string;
   all_day: boolean;
   description: string;
-  members: string[];
+  members: CalendarPayloadMember[];
 };

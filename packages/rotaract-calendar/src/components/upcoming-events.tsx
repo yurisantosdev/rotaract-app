@@ -7,15 +7,14 @@ import { calendarToEvent } from "../lib/calendar-event";
 import {
   addDays,
   eventOccursOnDay,
-  formatEventTimeRange,
   isSameDay,
 } from "../lib/dates";
 import { listCalendar } from "../services/calendar";
 import {
-  EVENT_KIND_STYLES,
-  eventKindLabel,
   type CalendarEvent,
 } from "../types/event";
+import { EmptyState } from "./EmptyState";
+import { EventRow } from "./EventRow";
 
 export type UpcomingEventsProps = {
   calendarHref?: string;
@@ -63,10 +62,6 @@ function formatGroupDate(day: Date, tomorrow: Date): string {
   );
 }
 
-function isEventEnded(event: CalendarEvent, now: Date): boolean {
-  return new Date(event.endsAt).getTime() < now.getTime();
-}
-
 function overflowLabel(hiddenCount: number) {
   if (hiddenCount <= 0) return null;
 
@@ -98,53 +93,7 @@ function limitDayGroups(groups: DayGroup[], limit: number): {
   return { groups: limited, overflow };
 }
 
-function EventRow({
-  event,
-  now,
-  dateLabel,
-}: {
-  event: CalendarEvent;
-  now: Date;
-  dateLabel?: string;
-}) {
-  const ended = isEventEnded(event, now);
 
-  return (
-    <li>
-      <div
-        className={`flex items-start gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 px-3 py-3 ${ended ? "opacity-55" : ""
-          }`}
-      >
-        <span
-          className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${EVENT_KIND_STYLES[event.kind].dot}`}
-          aria-hidden
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <p className="truncate text-sm font-medium text-zinc-900">{event.title}</p>
-            <span
-              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${EVENT_KIND_STYLES[event.kind].chip}`}
-            >
-              {eventKindLabel(event.kind)}
-            </span>
-          </div>
-          <p className="mt-1 truncate text-xs text-zinc-500">
-            {dateLabel ? `${dateLabel} · ` : null}
-            {formatEventTimeRange(event.startsAt, event.endsAt, event.allDay)}
-          </p>
-        </div>
-      </div>
-    </li>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-zinc-200 px-4 py-8 text-center">
-      <p className="text-sm font-medium text-zinc-800">{message}</p>
-    </div>
-  );
-}
 
 function AgendaSkeleton() {
   return (

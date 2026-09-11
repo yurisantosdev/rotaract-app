@@ -2,17 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { UpcomingEvents } from "@rotaract/calendar";
+import { CardAccept, UpcomingEvents } from "@rotaract/calendar";
 import { useMemberSession } from "./_components/member-session";
-import {
-  CalendarBlankIcon,
-  GearIcon,
-  CurrencyCircleDollarIcon,
-  UsersThreeIcon,
-  PencilRulerIcon
-} from "@phosphor-icons/react";
 import { ContributionsOverdue } from "@rotaract/finance";
 import { CardModule } from "./_components/cardModule";
+import { modules } from "../types/hometype";
+import { Main } from "./_components/main";
 
 function greetingForHour(hour: number) {
   if (hour < 12) return "Bom dia";
@@ -38,54 +33,6 @@ function initialsFromName(name: string) {
   return `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
 }
 
-const modules = [
-  {
-    title: "Financeiro",
-    description: "Tesouraria, mensalidades e prestações de contas.",
-    href: "/home/finance",
-    action: "Abrir tesouraria",
-    icon: (
-      <CurrencyCircleDollarIcon size={25} />
-    ),
-  },
-  {
-    title: "Agenda",
-    description: "Eventos, projetos e compromissos do calendário.",
-    href: "/home/calendar",
-    action: "Abrir agenda",
-    icon: (
-      <CalendarBlankIcon size={25} />
-    ),
-  },
-  {
-    title: "Membros",
-    description: "Cadastro, cargos e a família do Rotaract.",
-    href: "/home/members",
-    action: "Abrir membros",
-    icon: (
-      <UsersThreeIcon size={25} />
-    ),
-  },
-  {
-    title: "Configurações",
-    description: "Preferências do clube, permissões e ajustes da conta.",
-    href: "/home/settings",
-    action: "Abrir configurações",
-    icon: (
-      <GearIcon size={25} />
-    ),
-  },
-  {
-    title: "Projetos",
-    description: "Gerenciamento de projetos do clube.",
-    href: "/home/projects",
-    action: "Abrir projetos",
-    icon: (
-      <PencilRulerIcon size={25} />
-    ),
-  },
-] as const;
-
 export default function HomePage() {
   const { user } = useMemberSession();
   const [now, setNow] = useState<Date | null>(null);
@@ -96,84 +43,90 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="relative min-h-[calc(100dvh-4.5rem)] overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="login-orb left-[-10rem] top-[-8rem] h-[22rem] w-[22rem] bg-rotaract-pink/15" />
-        <div
-          className="login-orb right-[-8rem] top-[12rem] h-[20rem] w-[20rem] bg-violet-300/30"
-          style={{ animationDelay: "-7s" }}
-        />
-      </div>
+    <Main>
+      <main className="relative min-h-[calc(100dvh-4.5rem)] overflow-hidden">
+        <div aria-hidden className="pointer-events-none absolute inset-0">
+          <div className="login-orb left-[-10rem] top-[-8rem] h-[22rem] w-[22rem] bg-rotaract-pink/15" />
+          <div
+            className="login-orb right-[-8rem] top-[12rem] h-[20rem] w-[20rem] bg-violet-300/30"
+            style={{ animationDelay: "-7s" }}
+          />
+        </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-        <section className="home-rise flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex min-w-0 items-start gap-4">
-            <span
-              aria-hidden
-              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-rotaract-pink text-lg font-semibold text-white shadow-[0_12px_32px_rgba(255,45,122,0.28)]"
-            >
-              {initialsFromName(user.name)}
-            </span>
-            <div className="min-w-0">
-              <p className="text-xs font-medium uppercase tracking-[0.28em] text-rotaract-pink">
-                Área de membros
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-                {now ? greetingForHour(now.getHours()) : "Olá"}, {firstName}
-              </h1>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">
-                Escolha um módulo para continuar o trabalho do clube.
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex md:justify-end justify-center items-center gap-2">
-              <ContributionsOverdue />
-            </div>
-
-            <div className="flex shrink-0 flex-wrap items-center gap-2 justify-center mt-4">
-              <p className="rounded-full border border-zinc-200/80 bg-white/80 px-3 py-1.5 text-xs font-medium text-zinc-600 backdrop-blur">
-                {now ? formatToday(now) : "Rotaract Club Chapecó"}
-              </p>
-              <p className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
-                {modules.length} módulos disponíveis
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="home-rise mt-8 sm:mt-10" style={{ animationDelay: "60ms" }}>
-          <UpcomingEvents />
-        </section>
-
-        <section className="mt-8 sm:mt-10" aria-labelledby="modules-title">
-          <h2 id="modules-title" className="sr-only">
-            Módulos do clube
-          </h2>
-          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {modules.map((module, index) => (
-              <li
-                key={module.title}
-                className="home-rise"
-                style={{ animationDelay: `${80 + index * 50}ms` }}
+        <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+          <section className="home-rise flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              <span
+                aria-hidden
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-rotaract-pink text-lg font-semibold text-white shadow-[0_12px_32px_rgba(255,45,122,0.28)]"
               >
-                <Link
-                  href={module.href}
-                  className="group flex h-full flex-col rounded-[1.5rem] border border-zinc-200/80 bg-white p-5 shadow-[0_12px_40px_rgba(24,24,27,0.04)] transition hover:-translate-y-0.5 hover:border-rotaract-pink/30 hover:shadow-[0_20px_48px_rgba(255,45,122,0.10)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rotaract-pink/20 sm:p-6"
+                {initialsFromName(user.name)}
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-medium uppercase tracking-[0.28em] text-rotaract-pink">
+                  Área de membros
+                </p>
+                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
+                  {now ? greetingForHour(now.getHours()) : "Olá"}, {firstName}
+                </h1>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-500">
+                  Escolha um módulo para continuar o trabalho do clube.
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex md:justify-end justify-center items-center gap-2">
+                <ContributionsOverdue />
+              </div>
+
+              <div className="flex shrink-0 flex-wrap items-center gap-2 justify-center mt-4">
+                <p className="rounded-full border border-zinc-200/80 bg-white/80 px-3 py-1.5 text-xs font-medium text-zinc-600 backdrop-blur">
+                  {now ? formatToday(now) : "Rotaract Club Chapecó"}
+                </p>
+                <p className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
+                  {modules.length} módulos disponíveis
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="home-rise mt-8 sm:mt-10" style={{ animationDelay: "90ms" }}>
+            <CardAccept currentUserId={user.id} />
+          </section>
+
+          <section className="home-rise mt-8 sm:mt-10" style={{ animationDelay: "90ms" }}>
+            <UpcomingEvents />
+          </section>
+
+          <section className="mt-8 sm:mt-10" aria-labelledby="modules-title">
+            <h2 id="modules-title" className="sr-only">
+              Módulos do clube
+            </h2>
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {modules.map((module, index) => (
+                <li
+                  key={module.title}
+                  className="home-rise"
+                  style={{ animationDelay: `${80 + index * 50}ms` }}
                 >
-                  <CardModule
-                    icon={module.icon}
-                    title={module.title}
-                    description={module.description}
-                    action={module.action}
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-    </main>
+                  <Link
+                    href={module.href}
+                    className="group flex h-full flex-col rounded-[1.5rem] border border-zinc-200/80 bg-white p-5 shadow-[0_12px_40px_rgba(24,24,27,0.04)] transition hover:-translate-y-0.5 hover:border-rotaract-pink/30 hover:shadow-[0_20px_48px_rgba(255,45,122,0.10)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-rotaract-pink/20 sm:p-6"
+                  >
+                    <CardModule
+                      icon={module.icon}
+                      title={module.title}
+                      description={module.description}
+                      action={module.action}
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </main>
+    </Main>
   );
 }

@@ -1,7 +1,10 @@
 import type { Request, Response } from "express";
 import mongoose from "mongoose";
 import { Calendar } from "../models/Calendar";
-import { CalendarType } from "../types/Calendar";
+import { CalendarType, MembersCalendarType } from "../types/Calendar";
+import type { AuthenticatedRequest } from "../types/express";
+import { createNotice } from "@rotaract/notices/server";
+import { formatDate } from "../services/formatDate";
 
 function serializar(calendar: CalendarType) {
   return {
@@ -29,8 +32,65 @@ function isDuplicateKey(err: unknown): boolean {
   );
 }
 
-export async function list(req: Request, res: Response): Promise<void> {
-  const itens = await Calendar.find().sort({ createdAt: -1 }).lean();
+type MemberInput = string | MembersCalendarType;
+
+function memberIdOf(member: MemberInput): string {
+  return typeof member === "string" ? member : String(member._id);
+}
+
+function normalizeMember(
+  member: MemberInput,
+  fallbackAccept: NonNullable<MembersCalendarType["accept"]>
+): MembersCalendarType {
+  if (typeof member === "string") {
+    return { _id: member, accept: fallbackAccept };
+  }
+
+  const accept =
+    member.accept === "accepted" || member.accept === "rejected"
+      ? member.accept
+      : fallbackAccept;
+
+  return { _id: String(member._id), accept };
+}
+
+export async function list(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const userId = req.user?.sub;
+  if (!userId || !mongoose.isValidObjectId(userId)) {
+    res.status(401).json({ error: "Token de autenticação necessário" });
+    return;
+  }
+
+  const itens = await Calendar.find({
+    members: {
+      $elemMatch: {
+        _id: new mongoose.Types.ObjectId(userId),
+        accept: { $in: ["pending", "accepted"] },
+      },
+    },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+  res.json(itens.map((c) => serializar(c as unknown as CalendarType)));
+}
+
+export async function listPendingAccept(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const userId = req.user?.sub;
+  if (!userId || !mongoose.isValidObjectId(userId)) {
+    res.status(401).json({ error: "Token de autenticação necessário" });
+    return;
+  }
+
+  const itens = await Calendar.find({
+    members: {
+      $elemMatch: {
+        _id: new mongoose.Types.ObjectId(userId),
+        accept: "pending",
+      },
+    },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
   res.json(itens.map((c) => serializar(c as unknown as CalendarType)));
 }
 
@@ -44,7 +104,7 @@ export async function create(req: Request, res: Response): Promise<void> {
     hour_end: string;
     all_day: boolean;
     description: string;
-    members: string[];
+    members: Array<MembersCalendarType | string>;
   };
 
   if (typeof title !== "string" || !title.trim()) {
@@ -66,7 +126,7 @@ export async function create(req: Request, res: Response): Promise<void> {
       hour_end: string;
       all_day: boolean;
       description: string;
-      members: string[];
+      members: MembersCalendarType[];
     } = {
       title: title.trim(),
       type: type.trim(),
@@ -76,10 +136,19 @@ export async function create(req: Request, res: Response): Promise<void> {
       hour_end: hour_end.trim(),
       all_day: all_day,
       description: description.trim(),
-      members: members.map((member) => member.trim()),
+      members: members.map((member) => normalizeMember(member, "pending")),
     };
     const criada = await Calendar.create(dados);
     const obj = criada.toObject();
+
+    members.map(async (member) => {
+      await createNotice(
+        memberIdOf(member),
+        "Novo Agendamento",
+        `Você recebeu um novo agendamento: ${title} para ${formatDate(date_start)} até ${formatDate(date_end)}.`
+      );
+    });
+
     res.status(201).json(serializar(obj as CalendarType));
   } catch (err) {
     if (isDuplicateKey(err)) {
@@ -106,7 +175,7 @@ export async function update(req: Request, res: Response): Promise<void> {
     hour_end: string;
     all_day: boolean;
     description: string;
-    members: string[];
+    members: Array<MembersCalendarType | string>;
   };
 
   if (typeof title !== "string" || !title.trim()) {
@@ -128,7 +197,7 @@ export async function update(req: Request, res: Response): Promise<void> {
       hour_end: string;
       all_day: boolean;
       description: string;
-      members: string[];
+      members: MembersCalendarType[];
     } = {
       title: title.trim(),
       type: type.trim(),
@@ -138,7 +207,7 @@ export async function update(req: Request, res: Response): Promise<void> {
       hour_end: hour_end.trim(),
       all_day: all_day,
       description: description.trim(),
-      members: members.map((member) => member.trim()),
+      members: members.map((member) => normalizeMember(member, "pending")),
     };
     const atualizada = await Calendar.findByIdAndUpdate(id, dados, {
       new: true,
@@ -151,6 +220,15 @@ export async function update(req: Request, res: Response): Promise<void> {
     }
 
     const obj = atualizada.toObject();
+
+    members.map(async (member) => {
+      await createNotice(
+        memberIdOf(member),
+        "Agendamento Atualizado",
+        `O agendamento ${title} foi atualizado.`
+      );
+    });
+
     res.json(serializar(obj as CalendarType));
   } catch (err) {
     console.error(err);
@@ -173,6 +251,14 @@ export async function remove(req: Request, res: Response): Promise<void> {
       res.status(404).json({ erro: "Agendamento não encontrado" });
       return;
     }
+
+    removida.members.map(async (member) => {
+      await createNotice(
+        member._id.toString(),
+        "Agendamento Excluído",
+        `O agendamento ${removida.title} foi excluído.`
+      );
+    });
 
     res.status(204).send();
   } catch (err) {
