@@ -8,7 +8,7 @@ import {
   UserMinusIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react";
-import { Button, ConfirmModal, Tooltip } from "@rotaract/components";
+import { Button, ConfirmModal, Pagination, Tooltip, usePagination } from "@rotaract/components";
 import { BirthdayBanner } from "./birthday-banner";
 import { MemberAvatar } from "./member-avatar";
 import { MemberModal } from "./member-modal";
@@ -78,6 +78,10 @@ export function MembersPanel({
         return a.name.localeCompare(b.name, "pt-BR");
       });
   }, [filter, members, query]);
+
+  const pagination = usePagination(filtered, {
+    resetKey: `${query}|${filter}`,
+  });
 
   const birthdaysThisMonth = useMemo(
     () =>
@@ -158,7 +162,7 @@ export function MembersPanel({
         {filtered.length} {filtered.length === 1 ? "membro" : "membros"}
       </p>
 
-      <ul className="mt-2 max-h-[560px] divide-y divide-zinc-100 overflow-y-auto">
+      <ul className="mt-2 divide-y divide-zinc-100">
         {filtered.length === 0 ? (
           <li className="flex flex-col items-center px-4 py-12 text-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rotaract-pink/10 text-rotaract-pink">
@@ -185,7 +189,7 @@ export function MembersPanel({
             ) : null}
           </li>
         ) : (
-          filtered.map((member) => (
+          pagination.pageItems.map((member) => (
             <li key={member.id} className="py-4 mt-4">
               <div className="flex items-start gap-3 sm:items-center">
                 <MemberAvatar member={member} />
@@ -253,6 +257,14 @@ export function MembersPanel({
           ))
         )}
       </ul>
+
+      <Pagination
+        page={pagination.page}
+        totalItems={pagination.totalItems}
+        pageSize={pagination.pageSize}
+        onPageChange={pagination.setPage}
+        itemLabel={{ singular: "membro", plural: "membros" }}
+      />
 
       <MemberModal
         open={formOpen}

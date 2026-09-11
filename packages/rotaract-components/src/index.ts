@@ -10,6 +10,14 @@ export { CelebrationConfetti } from "./components/celebration-confetti";
 export { DatePicker } from "./components/date-picker";
 export { TimeSelect } from "./components/time-select";
 export { useAnimatedNumber } from "./hooks/use-animated-number";
+export { usePagination } from "./hooks/use-pagination";
+export { Pagination } from "./components/pagination";
+export { DEFAULT_PAGE_SIZE } from "./types/pagination";
+export type {
+  PaginationItemLabel,
+  PaginationProps,
+  UsePaginationOptions,
+} from "./types/pagination";
 export type { DatePickerProps, DatePickerLabelFormat } from "./types/datePicker";
 export type { TimeSelectProps } from "./types/timeSelect";
 export {

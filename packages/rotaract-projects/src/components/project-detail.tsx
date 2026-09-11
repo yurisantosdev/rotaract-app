@@ -12,8 +12,10 @@ import {
   Button,
   CelebrationConfetti,
   ConfirmModal,
+  Pagination,
   Tooltip,
   useAnimatedNumber,
+  usePagination,
 } from "@rotaract/components";
 import { MemberAvatar, type Member } from "@rotaract/members";
 import { formatDate } from "../lib/dates";
@@ -145,6 +147,10 @@ export function ProjectDetail({
         return a.limit.localeCompare(b.limit);
       });
   }, [taskFilter, tasks]);
+
+  const pagination = usePagination(filteredTasks, {
+    resetKey: `${project.id}|${taskFilter}`,
+  });
 
   function openCreateTask() {
     setEditingTask(null);
@@ -347,7 +353,7 @@ export function ProjectDetail({
           </div>
         ) : (
           <ul className="mt-4 space-y-3">
-            {filteredTasks.map((task, index) => {
+            {pagination.pageItems.map((task, index) => {
               const taskManager = findMember(members, task.managerId);
               const overdue = isTaskOverdue(task);
               return (
@@ -433,6 +439,14 @@ export function ProjectDetail({
             })}
           </ul>
         )}
+
+        <Pagination
+          page={pagination.page}
+          totalItems={pagination.totalItems}
+          pageSize={pagination.pageSize}
+          onPageChange={pagination.setPage}
+          itemLabel={{ singular: "tarefa", plural: "tarefas" }}
+        />
       </section>
 
       <ProjectFormModal

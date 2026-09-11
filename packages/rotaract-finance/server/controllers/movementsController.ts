@@ -115,6 +115,71 @@ export async function list(_req: Request, res: Response): Promise<void> {
   res.json(itens.map((item) => serializar(item as unknown as MovementTypeDoc)));
 }
 
+const IMPORT_MAX_ROWS = 2500;
+
+export async function importMany(
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> {
+  const userId = req.user?.sub;
+  if (!userId || !mongoose.isValidObjectId(userId)) {
+    res.status(401).json({ erro: "Token de autenticação necessário" });
+    return;
+  }
+
+  const body = req.body;
+  const movements =
+    typeof body === "object" && body !== null
+      ? (body as { movements?: unknown }).movements
+      : undefined;
+
+  if (!Array.isArray(movements)) {
+    res.status(400).json({ erro: "Envie um array de movimentações" });
+    return;
+  }
+
+  if (movements.length === 0) {
+    res.status(400).json({ erro: "Nenhuma movimentação para importar" });
+    return;
+  }
+
+  if (movements.length > IMPORT_MAX_ROWS) {
+    res.status(400).json({
+      erro: `O limite é de ${IMPORT_MAX_ROWS} movimentações por importação`,
+    });
+    return;
+  }
+
+  const accepted: MovementInput[] = [];
+  const errors: Array<{ index: number; erro: string }> = [];
+
+  movements.forEach((item, index) => {
+    const parsed = parseMovementBody(item);
+    if (!parsed.ok) {
+      errors.push({ index, erro: parsed.erro });
+      return;
+    }
+    accepted.push(parsed.data);
+  });
+
+  if (accepted.length === 0) {
+    res.status(400).json({ created: [], errors });
+    return;
+  }
+
+  const createdBy = new mongoose.Types.ObjectId(userId);
+  const inserted = await Movement.insertMany(
+    accepted.map((item) => ({ ...item, createdBy }))
+  );
+
+  res.status(201).json({
+    created: inserted.map((item) =>
+      serializar(item.toObject() as MovementTypeDoc)
+    ),
+    errors,
+  });
+}
+
 export async function create(req: AuthenticatedRequest, res: Response): Promise<void> {
   const userId = req.user?.sub;
   if (!userId || !mongoose.isValidObjectId(userId)) {

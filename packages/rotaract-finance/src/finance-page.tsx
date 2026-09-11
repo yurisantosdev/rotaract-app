@@ -112,6 +112,16 @@ export function FinancePage({
     });
   }
 
+  function handleImportedMovements(created: Movement[]) {
+    if (created.length === 0) return;
+
+    setMovements((current) => {
+      const existingIds = new Set(current.map((item) => item.id));
+      const incoming = created.filter((item) => !existingIds.has(item.id));
+      return incoming.length === 0 ? current : [...incoming, ...current];
+    });
+  }
+
   function handleUpdateMovement(movement: Movement) {
     const controller = new AbortController();
 
@@ -285,6 +295,7 @@ export function FinancePage({
               onAdd={handleAddMovement}
               onUpdate={handleUpdateMovement}
               onRemove={handleRemoveMovement}
+              onImported={handleImportedMovements}
             />
           ) : null}
           {tab === "mensalidades" ? (

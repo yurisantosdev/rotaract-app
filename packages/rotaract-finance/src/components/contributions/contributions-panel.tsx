@@ -10,7 +10,7 @@ import {
   MagnifyingGlassIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { AlertSuccess, ConfirmModal, Tooltip } from "@rotaract/components";
+import { AlertSuccess, ConfirmModal, Pagination, Tooltip, usePagination } from "@rotaract/components";
 import { formatBRL, formatDate } from "../../services/money";
 import { Contribution, ContributionStatus, MONTHS, isUnpaidContribution, type GenerateContributionsPayload } from "../../types/contributions";
 import { downloadContributionsReport } from "../../services/report";
@@ -162,6 +162,10 @@ export function ContributionsPanel({
     });
   }, [activeReference, contributions, query, statusFilter]);
 
+  const pagination = usePagination(filtered, {
+    resetKey: `${query}|${statusFilter}|${activeReference}`,
+  });
+
   const visibleSelected = useMemo(() => {
     const visible = new Set(filtered.map((item) => item.id));
     return selectedIds.filter((id) => visible.has(id));
@@ -173,8 +177,13 @@ export function ContributionsPanel({
   );
 
   const hasSelection = visibleSelected.length > 0;
-  const allVisibleSelected =
-    filtered.length > 0 && visibleSelected.length === filtered.length;
+  const pageIds = useMemo(
+    () => pagination.pageItems.map((item) => item.id),
+    [pagination.pageItems]
+  );
+  const allPageSelected =
+    pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id));
+  const somePageSelected = pageIds.some((id) => selectedIds.includes(id));
   const pendingSelected = selectedItems.filter((item) =>
     isUnpaidContribution(item.status)
   );
@@ -206,7 +215,13 @@ export function ContributionsPanel({
   }
 
   function toggleAll() {
-    setSelectedIds(allVisibleSelected ? [] : filtered.map((item) => item.id));
+    setSelectedIds((current) => {
+      if (allPageSelected) {
+        const pageSet = new Set(pageIds);
+        return current.filter((id) => !pageSet.has(id));
+      }
+      return [...new Set([...current, ...pageIds])];
+    });
   }
 
   function toggleSelected(id: string) {
@@ -406,17 +421,17 @@ export function ContributionsPanel({
             <label className="flex cursor-pointer items-center gap-3 text-sm text-zinc-600">
               <input
                 type="checkbox"
-                checked={allVisibleSelected}
+                checked={allPageSelected}
                 disabled={isBusy}
                 ref={(node) => {
                   if (node) {
-                    node.indeterminate = hasSelection && !allVisibleSelected;
+                    node.indeterminate = somePageSelected && !allPageSelected;
                   }
                 }}
                 onChange={toggleAll}
                 className={checkboxClassName}
               />
-              Selecionar todos
+              Selecionar {pagination.totalPages > 1 ? "página" : "todos"}
             </label>
           </div>
 
@@ -490,13 +505,13 @@ export function ContributionsPanel({
         </div>
       ) : null}
 
-      <ul className="mt-2 divide-y divide-zinc-100 max-h-[500px] overflow-y-auto">
+      <ul className="mt-2 divide-y divide-zinc-100">
         {filtered.length === 0 ? (
           <li className="py-10 text-center text-sm text-zinc-500">
             Nenhuma mensalidade encontrada com esses filtros.
           </li>
         ) : (
-          filtered.map((item) => (
+          pagination.pageItems.map((item) => (
             <li
               key={item.id}
               className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between mt-3 overflow-x-hidden"
@@ -574,6 +589,14 @@ export function ContributionsPanel({
           ))
         )}
       </ul>
+
+      <Pagination
+        page={pagination.page}
+        totalItems={pagination.totalItems}
+        pageSize={pagination.pageSize}
+        onPageChange={pagination.setPage}
+        itemLabel={{ singular: "mensalidade", plural: "mensalidades" }}
+      />
     </section>
   );
 }

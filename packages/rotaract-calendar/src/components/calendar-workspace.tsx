@@ -7,7 +7,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { Button, ConfirmModal, Tooltip } from "@rotaract/components";
+import { Button, ConfirmModal, Pagination, Tooltip, usePagination } from "@rotaract/components";
 import { EventFormModal } from "./event-form-modal";
 import { MemberAvatar } from "@rotaract/members";
 import {
@@ -80,6 +80,10 @@ export function CalendarWorkspace({
         .sort((a, b) => a.startsAt.localeCompare(b.startsAt)),
     [visibleEvents, selectedDate]
   );
+
+  const selectedDayPagination = usePagination(selectedDayEvents, {
+    resetKey: `${selectedDate.toDateString()}|${kindFilter ?? "todos"}`,
+  });
 
   useEffect(() => {
     return () => {
@@ -356,7 +360,7 @@ export function CalendarWorkspace({
           </div>
         ) : (
           <ul className="mt-5 space-y-3">
-            {selectedDayEvents.map((event) => {
+            {selectedDayPagination.pageItems.map((event) => {
               const participants = membersForEvent(event, members);
               return (
                 <li key={event.id}>
@@ -417,6 +421,15 @@ export function CalendarWorkspace({
             })}
           </ul>
         )}
+
+        <Pagination
+          page={selectedDayPagination.page}
+          totalItems={selectedDayPagination.totalItems}
+          pageSize={selectedDayPagination.pageSize}
+          onPageChange={selectedDayPagination.setPage}
+          itemLabel={{ singular: "evento", plural: "eventos" }}
+          compact
+        />
       </aside>
 
       {hoveredEvent && hoverPosition ? (

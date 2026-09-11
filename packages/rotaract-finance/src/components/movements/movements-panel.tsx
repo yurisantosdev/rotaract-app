@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { AlertSuccess, Button, ButtonExcel, ConfirmModal, Tooltip } from "@rotaract/components";
+import { AlertSuccess, Button, ButtonExcel, ConfirmModal, Pagination, Tooltip, usePagination } from "@rotaract/components";
 import { formatBRL, formatDate, formatMoneyFromNumber, parseMoneyInput, todayISO } from "../../services/money";
 import { MovementModal } from "./movement-modal";
 import {
@@ -10,14 +10,16 @@ import {
   type Movement,
   type MovementType,
 } from "../../types/movement";
-import { TrashIcon, PencilSimpleIcon, PlusIcon } from "@phosphor-icons/react";
+import { TrashIcon, PencilSimpleIcon, PlusIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { downloadMovementsReport } from "../../services/report";
+import { ImportMovementsModal } from "./import-movements-modal";
 
 type MovementsPanelProps = {
   movements: Movement[];
   onAdd: (movement: Omit<Movement, "id">) => void | Promise<void>;
   onUpdate: (movement: Movement) => void | Promise<void>;
   onRemove: (id: string) => void;
+  onImported: (created: Movement[]) => void;
 };
 
 export function MovementsPanel({
@@ -25,6 +27,7 @@ export function MovementsPanel({
   onAdd,
   onUpdate,
   onRemove,
+  onImported,
 }: MovementsPanelProps) {
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<"todos" | MovementType>("todos");
@@ -44,6 +47,7 @@ export function MovementsPanel({
     null
   );
   const [saving, setSaving] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -59,6 +63,10 @@ export function MovementsPanel({
       })
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [movements, query, typeFilter]);
+
+  const pagination = usePagination(filtered, {
+    resetKey: `${query}|${typeFilter}`,
+  });
 
   function resetForm() {
     setDescription("");
@@ -163,6 +171,17 @@ export function MovementsPanel({
             onClick={() => downloadMovementsReport(filtered)}
           />
 
+          <Tooltip label="Importar Excel">
+            <button
+              type="button"
+              aria-label="Importar Excel"
+              onClick={() => setImportOpen(true)}
+              className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 p-3.5 text-emerald-700 transition hover:bg-emerald-100 cursor-pointer"
+            >
+              <UploadSimpleIcon className="h-5 w-5" weight="bold" />
+            </button>
+          </Tooltip>
+
           <Tooltip label="Nova movimentação">
             <Button
               aria-label="Nova movimentação"
@@ -172,6 +191,19 @@ export function MovementsPanel({
           </Tooltip>
         </div>
       </div>
+
+      <ImportMovementsModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={(created) => {
+          onImported(created);
+          AlertSuccess(
+            created.length === 1
+              ? "Movimentação importada com sucesso"
+              : `${created.length} movimentações importadas com sucesso`
+          );
+        }}
+      />
 
       <MovementModal
         open={formOpen}
@@ -240,13 +272,13 @@ export function MovementsPanel({
         </div>
       </div>
 
-      <ul className="mt-5 divide-y divide-zinc-100 max-h-[500px] overflow-y-auto">
+      <ul className="mt-5 divide-y divide-zinc-100">
         {filtered.length === 0 ? (
           <li className="py-10 text-center text-sm text-zinc-500">
             Nenhuma movimentação encontrada com esses filtros.
           </li>
         ) : (
-          filtered.map((movement) => (
+          pagination.pageItems.map((movement) => (
             <li
               key={movement.id}
               className="overflow-x-hidden"
@@ -257,7 +289,7 @@ export function MovementsPanel({
                 </p>
               </Tooltip>
 
-              <div className="flex min-w-0 items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center justify-between gap-3 mr-4">
                 <p className="mt-1 min-w-0 truncate text-sm text-zinc-500">
                   {formatDate(movement.date)} · {movement.category}
                 </p>
@@ -270,7 +302,7 @@ export function MovementsPanel({
                 </span>
               </div>
 
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-end gap-2 mr-4">
                 <Tooltip label="Excluir">
                   <button
                     type="button"
@@ -297,6 +329,14 @@ export function MovementsPanel({
           ))
         )}
       </ul>
+
+      <Pagination
+        page={pagination.page}
+        totalItems={pagination.totalItems}
+        pageSize={pagination.pageSize}
+        onPageChange={pagination.setPage}
+        itemLabel={{ singular: "movimentação", plural: "movimentações" }}
+      />
     </section>
   );
 }

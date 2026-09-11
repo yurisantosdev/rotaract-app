@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarBlankIcon } from "@phosphor-icons/react";
+import { Pagination, usePagination } from "@rotaract/components";
 import { useCallback, useEffect, useState } from "react";
 import { listCalendarPendingAccept } from "../services/calendar";
 import type { Calendar } from "../types/calendar";
@@ -13,6 +14,7 @@ export type CardAcceptProps = {
 export function CardAccept({ currentUserId }: CardAcceptProps) {
   const [pendingCalendars, setPendingCalendars] = useState<Calendar[]>([]);
   const [ready, setReady] = useState(false);
+  const pagination = usePagination(pendingCalendars);
 
   const loadPendingAccept = useCallback((signal: AbortSignal) => {
     return listCalendarPendingAccept(signal)
@@ -80,8 +82,8 @@ export function CardAccept({ currentUserId }: CardAcceptProps) {
         </span>
       </div>
 
-      <ul className="mt-5 max-h-[300px] space-y-3 overflow-x-auto">
-        {pendingCalendars.map((calendar) => (
+      <ul className="mt-5 space-y-3">
+        {pagination.pageItems.map((calendar) => (
           <li key={calendar.id}>
             <InviteEventCard
               calendar={calendar}
@@ -91,6 +93,15 @@ export function CardAccept({ currentUserId }: CardAcceptProps) {
           </li>
         ))}
       </ul>
+
+      <Pagination
+        page={pagination.page}
+        totalItems={pagination.totalItems}
+        pageSize={pagination.pageSize}
+        onPageChange={pagination.setPage}
+        itemLabel={{ singular: "convite", plural: "convites" }}
+        compact
+      />
     </section>
   );
 }

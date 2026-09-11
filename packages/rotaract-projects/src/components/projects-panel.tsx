@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { FolderSimpleIcon, PlusIcon } from "@phosphor-icons/react";
-import { Button, Tooltip } from "@rotaract/components";
+import { Button, Pagination, Tooltip, usePagination } from "@rotaract/components";
 import { MemberAvatar, type Member } from "@rotaract/members";
 import { formatDate } from "../lib/dates";
 import { findMember, firstName, membersByIds } from "../lib/members";
@@ -67,6 +67,10 @@ export function ProjectsPanel({
       })
       .sort((a, b) => b.project.updatedAt.localeCompare(a.project.updatedAt));
   }, [filter, members, projects, query, tasks]);
+
+  const pagination = usePagination(filtered, {
+    resetKey: `${query}|${filter}`,
+  });
 
   return (
     <section className="mt-8 rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">
@@ -144,7 +148,7 @@ export function ProjectsPanel({
         </div>
       ) : (
         <ul className="mt-2 grid gap-3">
-          {filtered.map(({ project, status, progress, manager }, index) => {
+          {pagination.pageItems.map(({ project, status, progress, manager }, index) => {
             const team = membersByIds(members, project.members);
             return (
               <li
@@ -215,6 +219,14 @@ export function ProjectsPanel({
           })}
         </ul>
       )}
+
+      <Pagination
+        page={pagination.page}
+        totalItems={pagination.totalItems}
+        pageSize={pagination.pageSize}
+        onPageChange={pagination.setPage}
+        itemLabel={{ singular: "projeto", plural: "projetos" }}
+      />
 
       <ProjectFormModal
         open={formOpen}
