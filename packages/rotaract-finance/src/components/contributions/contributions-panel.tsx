@@ -1,11 +1,18 @@
 "use client";
 
 import { useMemo, useRef, useState, type ReactNode } from "react";
-import { CheckCircleIcon, ArrowCounterClockwiseIcon, HandshakeIcon, TrashIcon } from "@phosphor-icons/react";
-import { ConfirmModal, Tooltip } from "@rotaract/components";
+import {
+  ArrowCounterClockwiseIcon,
+  CalendarBlankIcon,
+  CaretDownIcon,
+  CheckCircleIcon,
+  HandshakeIcon,
+  MagnifyingGlassIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
+import { AlertSuccess, ConfirmModal, Tooltip } from "@rotaract/components";
 import { formatBRL, formatDate } from "../../services/money";
 import { Contribution, ContributionStatus, MONTHS, isUnpaidContribution, type GenerateContributionsPayload } from "../../types/contributions";
-import { inputClassName } from "../../types/movement";
 import { downloadContributionsReport } from "../../services/report";
 import { ContributionModal } from "./contribution-modal";
 import { TextContributions } from "./TextContribution";
@@ -42,6 +49,17 @@ type BusyState = {
   kind: BusyKind;
   scope: "row" | "bulk";
 };
+
+const filterFieldClassName =
+  "h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none ring-rotaract-pink/20 transition placeholder:text-zinc-400 focus:border-rotaract-pink/50 focus:bg-white focus:ring-4";
+
+const STATUS_FILTERS: { id: "todos" | ContributionStatus; label: string }[] = [
+  { id: "todos", label: "Todos" },
+  { id: "pendente", label: "Pendentes" },
+  { id: "vencido", label: "Vencidos" },
+  { id: "pago", label: "Pagos" },
+  { id: "isento", label: "Isentos" },
+];
 
 const checkboxClassName =
   "h-4 w-4 rounded border-zinc-300 text-rotaract-pink focus:ring-rotaract-pink/30";
@@ -215,6 +233,27 @@ export function ContributionsPanel({
     try {
       await action(ids);
       if (scope === "bulk") setSelectedIds([]);
+
+      const plural = ids.length > 1;
+      if (kind === "pay") {
+        AlertSuccess(
+          plural
+            ? "Pagamentos confirmados com sucesso"
+            : "Pagamento confirmado com sucesso"
+        );
+      } else if (kind === "pending") {
+        AlertSuccess(
+          plural
+            ? "Mensalidades marcadas como pendentes"
+            : "Mensalidade marcada como pendente"
+        );
+      } else if (kind === "exempt") {
+        AlertSuccess(
+          plural
+            ? "Mensalidades isentas com sucesso"
+            : "Mensalidade isenta com sucesso"
+        );
+      }
     } finally {
       busyRef.current = false;
       setBusy(null);
@@ -250,52 +289,74 @@ export function ContributionsPanel({
         <TextContributions pendingCount={pendingCount} received={received} />
       </span>
 
-      <div className="mt-5 md:flex md:justify-center md:gap-2">
-        <div className="md:w-[50%] md:mt-0 w-full mt-2">
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setSelectedIds([]);
-            }}
-            className={inputClassName}
-            placeholder="Pesquisar..."
-            autoComplete="off"
-          />
+      <div className="mt-5 flex flex-col gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <label className="relative min-w-0 flex-1">
+            <span className="sr-only">Pesquisar membro</span>
+            <MagnifyingGlassIcon
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+              aria-hidden
+            />
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setSelectedIds([]);
+              }}
+              className={`${filterFieldClassName} pl-11`}
+              placeholder="Pesquisar membro..."
+              autoComplete="off"
+            />
+          </label>
+
+          <label className="relative w-full sm:w-56 sm:shrink-0">
+            <span className="sr-only">Mês de referência</span>
+            <CalendarBlankIcon
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
+              aria-hidden
+            />
+            <select
+              value={activeReference}
+              onChange={(event) => setReference(event.target.value)}
+              className={`${filterFieldClassName} cursor-pointer appearance-none truncate pl-11 pr-10`}
+              aria-label="Mês de referência"
+            >
+              <option value="todos">Todas as referências</option>
+              {references.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+            <CaretDownIcon
+              className="pointer-events-none absolute right-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-zinc-400"
+              weight="bold"
+              aria-hidden
+            />
+          </label>
         </div>
 
-        <div className="md:w-[30%] md:mt-0 w-full mt-2">
-          <select
-            value={statusFilter}
-            onChange={(event) =>
-              setFilter(event.target.value as "todos" | ContributionStatus)
-            }
-            className={`${inputClassName} sm:max-w-xs`}
-            aria-label="Status da mensalidade"
-          >
-            <option value="todos">Todos</option>
-            <option value="pendente">Pendentes</option>
-            <option value="vencido">Vencidos</option>
-            <option value="pago">Pagos</option>
-            <option value="isento">Isentos</option>
-          </select>
-        </div>
-
-        <div className="md:w-[30%] md:mt-0 w-full mt-2">
-          <select
-            value={activeReference}
-            onChange={(event) => setReference(event.target.value)}
-            className={`${inputClassName} sm:max-w-xs`}
-            aria-label="Mês de referência"
-          >
-            <option value="todos">Todas as referências</option>
-            {references.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
+        <div
+          role="tablist"
+          aria-label="Status da mensalidade"
+          className="flex overflow-x-auto rounded-full border border-zinc-200 bg-zinc-50 p-1"
+        >
+          {STATUS_FILTERS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === item.id}
+              onClick={() => setFilter(item.id)}
+              className={`h-9 min-w-0 flex-1 shrink-0 rounded-full px-2 text-xs font-medium transition sm:px-3 sm:text-sm ${statusFilter === item.id
+                ? "bg-white text-zinc-900 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-800"
+                }`}
+            >
+              <span className="block truncate">{item.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -332,6 +393,7 @@ export function ContributionsPanel({
               setSelectedIds((current) =>
                 current.filter((id) => !ids.includes(id))
               );
+              AlertSuccess(deleteIds.length > 1 ? "Mensalidades excluídas com sucesso" : "Mensalidade excluída com sucesso");
               setDeleteIds([]);
             }
           );
@@ -402,13 +464,14 @@ export function ContributionsPanel({
                   disabled={exemptableSelected.length === 0 || isBusy}
                   loading={isActionLoading("exempt", "bulk")}
                   hover="hover:bg-sky-50 hover:text-zinc-800"
-                  onClick={() =>
+                  onClick={() => {
                     void runAction(
                       exemptableSelected.map((item) => item.id),
                       "exempt",
                       "bulk",
                       onExempt
                     )
+                  }
                   }
                 >
                   <HandshakeIcon className="h-4 w-4 text-sky-600" />

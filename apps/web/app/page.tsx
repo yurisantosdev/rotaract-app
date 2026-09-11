@@ -1,5 +1,5 @@
+import { Main } from "@rotaract/components";
 import { LoginForm } from "./_components/login-form";
-import { Main } from "./home/_components/main";
 
 const highlights = [
   {

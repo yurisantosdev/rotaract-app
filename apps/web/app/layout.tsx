@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import Script from "next/script";
 import "./globals.css";
+import { DisableMobileZoom } from "./_components/disable-mobile-zoom";
 import { ReduxProvider } from "./redux-provider";
 
 const geistSans = localFont({
@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
-        <Script src="/disable-mobile-zoom.js" strategy="beforeInteractive" />
+        <DisableMobileZoom />
         <ReduxProvider>{children}</ReduxProvider>
       </body>
     </html>

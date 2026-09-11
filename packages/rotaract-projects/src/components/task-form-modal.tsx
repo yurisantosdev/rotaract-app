@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { Button, DatePicker, Modal } from "@rotaract/components";
+import { AlertError, AlertSuccess, Button, DatePicker, Modal } from "@rotaract/components";
 import type { Member } from "@rotaract/members";
 import {
   PROJECT_INPUT_CLASS,
@@ -96,8 +96,10 @@ export function TaskFormModal({
         status,
         limit,
       });
+      AlertSuccess("Tarefa salva com sucesso");
       onClose();
     } catch (caught) {
+      AlertError("Não foi possível salvar a tarefa.");
       setError(
         caught instanceof Error
           ? caught.message
@@ -132,11 +134,10 @@ export function TaskFormModal({
               key={item.id}
               type="button"
               onClick={() => setStatus(item.id)}
-              className={`h-11 rounded-[1.1rem] px-2 text-sm font-semibold transition ${
-                status === item.id
+              className={`h-11 rounded-[1.1rem] px-2 text-sm font-semibold transition ${status === item.id
                   ? "bg-white text-zinc-900 shadow-sm"
                   : "text-zinc-500 hover:text-zinc-800"
-              }`}
+                }`}
             >
               {item.label}
             </button>

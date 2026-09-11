@@ -7,7 +7,7 @@ import { useMemberSession } from "./_components/member-session";
 import { ContributionsOverdue } from "@rotaract/finance";
 import { CardModule } from "./_components/cardModule";
 import { modules } from "../types/hometype";
-import { Main } from "./_components/main";
+import { Main } from "@rotaract/components";
 
 function greetingForHour(hour: number) {
   if (hour < 12) return "Bom dia";

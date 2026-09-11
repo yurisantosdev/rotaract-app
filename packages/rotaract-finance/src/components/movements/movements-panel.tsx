@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { Button, ButtonExcel, ConfirmModal, Tooltip } from "@rotaract/components";
+import { AlertSuccess, Button, ButtonExcel, ConfirmModal, Tooltip } from "@rotaract/components";
 import { formatBRL, formatDate, formatMoneyFromNumber, parseMoneyInput, todayISO } from "../../services/money";
 import { MovementModal } from "./movement-modal";
 import {
@@ -129,8 +129,10 @@ export function MovementsPanel({
     try {
       if (editingMovement) {
         await onUpdate({ ...payload, id: editingMovement.id });
+        AlertSuccess("Movimentação atualizada com sucesso");
       } else {
         await onAdd(payload);
+        AlertSuccess("Movimentação criada com sucesso");
       }
 
       setEditingMovement(null);
@@ -203,6 +205,7 @@ export function MovementsPanel({
         onConfirm={() => {
           if (!movementToDelete) return;
           onRemove(movementToDelete.id);
+          AlertSuccess("Movimentação excluída com sucesso");
           setMovementToDelete(null);
         }}
       />
@@ -214,7 +217,7 @@ export function MovementsPanel({
           className={inputClassName}
           placeholder="Pesquisar..."
         />
-        <div className="grid min-w-0 grid-cols-3 gap-1 rounded-full border border-zinc-200 bg-zinc-50 p-1">
+        <div className="grid min-w-0 grid-cols-3 gap-1 rounded-full border border-zinc-200 bg-zinc-50 p-1 md:w-[30%] w-full">
           {(
             [
               ["todos", "Todos"],
@@ -248,9 +251,11 @@ export function MovementsPanel({
               key={movement.id}
               className="overflow-x-hidden"
             >
-              <p className="truncate font-medium text-zinc-900 max-w-[150px]">
-                {movement.description}
-              </p>
+              <Tooltip label={movement.description}>
+                <p className="truncate font-medium text-zinc-900 max-w-[150px]">
+                  {movement.description}
+                </p>
+              </Tooltip>
 
               <div className="flex min-w-0 items-center justify-between gap-3">
                 <p className="mt-1 min-w-0 truncate text-sm text-zinc-500">

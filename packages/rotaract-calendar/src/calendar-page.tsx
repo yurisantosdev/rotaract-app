@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loading, ReturnModule, TitleModule } from "@rotaract/components";
+import { AlertError, AlertSuccess, Loading, Main, ReturnModule, TitleModule } from "@rotaract/components";
 import { useMembers, useMembersStatus } from "@rotaract/members";
 import { CalendarStats } from "./components/calendar-stats";
 import { CalendarWorkspace } from "./components/calendar-workspace";
@@ -80,17 +80,15 @@ export function CalendarPage({
     return removeCalendar(id, controller.signal)
       .then(() => {
         setEvents((current) => current.filter((item) => item.id !== id));
+        AlertSuccess("Agendamento excluído com sucesso");
         setLoadError("");
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
-        setLoadError(
-          error instanceof Error
-            ? error.message
-            : "Não foi possível excluir o agendamento."
-        );
+        AlertError("Não foi possível excluir o agendamento.");
+        setLoadError("Não foi possível excluir o agendamento.");
       });
   }
 
@@ -120,32 +118,34 @@ export function CalendarPage({
   }, []);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      {isLoading ? <Loading /> : null}
+    <Main>
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        {isLoading ? <Loading /> : null}
 
-      <ReturnModule backHref={backHref} />
+        <ReturnModule backHref={backHref} />
 
-      <TitleModule
-        module="Módulo agenda"
-        title="Agenda"
-        description={`Olá, ${firstName}. Gerencie reuniões, projetos e compromissos do clube.`}
-      />
+        <TitleModule
+          module="Módulo agenda"
+          title="Agenda"
+          description={`Olá, ${firstName}. Gerencie reuniões, projetos e compromissos do clube.`}
+        />
 
-      {loadError ? (
-        <p className="mt-5 text-sm text-rose-700" role="alert">
-          {loadError}
-        </p>
-      ) : null}
+        {loadError ? (
+          <p className="mt-5 text-sm text-rose-700" role="alert">
+            {loadError}
+          </p>
+        ) : null}
 
-      <CalendarStats events={events} />
-      <CalendarWorkspace
-        events={events}
-        members={members}
-        currentUserId={currentUserId}
-        onCreate={handleCreate}
-        onUpdate={handleUpdate}
-        onRemove={handleRemove}
-      />
-    </main>
+        <CalendarStats events={events} />
+        <CalendarWorkspace
+          events={events}
+          members={members}
+          currentUserId={currentUserId}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          onRemove={handleRemove}
+        />
+      </main>
+    </Main>
   );
 }

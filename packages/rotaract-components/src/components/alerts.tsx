@@ -1,50 +1,52 @@
-import React from 'react'
-import { toast } from 'react-toastify'
+import { toast, ToastPosition } from 'react-toastify'
 
-export function AlertSuccess(text: any) {
-  return toast.success(text, {
-    position: 'top-right',
+const getToastPosition = (): ToastPosition => {
+  return window.innerWidth <= 768
+    ? 'top-center'
+    : 'top-right'
+}
+
+const showToast = (
+  type: 'success' | 'error' | 'warning' | 'info',
+  text: any
+) => {
+  const options = {
+    position: getToastPosition(),
     autoClose: 1600,
     hideProgressBar: false,
     closeOnClick: true,
     pauseOnHover: true,
     draggable: true,
-    theme: 'light'
-  })
+    theme: 'light' as const
+  }
+
+  switch (type) {
+    case 'success':
+      return toast.success(text, options)
+
+    case 'error':
+      return toast.error(text, options)
+
+    case 'warning':
+      return toast.warn(text, options)
+
+    case 'info':
+      return toast.info(text, options)
+  }
+}
+
+export function AlertSuccess(text: any) {
+  return showToast('success', text)
 }
 
 export function AlertError(text: any) {
-  return toast.error(text, {
-    position: 'top-right',
-    autoClose: 1600,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    theme: 'light'
-  })
+  return showToast('error', text)
 }
 
 export function AlertWarn(text: any) {
-  return toast.warn(text, {
-    position: 'top-right',
-    autoClose: 1600,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    theme: 'light'
-  })
+  return showToast('warning', text)
 }
 
 export function AlertInfo(text: any) {
-  return toast.info(text, {
-    position: 'top-right',
-    autoClose: 1600,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    theme: 'light'
-  })
+  return showToast('info', text)
 }

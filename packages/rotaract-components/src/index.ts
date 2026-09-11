@@ -18,3 +18,4 @@ export {
   AlertWarn,
   AlertInfo
 } from "./components/alerts";
+export { Main } from "./components/main";

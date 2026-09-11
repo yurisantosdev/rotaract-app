@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CheckIcon } from "@phosphor-icons/react";
-import { DatePicker, Modal } from "@rotaract/components";
+import { AlertError, AlertSuccess, DatePicker, Modal } from "@rotaract/components";
 import { MemberAvatar, useMembers, useMembersError, useMembersStatus } from "@rotaract/members";
 import { listSettings } from "@rotaract/settings";
 import { formatMoneyFromNumber, formatMoneyInput, parseMoneyInput } from "../../services/money";
@@ -239,8 +239,10 @@ export function ContributionModal({
         references: payloadReferences,
         value: parsedValue,
       });
+      AlertSuccess("Mensalidades geradas com sucesso");
       onClose();
     } catch {
+      AlertError("Não foi possível gerar as mensalidades.");
       setError("Não foi possível gerar as mensalidades.");
     } finally {
       setSaving(false);

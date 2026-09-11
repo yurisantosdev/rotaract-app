@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loading, ReturnModule, TitleModule } from "@rotaract/components";
+import { AlertError, AlertSuccess, Loading, Main, ReturnModule, TitleModule } from "@rotaract/components";
 import { useMembers, useMembersStatus } from "@rotaract/members";
 import { ProjectsStats } from "./components/projects-stats";
 import { ProjectsPanel } from "./components/projects-panel";
@@ -104,12 +104,14 @@ export function ProjectsPage({
         setProjects((current) => current.filter((project) => project.id !== projectId));
         setTasks((current) => current.filter((task) => task.projectId !== projectId));
         setSelectedId(null);
+        AlertSuccess("Projeto excluído com sucesso");
         setLoadError("");
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
+        AlertError("Não foi possível excluir o projeto.");
         setLoadError(
           error instanceof Error
             ? error.message
@@ -188,12 +190,14 @@ export function ProjectsPage({
     return removeTasks(taskId, controller.signal)
       .then(() => {
         setTasks((current) => current.filter((task) => task.id !== taskId));
+        AlertSuccess("Tarefa excluída com sucesso");
         setLoadError("");
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
+        AlertError("Não foi possível excluir a tarefa.");
         setLoadError(
           error instanceof Error
             ? error.message
@@ -203,69 +207,71 @@ export function ProjectsPage({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      {isLoading ? <Loading /> : null}
+    <Main>
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        {isLoading ? <Loading /> : null}
 
-      {selected ? (
-        <div className="flex items-center justify-start gap-4">
-          <div
-            className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rotaract-pink p-2 hover:bg-rotaract-pink/10"
-            onClick={() => setSelectedId(null)}
-          >
-            <ArrowLeftIcon size={24} className="text-rotaract-pink" />
+        {selected ? (
+          <div className="flex items-center justify-start gap-4">
+            <div
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full border border-rotaract-pink p-2 hover:bg-rotaract-pink/10"
+              onClick={() => setSelectedId(null)}
+            >
+              <ArrowLeftIcon size={24} className="text-rotaract-pink" />
+            </div>
+
+            <div className="-mt-6 min-w-0">
+              <TitleModule
+                module="Módulo projetos"
+                title={selected.title}
+                description={selected.description}
+              />
+            </div>
           </div>
+        ) : (
+          <div>
+            <ReturnModule backHref={backHref} />
 
-          <div className="-mt-6 min-w-0">
             <TitleModule
               module="Módulo projetos"
-              title={selected.title}
-              description={selected.description}
+              title="Projetos"
+              description="Organize as ações do clube, os companheiros envolvidos e o andamento de cada tarefa."
             />
           </div>
-        </div>
-      ) : (
-        <div>
-          <ReturnModule backHref={backHref} />
+        )}
 
-          <TitleModule
-            module="Módulo projetos"
-            title="Projetos"
-            description="Organize as ações do clube, os companheiros envolvidos e o andamento de cada tarefa."
-          />
-        </div>
-      )}
+        {loadError ? (
+          <p className="mt-5 text-sm text-rose-700" role="alert">
+            {loadError}
+          </p>
+        ) : null}
 
-      {loadError ? (
-        <p className="mt-5 text-sm text-rose-700" role="alert">
-          {loadError}
-        </p>
-      ) : null}
-
-      {selected ? (
-        <ProjectDetail
-          project={selected}
-          tasks={selectedTasks}
-          members={members}
-          onUpdateProject={handleUpdateProject}
-          onRemoveProject={handleRemoveProject}
-          onCreateTask={handleCreateTask}
-          onUpdateTask={handleUpdateTask}
-          onChangeTaskStatus={handleChangeTaskStatus}
-          onRemoveTask={handleRemoveTask}
-        />
-      ) : (
-        <>
-          <ProjectsStats projects={projects} tasks={tasks} />
-          <ProjectsPanel
-            projects={projects}
-            tasks={tasks}
+        {selected ? (
+          <ProjectDetail
+            project={selected}
+            tasks={selectedTasks}
             members={members}
-            currentUserId={currentUserId}
-            onOpen={setSelectedId}
-            onCreate={handleCreateProject}
+            onUpdateProject={handleUpdateProject}
+            onRemoveProject={handleRemoveProject}
+            onCreateTask={handleCreateTask}
+            onUpdateTask={handleUpdateTask}
+            onChangeTaskStatus={handleChangeTaskStatus}
+            onRemoveTask={handleRemoveTask}
           />
-        </>
-      )}
-    </main>
+        ) : (
+          <>
+            <ProjectsStats projects={projects} tasks={tasks} />
+            <ProjectsPanel
+              projects={projects}
+              tasks={tasks}
+              members={members}
+              currentUserId={currentUserId}
+              onOpen={setSelectedId}
+              onCreate={handleCreateProject}
+            />
+          </>
+        )}
+      </main>
+    </Main>
   );
 }

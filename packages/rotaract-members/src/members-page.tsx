@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { CheckCircleIcon } from "@phosphor-icons/react";
-import { Loading, ReturnModule, TitleModule } from "@rotaract/components";
+import { AlertError, AlertSuccess, Loading, Main, ReturnModule, TitleModule } from "@rotaract/components";
 import { MembersStats } from "./components/members-stats";
 import { MembersPanel } from "./components/members-panel";
 import type { Member, MemberPayload } from "./types/member";
@@ -31,6 +31,7 @@ export function MembersPage({
 
     return createMembers(controller.signal, payload).then((created) => {
       dispatch(membersAdd(created));
+      AlertSuccess("Membro salvo com sucesso");
     });
   }
 
@@ -38,6 +39,7 @@ export function MembersPage({
     const controller = new AbortController();
 
     return updateMembers(id, controller.signal, payload).then((updated) => {
+      AlertSuccess("Membro atualizado com sucesso");
       dispatch(membersUpdate(updated));
     });
   }
@@ -57,33 +59,37 @@ export function MembersPage({
     })
       .then((updated) => {
         dispatch(membersUpdate(updated));
+        AlertSuccess("Membro atualizado com sucesso");
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") {
+          AlertError("Não foi possível atualizar o membro.");
           return;
         }
       });
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      {isLoading ? <Loading /> : null}
+    <Main>
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        {isLoading ? <Loading /> : null}
 
-      <ReturnModule backHref={backHref} />
+        <ReturnModule backHref={backHref} />
 
-      <TitleModule
-        module="Módulo membros"
-        title="Membros"
-        description={`Olá, ${firstName}. Gerencie o cadastro, os cargos e a família do clube.`}
-      />
+        <TitleModule
+          module="Módulo membros"
+          title="Membros"
+          description={`Olá, ${firstName}. Gerencie o cadastro, os cargos e a família do clube.`}
+        />
 
-      <MembersStats members={members} />
-      <MembersPanel
-        members={members}
-        onCreate={handleCreate}
-        onUpdate={handleUpdate}
-        onChangeStatus={handleChangeStatus}
-      />
-    </main>
+        <MembersStats members={members} />
+        <MembersPanel
+          members={members}
+          onCreate={handleCreate}
+          onUpdate={handleUpdate}
+          onChangeStatus={handleChangeStatus}
+        />
+      </main>
+    </Main>
   );
 }

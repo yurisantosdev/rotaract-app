@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon } from "@phosphor-icons/react";
-import { Button, DatePicker, Modal } from "@rotaract/components";
+import { AlertError, AlertSuccess, Button, DatePicker, Modal } from "@rotaract/components";
 import { MemberAvatar } from "@rotaract/members";
 import {
   dateTimeInputToIso,
@@ -181,13 +181,11 @@ export function EventFormModal({
         kind,
         memberIds: personalEvent && currentUserId ? [currentUserId] : memberIds,
       });
+      AlertSuccess(isEdit ? `Agendamento atualizado com sucesso` : `Agendamento salvo com sucesso`);
       onClose();
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Não foi possível salvar o evento."
-      );
+      AlertError(`Não foi possível ${isEdit ? "atualizar" : "salvar"} o agendamento.`);
+      setError(`Não foi possível ${isEdit ? "atualizar" : "salvar"} o agendamento.`);
     } finally {
       setSaving(false);
     }

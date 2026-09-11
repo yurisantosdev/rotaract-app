@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { Button, Modal } from "@rotaract/components";
+import { AlertError, AlertSuccess, Button, Modal } from "@rotaract/components";
 import type { Member } from "@rotaract/members";
 import { uniqueIds } from "../types/projects";
 import {
@@ -90,8 +90,10 @@ export function ProjectFormModal({
         managerId,
         members: uniqueIds([managerId, ...memberIds]),
       });
+      AlertSuccess("Projeto salvo com sucesso");
       onClose();
     } catch (caught) {
+      AlertError("Não foi possível salvar o projeto.");
       setError(
         caught instanceof Error
           ? caught.message
