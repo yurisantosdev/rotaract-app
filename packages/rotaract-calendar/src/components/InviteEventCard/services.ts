@@ -1,9 +1,9 @@
 "use client";
 
-import { calendarToEvent } from "@/src/lib/calendar-event";
-import { formatEventTimeRange, isSameDay } from "@/src/lib/dates";
-import { respondToCalendarInvite } from "@/src/services/database.services";
-import { CalendarEvent, EVENT_KIND_STYLES } from "@/src/types/event";
+import { calendarToEvent } from "../../lib/calendar-event";
+import { formatEventTimeRange, isSameDay } from "../../lib/dates";
+import { respondToCalendarInvite } from "../../services/database.services";
+import { CalendarEvent, EVENT_KIND_STYLES } from "../../types/event";
 import { AlertSuccess } from "@rotaract/components";
 import { useState } from "react";
 import { InviteEventCardProps } from "./types";

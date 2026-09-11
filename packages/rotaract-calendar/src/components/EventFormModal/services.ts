@@ -1,10 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { toDateInputValue } from "../../../../rotaract-projects/src/lib/dates";
-import { EventKind } from "@/src/types/event";
-import { normalizeSearch } from "@/src/types/calendar";
-import { dateTimeInputToIso, toTimeInputValue } from "@/src/lib/dates";
+import { EventKind } from "../../types/event";
+import { normalizeSearch } from "../../types/calendar";
+import { dateTimeInputToIso, toDateInputValue, toTimeInputValue } from "../../lib/dates";
 import { AlertError, AlertSuccess } from "@rotaract/components";
 import { EventFormModalProps } from "./types";
 

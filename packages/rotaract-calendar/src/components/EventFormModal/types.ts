@@ -1,4 +1,4 @@
-import { CalendarEvent, CalendarEventPayload } from "@/src/types/event";
+import { CalendarEvent, CalendarEventPayload } from "../../types/event";
 import { Member } from "@rotaract/members";
 
 export type EventFormModalProps = {

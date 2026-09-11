@@ -1,11 +1,11 @@
 "use client";
 
-import { addDays, eventOccursOnDay, isSameDay } from "@/src/lib/dates";
-import { CalendarEvent } from "@/src/types/event";
+import { addDays, eventOccursOnDay, isSameDay } from "../../lib/dates";
+import { CalendarEvent } from "../../types/event";
 import { DayGroup, LoadState } from "./types";
 import { useEffect, useMemo, useState } from "react";
-import { listCalendar } from "@/src/services/database.services";
-import { calendarToEvent } from "@/src/lib/calendar-event";
+import { listCalendar } from "../../services/database.services";
+import { calendarToEvent } from "../../lib/calendar-event";
 
 export function useUpcomingEvents() {
   const VISIBLE_EVENTS = 1;

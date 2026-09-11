@@ -1,4 +1,4 @@
-import { Calendar } from "@/src/types/calendar";
+import { Calendar } from "../../types/calendar";
 
 export type InviteEventCardProps = {
   calendar: Calendar;

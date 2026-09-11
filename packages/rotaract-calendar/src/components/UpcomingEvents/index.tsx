@@ -4,10 +4,12 @@ import { ArrowRightIcon, CalendarBlankIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { EmptyState } from "../EmptyState";
 import { EventRow } from "../EventRow";
-import { UpcomingEventsProps } from "./types";
+import type { UpcomingEventsProps } from "./types";
 import { AgendaSkeleton } from "./_components/AgendaSkeleton";
 import { OverflowLabel } from "./_components/OverflowLabel";
 import { useUpcomingEvents } from "./services";
+
+export type { UpcomingEventsProps } from "./types";
 
 export function UpcomingEvents({
   calendarHref = "/home/calendar",

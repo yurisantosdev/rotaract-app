@@ -1,4 +1,4 @@
-import { CalendarEvent } from "@/src/types/event";
+import { CalendarEvent } from "../../types/event";
 
 export type EventRowProps = {
   event: CalendarEvent;

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarEvent, EVENT_KIND_STYLES } from "@/src/types/event";
+import { CalendarEvent, EVENT_KIND_STYLES } from "../../types/event";
 import { EventRowProps } from "./types";
 
 export function useEventRow({
