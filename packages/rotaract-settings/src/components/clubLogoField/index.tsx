@@ -2,24 +2,10 @@
 
 import { useRef, useState } from "react";
 import { ImageIcon, TrashIcon, UploadSimpleIcon } from "@phosphor-icons/react";
-import { LOGO_ACCEPT } from "../types/settings";
-import { fileToImageDataUrl } from "../services/logo";
-
-type ClubLogoFieldProps = {
-  clubName: string;
-  logoUrl: string;
-  onChange: (logoUrl: string) => void;
-  onError: (message: string) => void;
-};
-
-function initialsFromClubName(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  const first = parts[0];
-  const last = parts[parts.length - 1];
-  if (!first) return "RC";
-  if (!last || parts.length === 1) return first.slice(0, 2).toUpperCase();
-  return `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
-}
+import { LOGO_ACCEPT } from "../../types/settings";
+import { fileToImageDataUrl } from "../../services/logo.services";
+import { ClubLogoFieldProps } from "./type";
+import { useClubLogoField } from "./services";
 
 export function ClubLogoField({
   clubName,
@@ -27,26 +13,18 @@ export function ClubLogoField({
   onChange,
   onError,
 }: ClubLogoFieldProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-  const [reading, setReading] = useState(false);
 
-  async function applyFile(file: File | undefined) {
-    if (!file) return;
+  const data = useClubLogoField({ onChange, onError });
+  if (!data) return null;
+  const {
+    initialsFromClubName,
+    setDragging,
+    applyFile,
+    dragging,
+    inputRef,
+    reading
+  } = data;
 
-    setReading(true);
-    try {
-      const dataUrl = await fileToImageDataUrl(file);
-      onError("");
-      onChange(dataUrl);
-    } catch (caught: unknown) {
-      onError(
-        caught instanceof Error ? caught.message : "Não foi possível ler a imagem."
-      );
-    } finally {
-      setReading(false);
-    }
-  }
 
   return (
     <div>
@@ -71,8 +49,8 @@ export function ClubLogoField({
           applyFile(event.dataTransfer.files[0]);
         }}
         className={`relative overflow-hidden rounded-3xl border border-dashed p-4 transition ${dragging
-            ? "border-rotaract-pink bg-rotaract-pink/5"
-            : "border-zinc-200 bg-rotaract-mist/70"
+          ? "border-rotaract-pink bg-rotaract-pink/5"
+          : "border-zinc-200 bg-rotaract-mist/70"
           }`}
       >
         <input

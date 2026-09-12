@@ -7,6 +7,12 @@ export type Setting = {
   updatedAt: Date;
 };
 
+export type ConfigPageProps = {
+  userName: string;
+  backHref?: string;
+  onSaved: (settings: ClubSettings) => void;
+};
+
 export type SettingPayload = {
   valueContribution: number;
   logo: string;

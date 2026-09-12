@@ -1,5 +1,5 @@
 import React from "react";
-import { ClubSettings } from "../types/settings";
+import { ClubSettings } from "../../types/settings";
 
 export function PreView({ clubName, logoUrl }: ClubSettings) {
   return (
