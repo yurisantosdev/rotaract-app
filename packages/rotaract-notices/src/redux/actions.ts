@@ -1,5 +1,5 @@
 import type { Dispatch } from "@reduxjs/toolkit";
-import { listNotices } from "../services/notices";
+import { listNotices } from "../services/database.notices.services";
 import type { Notices } from "../types/notices";
 import NoticesActionType from "./actionType";
 import type { NoticesAction, NoticesRootState } from "./reduce";

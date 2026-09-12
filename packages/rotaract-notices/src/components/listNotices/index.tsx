@@ -1,29 +1,17 @@
 "use client";
 
 import React from "react";
-import { Pagination, usePagination } from "@rotaract/components";
-import { Notices } from "../types/notices";
-
-export type ListNoticesProps = {
-  notices: Notices[];
-}
+import { Pagination } from "@rotaract/components";
+import { ListNoticesProps } from "./type";
+import { useListNotices } from "./services";
 
 export function ListNotices({ notices }: ListNoticesProps) {
-  const pagination = usePagination(notices);
-
-  function formatNoticeDate(value: string) {
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) {
-      return value;
-    }
-
-    return parsed.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
+  const data = useListNotices({ notices });
+  if (!data) return null;
+  const {
+    formatNoticeDate,
+    pagination
+  } = data;
 
   return (
     <div>
