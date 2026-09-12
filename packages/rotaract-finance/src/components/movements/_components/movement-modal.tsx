@@ -7,9 +7,9 @@ import {
   formatBRL,
   formatMoneyInput,
   parseMoneyInput,
-} from "../../services/money";
-import { MOVEMENT_CATEGORIES } from "../../types/movement";
-import { MovementModalProps } from "../../types/movementModal";
+} from "../../../services/money.services";
+import { MOVEMENT_CATEGORIES } from "../../../types/movement";
+import { MovementModalProps } from "../../../types/movementModal";
 
 const fieldClassName =
   "h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none ring-rotaract-pink/20 transition placeholder:text-zinc-400 focus:border-rotaract-pink/50 focus:bg-white focus:ring-4 disabled:cursor-not-allowed disabled:opacity-60";
@@ -90,16 +90,14 @@ export function MovementModal({
                   aria-checked={selected}
                   disabled={saving}
                   onClick={() => onTypeChange(item.id)}
-                  className={`flex h-15 items-center justify-center gap-2.5 rounded-[1.1rem] px-2 text-left transition disabled:cursor-not-allowed sm:gap-3 sm:px-3 ${
-                    selected
-                      ? item.selectedClass
-                      : "text-zinc-500 hover:text-zinc-800"
-                  }`}
+                  className={`flex h-15 items-center justify-center gap-2.5 rounded-[1.1rem] px-2 text-left transition disabled:cursor-not-allowed sm:gap-3 sm:px-3 ${selected
+                    ? item.selectedClass
+                    : "text-zinc-500 hover:text-zinc-800"
+                    }`}
                 >
                   <span
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                      selected ? item.iconClass : "bg-white/70 text-zinc-400"
-                    }`}
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${selected ? item.iconClass : "bg-white/70 text-zinc-400"
+                      }`}
                   >
                     <item.Icon className="h-5 w-5" weight="bold" />
                   </span>
@@ -108,9 +106,8 @@ export function MovementModal({
                       {item.label}
                     </span>
                     <span
-                      className={`block text-xs font-medium ${
-                        selected ? "opacity-80" : "text-zinc-400"
-                      }`}
+                      className={`block text-xs font-medium ${selected ? "opacity-80" : "text-zinc-400"
+                        }`}
                     >
                       {item.hint}
                     </span>
@@ -121,11 +118,10 @@ export function MovementModal({
           </div>
 
           <div
-            className={`mt-5 rounded-[1.35rem] border p-4 transition ${
-              isIncome
-                ? "border-emerald-100 bg-emerald-50/50"
-                : "border-rose-100 bg-rose-50/50"
-            }`}
+            className={`mt-5 rounded-[1.35rem] border p-4 transition ${isIncome
+              ? "border-emerald-100 bg-emerald-50/50"
+              : "border-rose-100 bg-rose-50/50"
+              }`}
           >
             <label htmlFor="movement-value" className="block">
               <span className="block text-sm text-zinc-600">Valor</span>
@@ -144,25 +140,23 @@ export function MovementModal({
                   onChange={(event) =>
                     onValueChange(formatMoneyInput(event.target.value))
                   }
-                  className={`${fieldClassName} h-14 bg-white pl-12 text-2xl font-semibold tabular-nums tracking-tight ${
-                    valueInvalid
-                      ? "border-rose-300 focus:border-rose-400 focus:ring-rose-200/60"
-                      : isIncome
-                        ? "focus:border-emerald-300 focus:ring-emerald-500/15"
-                        : "focus:border-rose-300 focus:ring-rose-500/15"
-                  }`}
+                  className={`${fieldClassName} h-14 bg-white pl-12 text-2xl font-semibold tabular-nums tracking-tight ${valueInvalid
+                    ? "border-rose-300 focus:border-rose-400 focus:ring-rose-200/60"
+                    : isIncome
+                      ? "focus:border-emerald-300 focus:ring-emerald-500/15"
+                      : "focus:border-rose-300 focus:ring-rose-500/15"
+                    }`}
                   placeholder="0,00"
                 />
               </span>
             </label>
             <p
-              className={`mt-2 text-xs font-medium ${
-                hasValue
-                  ? isIncome
-                    ? "text-emerald-700"
-                    : "text-rose-600"
-                  : "text-zinc-400"
-              }`}
+              className={`mt-2 text-xs font-medium ${hasValue
+                ? isIncome
+                  ? "text-emerald-700"
+                  : "text-rose-600"
+                : "text-zinc-400"
+                }`}
             >
               {hasValue
                 ? `${isIncome ? "+" : "−"} ${formatBRL(parsedValue)} na tesouraria`
@@ -177,11 +171,10 @@ export function MovementModal({
               disabled={saving}
               aria-invalid={descriptionInvalid || undefined}
               onChange={(event) => onDescriptionChange(event.target.value)}
-              className={`${fieldClassName} ${
-                descriptionInvalid
-                  ? "border-rose-300 focus:border-rose-400 focus:ring-rose-200/60"
-                  : ""
-              }`}
+              className={`${fieldClassName} ${descriptionInvalid
+                ? "border-rose-300 focus:border-rose-400 focus:ring-rose-200/60"
+                : ""
+                }`}
               placeholder="Ex.: Mensalidades de setembro"
               maxLength={80}
             />
@@ -217,11 +210,10 @@ export function MovementModal({
                     aria-pressed={selected}
                     disabled={saving}
                     onClick={() => onCategoryChange(item)}
-                    className={`h-10 rounded-full px-3.5 text-sm font-medium transition disabled:cursor-not-allowed ${
-                      selected
-                        ? "bg-rotaract-pink text-white"
-                        : "border border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:text-zinc-900"
-                    }`}
+                    className={`h-10 rounded-full px-3.5 text-sm font-medium transition disabled:cursor-not-allowed ${selected
+                      ? "bg-rotaract-pink text-white"
+                      : "border border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:text-zinc-900"
+                      }`}
                   >
                     {item}
                   </button>

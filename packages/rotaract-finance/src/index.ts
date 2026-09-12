@@ -1,3 +1,3 @@
-export { FinancePage } from "./finance-page";
+export { FinancePage } from "./FinancePage";
 export { ContributionsOverdue } from "./components/contributionsOverdue";
-export { listContributionsOverdue } from "./services/contributions";
+export { listContributionsOverdue } from "./services/database.contributions.services";

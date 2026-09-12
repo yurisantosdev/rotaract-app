@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ArrowCounterClockwiseIcon,
   CalendarBlankIcon,
@@ -10,114 +9,17 @@ import {
   MagnifyingGlassIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { AlertSuccess, ConfirmModal, Pagination, Tooltip, usePagination } from "@rotaract/components";
-import { formatBRL, formatDate } from "../../services/money";
-import { Contribution, ContributionStatus, MONTHS, isUnpaidContribution, type GenerateContributionsPayload } from "../../types/contributions";
-import { downloadContributionsReport } from "../../services/report";
-import { ContributionModal } from "./contribution-modal";
-import { TextContributions } from "./TextContribution";
-import { ButtonsExcelGenerate } from "./ButtonsExcelGenerate";
-import { StatusContribution } from "./StatusContribution";
-
-function normalizeSearch(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function compareReferences(a: string, b: string): number {
-  const [monthA, yearA] = a.split("/");
-  const [monthB, yearB] = b.split("/");
-  const yearDiff = Number(yearB) - Number(yearA);
-  if (yearDiff !== 0) return yearDiff;
-  return MONTHS.indexOf(monthB ?? "") - MONTHS.indexOf(monthA ?? "");
-}
-
-type ContributionsPanelProps = {
-  contributions: Contribution[];
-  onToggle: (ids: string[]) => void | Promise<void>;
-  onExempt: (ids: string[]) => void | Promise<void>;
-  onRemove: (ids: string[]) => void | Promise<void>;
-  onGenerate: (payload: GenerateContributionsPayload) => void | Promise<void>;
-};
-
-type BusyKind = "pay" | "pending" | "exempt" | "remove";
-type BusyState = {
-  ids: string[];
-  kind: BusyKind;
-  scope: "row" | "bulk";
-};
-
-const filterFieldClassName =
-  "h-12 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm text-zinc-900 outline-none ring-rotaract-pink/20 transition placeholder:text-zinc-400 focus:border-rotaract-pink/50 focus:bg-white focus:ring-4";
-
-const STATUS_FILTERS: { id: "todos" | ContributionStatus; label: string }[] = [
-  { id: "todos", label: "Todos" },
-  { id: "pendente", label: "Pendentes" },
-  { id: "vencido", label: "Vencidos" },
-  { id: "pago", label: "Pagos" },
-  { id: "isento", label: "Isentos" },
-];
-
-const checkboxClassName =
-  "h-4 w-4 rounded border-zinc-300 text-rotaract-pink focus:ring-rotaract-pink/30";
-
-function iconButtonClassName(
-  hover: string,
-  disabled: boolean,
-  loading: boolean
-): string {
-  if (loading) {
-    return "rounded-full p-1.5 text-sm text-zinc-500 transition cursor-wait";
-  }
-
-  return `rounded-full p-1.5 text-sm text-zinc-500 transition ${disabled
-    ? "cursor-not-allowed opacity-40"
-    : hover
-    }`;
-}
-
-function ActionButton({
-  label,
-  disabled,
-  loading,
-  hover,
-  onClick,
-  children,
-}: {
-  label: string;
-  disabled?: boolean;
-  loading?: boolean;
-  hover: string;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  const isLoading = Boolean(loading);
-
-  return (
-    <Tooltip label={isLoading ? "Carregando..." : label}>
-      <button
-        type="button"
-        aria-label={isLoading ? "Carregando" : label}
-        aria-busy={isLoading || undefined}
-        disabled={Boolean(disabled) || isLoading}
-        onClick={onClick}
-        className={iconButtonClassName(hover, Boolean(disabled), isLoading)}
-      >
-        {isLoading ? (
-          <span
-            className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-zinc-200 border-t-rotaract-pink motion-reduce:animate-none"
-            aria-hidden
-          />
-        ) : (
-          children
-        )}
-      </button>
-    </Tooltip>
-  );
-}
+import { AlertSuccess, ConfirmModal, Pagination } from "@rotaract/components";
+import { formatBRL, formatDate } from "../../services/money.services";
+import { isUnpaidContribution } from "../../types/contributions";
+import { downloadContributionsReport } from "../../services/report.services";
+import { ContributionModal } from "./_components/ContributionModal";
+import { TextContributions } from "./_components/TextContribution";
+import { ButtonsExcelGenerate } from "./_components/ButtonsExcelGenerate";
+import { StatusContribution } from "./_components/StatusContribution";
+import { ContributionsPanelProps } from "./types";
+import { ActionButton } from "./_components/ActionButton";
+import { useContributions } from "./services";
 
 export function ContributionsPanel({
   contributions,
@@ -126,163 +28,45 @@ export function ContributionsPanel({
   onRemove,
   onGenerate,
 }: ContributionsPanelProps) {
-  const [statusFilter, setStatusFilter] = useState<"todos" | ContributionStatus>(
-    "todos"
-  );
-  const [query, setQuery] = useState("");
-  const [referenceFilter, setReferenceFilter] = useState("todos");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [deleteIds, setDeleteIds] = useState<string[]>([]);
-  const [openModal, setOpenModal] = useState(false);
-  const [busy, setBusy] = useState<BusyState | null>(null);
-  const busyRef = useRef(false);
-
-  const references = useMemo(
-    () =>
-      Array.from(new Set(contributions.map((item) => item.reference))).sort(
-        compareReferences
-      ),
-    [contributions]
-  );
-
-  const activeReference =
-    referenceFilter !== "todos" && references.includes(referenceFilter)
-      ? referenceFilter
-      : "todos";
-
-  const filtered = useMemo(() => {
-    const term = normalizeSearch(query);
-    return contributions.filter((item) => {
-      if (statusFilter !== "todos" && item.status !== statusFilter) return false;
-      if (activeReference !== "todos" && item.reference !== activeReference) {
-        return false;
-      }
-      if (term && !normalizeSearch(item.name).includes(term)) return false;
-      return true;
-    });
-  }, [activeReference, contributions, query, statusFilter]);
-
-  const pagination = usePagination(filtered, {
-    resetKey: `${query}|${statusFilter}|${activeReference}`,
-  });
-
-  const visibleSelected = useMemo(() => {
-    const visible = new Set(filtered.map((item) => item.id));
-    return selectedIds.filter((id) => visible.has(id));
-  }, [filtered, selectedIds]);
-
-  const selectedItems = useMemo(
-    () => filtered.filter((item) => visibleSelected.includes(item.id)),
-    [filtered, visibleSelected]
-  );
-
-  const hasSelection = visibleSelected.length > 0;
-  const pageIds = useMemo(
-    () => pagination.pageItems.map((item) => item.id),
-    [pagination.pageItems]
-  );
-  const allPageSelected =
-    pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id));
-  const somePageSelected = pageIds.some((id) => selectedIds.includes(id));
-  const pendingSelected = selectedItems.filter((item) =>
-    isUnpaidContribution(item.status)
-  );
-  const revertSelected = selectedItems.filter(
-    (item) => item.status === "pago" || item.status === "isento"
-  );
-  const exemptableSelected = selectedItems.filter((item) => item.status !== "isento");
-
-  const pendingCount = contributions.filter((item) =>
-    isUnpaidContribution(item.status)
-  ).length;
-  const received = contributions
-    .filter((item) => item.status === "pago")
-    .reduce((sum, item) => sum + item.value, 0);
-
-  const deleteTarget =
-    deleteIds.length === 1
-      ? contributions.find((item) => item.id === deleteIds[0])
-      : undefined;
-
-  function setFilter(value: "todos" | ContributionStatus) {
-    setStatusFilter(value);
-    setSelectedIds([]);
-  }
-
-  function setReference(value: string) {
-    setReferenceFilter(value);
-    setSelectedIds([]);
-  }
-
-  function toggleAll() {
-    setSelectedIds((current) => {
-      if (allPageSelected) {
-        const pageSet = new Set(pageIds);
-        return current.filter((id) => !pageSet.has(id));
-      }
-      return [...new Set([...current, ...pageIds])];
-    });
-  }
-
-  function toggleSelected(id: string) {
-    setSelectedIds((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : [...current, id]
-    );
-  }
-
-  const isBusy = busy !== null;
-  const isRemoving = busy?.kind === "remove";
-
-  async function runAction(
-    ids: string[],
-    kind: BusyKind,
-    scope: "row" | "bulk",
-    action: (ids: string[]) => void | Promise<void>
-  ) {
-    if (ids.length === 0 || busyRef.current) return;
-
-    busyRef.current = true;
-    setBusy({ ids, kind, scope });
-    try {
-      await action(ids);
-      if (scope === "bulk") setSelectedIds([]);
-
-      const plural = ids.length > 1;
-      if (kind === "pay") {
-        AlertSuccess(
-          plural
-            ? "Pagamentos confirmados com sucesso"
-            : "Pagamento confirmado com sucesso"
-        );
-      } else if (kind === "pending") {
-        AlertSuccess(
-          plural
-            ? "Mensalidades marcadas como pendentes"
-            : "Mensalidade marcada como pendente"
-        );
-      } else if (kind === "exempt") {
-        AlertSuccess(
-          plural
-            ? "Mensalidades isentas com sucesso"
-            : "Mensalidade isenta com sucesso"
-        );
-      }
-    } finally {
-      busyRef.current = false;
-      setBusy(null);
-    }
-  }
-
-  function isActionLoading(
-    kind: BusyKind,
-    scope: "row" | "bulk",
-    id?: string
-  ): boolean {
-    if (!busy || busy.kind !== kind || busy.scope !== scope) return false;
-    return id ? busy.ids.includes(id) : true;
-  }
+  const data = useContributions({ contributions });
+  if (!data) return null;
+  const {
+    pendingCount,
+    received,
+    deleteTarget,
+    setFilter,
+    setReference,
+    toggleAll,
+    toggleSelected,
+    isBusy,
+    isRemoving,
+    runAction,
+    isActionLoading,
+    filtered,
+    query,
+    setQuery,
+    selectedIds,
+    setSelectedIds,
+    filterFieldClassName,
+    activeReference,
+    references,
+    statusFilter,
+    setOpenModal,
+    openModal,
+    allPageSelected,
+    somePageSelected,
+    hasSelection,
+    visibleSelected,
+    pendingSelected,
+    revertSelected,
+    exemptableSelected,
+    pagination,
+    STATUS_FILTERS,
+    deleteIds,
+    setDeleteIds,
+    checkboxClassName,
+    busy,
+  } = data;
 
   return (
     <section className="min-w-0 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">

@@ -1,35 +1,22 @@
 "use client";
 
-import { formatBRL } from "../../services/money";
-import type { Movement } from "../../types/movement";
-import type { Contribution } from "../../types/contributions";
+import { formatBRL } from "../../services/money.services";
 import { ButtonExcel } from "@rotaract/components";
-import { DescriptionReportPanel } from "./DescriptionReportPanel";
-
-type ReportPanelProps = {
-  movements: Movement[];
-  contributions: Contribution[];
-  onDownload: () => void;
-};
+import { DescriptionReportPanel } from "./_components/DescriptionReportPanel";
+import { ReportPanelProps } from "./types";
+import { useReportPanel } from "./services";
 
 export function ReportPanel({
   movements,
   contributions,
   onDownload,
 }: ReportPanelProps) {
-  const income = movements
-    .filter((item) => item.type === "entrada")
-    .reduce((sum, item) => sum + item.value, 0);
-  const expense = movements
-    .filter((item) => item.type === "saida")
-    .reduce((sum, item) => sum + item.value, 0);
-  const paidMembers = contributions.filter((item) => item.status === "pago").length;
-
-  const byCategory = movements.reduce<Record<string, number>>((acc, item) => {
-    const signal = item.type === "entrada" ? 1 : -1;
-    acc[item.category] = (acc[item.category] ?? 0) + item.value * signal;
-    return acc;
-  }, {});
+  const {
+    income,
+    expense,
+    paidMembers,
+    byCategory
+  } = useReportPanel({ movements, contributions });
 
   return (
     <section className="min-w-0 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">

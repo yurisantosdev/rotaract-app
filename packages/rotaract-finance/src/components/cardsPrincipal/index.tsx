@@ -1,6 +1,6 @@
 import React from 'react'
-import { Card } from './card'
-import { formatBRL } from '../services/money'
+import { Card } from '../card'
+import { formatBRL } from '../../services/money.services'
 
 export function CardsPrincipal({ totals }: any) {
   return (

@@ -9,13 +9,13 @@ import {
   WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { Button, Modal, Pagination, usePagination } from "@rotaract/components";
-import { importMovements } from "../../services/movements";
+import { importMovements } from "../../../services/database.movements.services";
 import {
   downloadMovementsImportTemplate,
   parseMovementsWorkbook,
-} from "../../services/movements-import";
-import type { Movement } from "../../types/movement";
-import type { MovementImportIssue } from "../../types/movementImport";
+} from "../../../services/movementsImport.services";
+import type { Movement } from "../../../types/movement";
+import type { MovementImportIssue } from "../../../types/movementImport";
 
 type ImportPhase = "idle" | "processing" | "done";
 
@@ -232,8 +232,8 @@ export function ImportMovementsModal({
                 handleFiles(event.dataTransfer.files);
               }}
               className={`mt-5 flex cursor-pointer flex-col items-center justify-center rounded-[1.35rem] border border-dashed px-4 py-8 text-center transition ${dragging
-                  ? "border-rotaract-pink bg-rotaract-pink/5"
-                  : "border-zinc-300 bg-zinc-50 hover:border-zinc-400 hover:bg-white"
+                ? "border-rotaract-pink bg-rotaract-pink/5"
+                : "border-zinc-300 bg-zinc-50 hover:border-zinc-400 hover:bg-white"
                 }`}
             >
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm">
@@ -262,8 +262,8 @@ export function ImportMovementsModal({
             <div className="mt-4 space-y-3">
               <p
                 className={`flex items-start gap-2 rounded-2xl px-3.5 py-2.5 text-sm ${createdCount > 0
-                    ? "bg-emerald-50 text-emerald-800"
-                    : "bg-zinc-100 text-zinc-600"
+                  ? "bg-emerald-50 text-emerald-800"
+                  : "bg-zinc-100 text-zinc-600"
                   }`}
               >
                 {createdCount > 0 ? (

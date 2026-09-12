@@ -2,36 +2,16 @@
 
 import { Tooltip } from "@rotaract/components";
 import { MemberAvatar } from "@rotaract/members";
-import { useEffect, useState } from "react";
-import { listContributionsOverdue } from "../services/contributions";
-import type { Contribution } from "../types/contributions";
-
-const VISIBLE_AVATARS = 5;
+import { useContributionsOverdue } from "./services";
 
 export function ContributionsOverdue() {
-  const [members, setMembers] = useState<Contribution[]>([]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    listContributionsOverdue(controller.signal)
-      .then(setMembers)
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return;
-        }
-        setMembers([]);
-      });
-
-    return () => controller.abort();
-  }, []);
-
-  const visibleMembers = members.slice(0, VISIBLE_AVATARS);
-  const overflow = members.length - visibleMembers.length;
-
-  if (members.length === 0) {
-    return null;
-  }
+  const data = useContributionsOverdue();
+  if (!data) return null;
+  const {
+    members,
+    visibleMembers,
+    overflow
+  } = data;
 
   return (
     <div className="rounded-3xl border border-zinc-200/80 bg-white p-2 shadow-[0_12px_40px_rgba(24,24,27,0.04)] relative">

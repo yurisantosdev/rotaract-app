@@ -2,8 +2,8 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import { AlertSuccess, Button, ButtonExcel, ConfirmModal, Pagination, Tooltip, usePagination } from "@rotaract/components";
-import { formatBRL, formatDate, formatMoneyFromNumber, parseMoneyInput, todayISO } from "../../services/money";
-import { MovementModal } from "./movement-modal";
+import { formatBRL, formatDate, formatMoneyFromNumber, parseMoneyInput, todayISO } from "../../services/money.services";
+import { MovementModal } from "./_components/movement-modal";
 import {
   MOVEMENT_CATEGORIES,
   inputClassName,
@@ -11,16 +11,10 @@ import {
   type MovementType,
 } from "../../types/movement";
 import { TrashIcon, PencilSimpleIcon, PlusIcon, UploadSimpleIcon } from "@phosphor-icons/react";
-import { downloadMovementsReport } from "../../services/report";
-import { ImportMovementsModal } from "./import-movements-modal";
-
-type MovementsPanelProps = {
-  movements: Movement[];
-  onAdd: (movement: Omit<Movement, "id">) => void | Promise<void>;
-  onUpdate: (movement: Movement) => void | Promise<void>;
-  onRemove: (id: string) => void;
-  onImported: (created: Movement[]) => void;
-};
+import { downloadMovementsReport } from "../../services/report.services";
+import { ImportMovementsModal } from "./_components/import-movements-modal";
+import { MovementsPanelProps } from "./types";
+import { useMovements } from "./services";
 
 export function MovementsPanel({
   movements,
@@ -29,133 +23,38 @@ export function MovementsPanel({
   onRemove,
   onImported,
 }: MovementsPanelProps) {
-  const [query, setQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState<"todos" | MovementType>("todos");
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingMovement, setEditingMovement] = useState<Movement | null>(
-    null
-  );
-  const [description, setDescription] = useState("");
-  const [value, setValue] = useState("");
-  const [category, setCategory] = useState<(typeof MOVEMENT_CATEGORIES)[number]>(
-    "Doação"
-  );
-  const [type, setType] = useState<MovementType>("entrada");
-  const [date, setDate] = useState(todayISO());
-  const [error, setError] = useState("");
-  const [movementToDelete, setMovementToDelete] = useState<Movement | null>(
-    null
-  );
-  const [saving, setSaving] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
-
-  const filtered = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    return movements
-      .filter((movement) => {
-        const matchesType = typeFilter === "todos" || movement.type === typeFilter;
-        const matchesQuery =
-          !normalizedQuery ||
-          movement.description.toLowerCase().includes(normalizedQuery) ||
-          movement.category.toLowerCase().includes(normalizedQuery);
-        return matchesType && matchesQuery;
-      })
-      .sort((a, b) => b.date.localeCompare(a.date));
-  }, [movements, query, typeFilter]);
-
-  const pagination = usePagination(filtered, {
-    resetKey: `${query}|${typeFilter}`,
-  });
-
-  function resetForm() {
-    setDescription("");
-    setValue("");
-    setCategory("Doação");
-    setType("entrada");
-    setDate(todayISO());
-    setError("");
-  }
-
-  function closeForm() {
-    if (saving) return;
-    setFormOpen(false);
-    setEditingMovement(null);
-    setError("");
-  }
-
-  function openCreate() {
-    setEditingMovement(null);
-    resetForm();
-    setFormOpen(true);
-  }
-
-  function openEdit(movement: Movement) {
-    const categoryValue = (MOVEMENT_CATEGORIES as readonly string[]).includes(
-      movement.category
-    )
-      ? (movement.category as (typeof MOVEMENT_CATEGORIES)[number])
-      : "Outros";
-
-    setEditingMovement(movement);
-    setDescription(movement.description);
-    setValue(formatMoneyFromNumber(movement.value));
-    setCategory(categoryValue);
-    setType(movement.type);
-    setDate(movement.date);
-    setError("");
-    setFormOpen(true);
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (saving) return;
-
-    const parsedValue = parseMoneyInput(value);
-
-    if (!description.trim()) {
-      setError("Informe a descrição da movimentação.");
-      return;
-    }
-
-    if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
-      setError("Informe um valor maior que zero.");
-      return;
-    }
-
-    const payload = {
-      date,
-      description: description.trim(),
-      category,
-      type,
-      value: parsedValue,
-    };
-
-    setSaving(true);
-    setError("");
-
-    try {
-      if (editingMovement) {
-        await onUpdate({ ...payload, id: editingMovement.id });
-        AlertSuccess("Movimentação atualizada com sucesso");
-      } else {
-        await onAdd(payload);
-        AlertSuccess("Movimentação criada com sucesso");
-      }
-
-      setEditingMovement(null);
-      resetForm();
-      setFormOpen(false);
-    } catch {
-      setError(
-        editingMovement
-          ? "Não foi possível atualizar a movimentação."
-          : "Não foi possível criar a movimentação."
-      );
-    } finally {
-      setSaving(false);
-    }
-  }
+  const data = useMovements({ movements, onUpdate, onAdd });
+  if (!data) return null;
+  const {
+    filtered,
+    setImportOpen,
+    openCreate,
+    importOpen,
+    formOpen,
+    editingMovement,
+    description,
+    value,
+    category,
+    type,
+    date,
+    error,
+    saving,
+    movementToDelete,
+    setDescription,
+    setValue,
+    setDate,
+    setCategory,
+    setType,
+    closeForm,
+    handleSubmit,
+    setMovementToDelete,
+    query,
+    setQuery,
+    setTypeFilter,
+    typeFilter,
+    pagination,
+    openEdit,
+  } = data;
 
   return (
     <section className="min-w-0 overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">

@@ -1,4 +1,4 @@
-import { formatBRL } from "../../services/money";
+import { formatBRL } from "../../../services/money.services";
 import React from 'react'
 
 export type TextContributionsProps = {

@@ -1,4 +1,4 @@
-import { Contribution, ContributionStatus } from "../../types/contributions";
+import { Contribution, ContributionStatus } from "../../../types/contributions";
 import React from "react";
 
 const STATUS_UI: Record<ContributionStatus, { label: string; className: string }> = {

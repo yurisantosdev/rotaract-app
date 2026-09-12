@@ -5,15 +5,15 @@ import { CheckIcon } from "@phosphor-icons/react";
 import { AlertError, AlertSuccess, DatePicker, Modal } from "@rotaract/components";
 import { MemberAvatar, useMembers, useMembersError, useMembersStatus } from "@rotaract/members";
 import { listSettings } from "@rotaract/settings";
-import { formatMoneyFromNumber, formatMoneyInput, parseMoneyInput } from "../../services/money";
-import { inputClassName } from "../../types/movement";
+import { formatMoneyFromNumber, formatMoneyInput, parseMoneyInput } from "../../../services/money.services";
+import { inputClassName } from "../../../types/movement";
 import {
   dueDateForReference,
   isISODate,
   MONTHS,
   type Contribution,
   type GenerateContributionsPayload,
-} from "../../types/contributions";
+} from "../../../types/contributions";
 
 function remainingReferences(now = new Date()): string[] {
   const year = now.getFullYear();
