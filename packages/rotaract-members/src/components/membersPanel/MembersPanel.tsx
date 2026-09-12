@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import {
   ArrowCounterClockwiseIcon,
   PencilSimpleIcon,
@@ -8,40 +7,19 @@ import {
   UserMinusIcon,
   UsersThreeIcon,
 } from "@phosphor-icons/react";
-import { Button, ConfirmModal, Pagination, Tooltip, usePagination } from "@rotaract/components";
-import { BirthdayBanner } from "./birthday-banner";
-import { MemberAvatar } from "./member-avatar";
-import { MemberModal } from "./member-modal";
+import { Button, ConfirmModal, Pagination, Tooltip } from "@rotaract/components";
+import { BirthdayBanner } from "../birthdayBanner";
+import { MemberAvatar } from "../memberAvatar";
+import { MemberModal } from "../memberModal";
 import {
-  formatBirthDate,
   isBirthdayThisMonth,
   isBoardRole,
   MEMBER_FILTERS,
   MEMBER_INPUT_CLASS,
-  normalizeSearch,
-  type Member,
-  type MemberFilter,
-  type MemberPayload,
-} from "../types/member";
-
-type MembersPanelProps = {
-  members: Member[];
-  onCreate: (payload: MemberPayload) => void | Promise<void>;
-  onUpdate: (id: string, payload: MemberPayload) => void | Promise<void>;
-  onChangeStatus: (member: Member) => void;
-};
-
-function StatusBadge({ status }: { status: Member["status"] }) {
-  const active = status === "ativo";
-  return (
-    <span
-      className={`rounded-full px-3 py-1 text-xs font-semibold ${active ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-600"
-        }`}
-    >
-      {active ? "Ativo" : "Inativo"}
-    </span>
-  );
-}
+} from "../../types/member";
+import { MembersPanelProps } from "./types";
+import { StatusBadge } from "./_components/StatusBadge";
+import { useMembersPanel } from "./services";
 
 export function MembersPanel({
   members,
@@ -49,70 +27,25 @@ export function MembersPanel({
   onUpdate,
   onChangeStatus,
 }: MembersPanelProps) {
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<MemberFilter>("todos");
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingMember, setEditingMember] = useState<Member | null>(null);
-  const [memberToToggle, setMemberToToggle] = useState<Member | null>(null);
-
-  const filtered = useMemo(() => {
-    const term = normalizeSearch(query);
-
-    return members
-      .filter((member) => {
-        const matchesFilter =
-          filter === "todos" ||
-          (filter === "diretoria" ? isBoardRole(member.role) : member.status === filter);
-        if (!matchesFilter) return false;
-        if (!term) return true;
-
-        return (
-          normalizeSearch(member.name).includes(term) ||
-          normalizeSearch(member.email).includes(term) ||
-          normalizeSearch(member.phone ?? "").includes(term) ||
-          normalizeSearch(member.role).includes(term)
-        );
-      })
-      .sort((a, b) => {
-        if (a.status !== b.status) return a.status === "ativo" ? -1 : 1;
-        return a.name.localeCompare(b.name, "pt-BR");
-      });
-  }, [filter, members, query]);
-
-  const pagination = usePagination(filtered, {
-    resetKey: `${query}|${filter}`,
-  });
-
-  const birthdaysThisMonth = useMemo(
-    () =>
-      members.filter(
-        (member) =>
-          member.status === "ativo" && isBirthdayThisMonth(member.birthDate)
-      ),
-    [members]
-  );
-
-  function openCreate() {
-    setEditingMember(null);
-    setFormOpen(true);
-  }
-
-  function openEdit(member: Member) {
-    setEditingMember(member);
-    setFormOpen(true);
-  }
-
-  function closeForm() {
-    setFormOpen(false);
-    setEditingMember(null);
-  }
-
-  function handleSave(payload: MemberPayload) {
-    if (editingMember) {
-      return onUpdate(editingMember.id, payload);
-    }
-    return onCreate(payload);
-  }
+  const data = useMembersPanel({ members, onCreate, onUpdate });
+  if (!data) return null;
+  const {
+    openCreate,
+    birthdaysThisMonth,
+    query,
+    setFilter,
+    filter,
+    setQuery,
+    filtered,
+    pagination,
+    openEdit,
+    setMemberToToggle,
+    formOpen,
+    editingMember,
+    closeForm,
+    handleSave,
+    memberToToggle
+  } = data;
 
   return (
     <section className="mt-8 rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">

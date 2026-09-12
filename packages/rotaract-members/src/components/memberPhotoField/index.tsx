@@ -1,16 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
 import { CameraIcon, TrashIcon, UploadSimpleIcon } from "@phosphor-icons/react";
-import { initialsFromName, PHOTO_ACCEPT } from "../types/member";
-import { fileToPhotoDataUrl } from "../services/photo";
-
-type MemberPhotoFieldProps = {
-  name: string;
-  photoUrl: string;
-  onChange: (photoUrl: string) => void;
-  onError: (message: string) => void;
-};
+import { initialsFromName, PHOTO_ACCEPT } from "../../types/member";
+import { MemberPhotoFieldProps } from "./type";
+import { useMemberPhotoField } from "./services";
 
 export function MemberPhotoField({
   name,
@@ -18,26 +11,20 @@ export function MemberPhotoField({
   onChange,
   onError,
 }: MemberPhotoFieldProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [dragging, setDragging] = useState(false);
-  const [reading, setReading] = useState(false);
-
-  async function applyFile(file: File | undefined) {
-    if (!file) return;
-
-    setReading(true);
-    try {
-      const dataUrl = await fileToPhotoDataUrl(file);
-      onError("");
-      onChange(dataUrl);
-    } catch (caught: unknown) {
-      onError(
-        caught instanceof Error ? caught.message : "Não foi possível ler a foto."
-      );
-    } finally {
-      setReading(false);
-    }
-  }
+  const data = useMemberPhotoField({
+    name,
+    photoUrl,
+    onChange,
+    onError
+  });
+  if (!data) return null;
+  const {
+    inputRef,
+    dragging,
+    reading,
+    applyFile,
+    setDragging
+  } = data;
 
   return (
     <div>
@@ -61,11 +48,10 @@ export function MemberPhotoField({
           setDragging(false);
           applyFile(event.dataTransfer.files[0]);
         }}
-        className={`relative overflow-hidden rounded-3xl border border-dashed p-4 transition ${
-          dragging
-            ? "border-rotaract-pink bg-rotaract-pink/5"
-            : "border-zinc-200 bg-rotaract-mist/70"
-        }`}
+        className={`relative overflow-hidden rounded-3xl border border-dashed p-4 transition ${dragging
+          ? "border-rotaract-pink bg-rotaract-pink/5"
+          : "border-zinc-200 bg-rotaract-mist/70"
+          }`}
       >
         <input
           ref={inputRef}

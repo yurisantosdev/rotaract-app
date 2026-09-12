@@ -74,6 +74,11 @@ export function initialsFromName(name: string): string {
   return `${first[0] ?? ""}${last[0] ?? ""}`.toUpperCase();
 }
 
+export type MembersPageProps = {
+  userName: string;
+  backHref?: string;
+};
+
 export function normalizeSearch(value: string): string {
   return value
     .normalize("NFD")

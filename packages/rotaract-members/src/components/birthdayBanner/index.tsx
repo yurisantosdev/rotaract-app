@@ -1,38 +1,23 @@
 import { CakeIcon, ConfettiIcon } from "@phosphor-icons/react";
-import { MemberAvatar } from "./member-avatar";
+import { MemberAvatar } from "../memberAvatar";
 import {
-  currentMonthLabel,
   formatBirthDate,
-  type Member,
-} from "../types/member";
-
-type BirthdayBannerProps = {
-  members: Member[];
-};
-
-function firstName(name: string) {
-  return name.trim().split(/\s+/).filter(Boolean)[0] || name;
-}
-
-function isBirthdayToday(value?: string) {
-  if (!value) return false;
-  const date = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return false;
-  const now = new Date();
-  return date.getDate() === now.getDate() && date.getMonth() === now.getMonth();
-}
-
-function birthDay(value?: string) {
-  if (!value) return 0;
-  return Number(value.slice(8, 10)) || 0;
-}
+} from "../../types/member";
+import { BirthdayBannerProps } from "./type";
+import { useBirthdayBanner } from "./services";
 
 export function BirthdayBanner({ members }: BirthdayBannerProps) {
-  if (members.length === 0) return null;
+  const data = useBirthdayBanner({ members });
+  if (!data) return null;
+  const {
+    firstName,
+    isBirthdayToday,
+    month,
+    todayCount,
+    sorted,
+  } = data;
 
-  const sorted = [...members].sort((a, b) => birthDay(a.birthDate) - birthDay(b.birthDate));
-  const todayCount = sorted.filter((member) => isBirthdayToday(member.birthDate)).length;
-  const month = currentMonthLabel();
+  if (members.length === 0) return null;
 
   return (
     <div className="relative mt-5 overflow-hidden rounded-3xl border border-rotaract-pink/20 bg-gradient-to-r from-rotaract-pink/12 via-white to-violet-100/70 p-4 shadow-[0_16px_40px_rgba(255,45,122,0.10)] sm:p-5">
@@ -93,11 +78,10 @@ export function BirthdayBanner({ members }: BirthdayBannerProps) {
               return (
                 <li key={member.id}>
                   <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
-                      today
-                        ? "bg-rotaract-pink text-white shadow-[0_8px_20px_rgba(255,45,122,0.28)]"
-                        : "bg-white/80 text-zinc-800 ring-1 ring-rotaract-pink/15"
-                    }`}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${today
+                      ? "bg-rotaract-pink text-white shadow-[0_8px_20px_rgba(255,45,122,0.28)]"
+                      : "bg-white/80 text-zinc-800 ring-1 ring-rotaract-pink/15"
+                      }`}
                   >
                     {today ? (
                       <ConfettiIcon className="h-3.5 w-3.5" weight="fill" aria-hidden />

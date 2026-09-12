@@ -1,6 +1,6 @@
-export { MembersPage } from "./members-page";
-export { MemberAvatar } from "./components/member-avatar";
-export { MemberPhotoField } from "./components/member-photo-field";
+export { MembersPage } from "./MembersPage";
+export { MemberAvatar } from "./components/memberAvatar";
+export { MemberPhotoField } from "./components/memberPhotoField";
 export type { Member, MemberPayload } from "./types/member";
 export { isValidEmail, MEMBER_INPUT_CLASS } from "./types/member";
 export { default as membersReducer } from "./redux/reduce";
@@ -16,4 +16,4 @@ export {
   useMembersError,
   useMembersStatus,
 } from "./redux/hooks";
-export { updateMembers } from "./services/members";
+export { updateMembers } from "./services/database.members.services";

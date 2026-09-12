@@ -1,25 +1,9 @@
-"use client";
-
-import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { CheckCircleIcon } from "@phosphor-icons/react";
-import { AlertError, AlertSuccess, Loading, Main, ReturnModule, TitleModule } from "@rotaract/components";
-import { MembersStats } from "./components/members-stats";
-import { MembersPanel } from "./components/members-panel";
-import type { Member, MemberPayload } from "./types/member";
-import { membersAdd, membersUpdate } from "./redux/actions";
-import { useMembers, useMembersStatus } from "./redux/hooks";
-import { createMembers, updateMembers } from "./services/members";
+import { Member, MemberPayload, membersAdd, membersUpdate, useMembers, useMembersStatus } from "..";
+import { createMembers, updateMembers } from "./database.members.services";
+import { AlertError, AlertSuccess } from "@rotaract/components";
 
-export type MembersPageProps = {
-  userName: string;
-  backHref?: string;
-};
-
-export function MembersPage({
-  userName,
-  backHref = "/home",
-}: MembersPageProps) {
+export function useMembersFunctions(userName: string) {
   const dispatch = useDispatch();
   const members = useMembers();
   const membersStatus = useMembersStatus();
@@ -69,27 +53,12 @@ export function MembersPage({
       });
   }
 
-  return (
-    <Main>
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        {isLoading ? <Loading /> : null}
-
-        <ReturnModule backHref={backHref} />
-
-        <TitleModule
-          module="Módulo membros"
-          title="Membros"
-          description={`Olá, ${firstName}. Gerencie o cadastro, os cargos e a família do clube.`}
-        />
-
-        <MembersStats members={members} />
-        <MembersPanel
-          members={members}
-          onCreate={handleCreate}
-          onUpdate={handleUpdate}
-          onChangeStatus={handleChangeStatus}
-        />
-      </main>
-    </Main>
-  );
+  return {
+    isLoading,
+    firstName,
+    members,
+    handleCreate,
+    handleUpdate,
+    handleChangeStatus
+  };
 }

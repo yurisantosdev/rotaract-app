@@ -1,18 +1,16 @@
-import { initialsFromName, type Member } from "../types/member";
+import { initialsFromName } from "../../types/member";
+import { useMemberAvatar } from "./services";
+import { MemberAvatarProps } from "./type";
 
-type MemberAvatarProps = {
-  member: Pick<Member, "name" | "photo">;
-  size?: "sm" | "md" | "xs";
-  className?: string;
-};
+export function MemberAvatar({
+  member,
+  size = "md",
+  className
+}: MemberAvatarProps) {
+  const data = useMemberAvatar();
+  if (!data) return null;
+  const { sizeClass } = data;
 
-const sizeClass = {
-  sm: "h-10 w-10 text-xs",
-  md: "h-12 w-12 text-sm",
-  xs: "h-7 w-7 text-[10px]",
-};
-
-export function MemberAvatar({ member, size = "md", className }: MemberAvatarProps) {
   return (
     <span
       aria-hidden

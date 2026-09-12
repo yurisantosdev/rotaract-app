@@ -1,7 +1,6 @@
-import React from "react";
-import { ClubSettings } from "../types/settings";
+import { PreViewProps } from "./type";
 
-export function PreView({ clubName, logoUrl }: ClubSettings) {
+export function PreView({ clubName, logoUrl }: PreViewProps) {
   return (
     <section className="mt-5 overflow-hidden rounded-3xl border border-zinc-200 bg-white">
       <div className="border-b border-zinc-100 px-5 py-3 sm:px-6">
