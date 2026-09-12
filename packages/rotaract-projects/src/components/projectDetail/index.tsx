@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ClipboardTextIcon,
   PencilSimpleIcon,
@@ -14,58 +13,28 @@ import {
   ConfirmModal,
   Pagination,
   Tooltip,
-  useAnimatedNumber,
-  usePagination,
 } from "@rotaract/components";
-import { MemberAvatar, type Member } from "@rotaract/members";
-import { formatDate } from "../lib/dates";
-import { findMember, firstName, membersByIds } from "../lib/members";
+import { MemberAvatar } from "@rotaract/members";
+import { formatDate } from "../../lib/dates";
+import { findMember, firstName } from "../../lib/members";
 import {
-  getProjectProgress,
-  getProjectStatus,
-  uniqueIds,
   PROJECT_STATUS_LABELS,
   PROJECT_STATUS_STYLES,
   ProjectDetailProps,
-} from "../types/projects";
+} from "../../types/projects";
 import {
   isTaskOverdue,
   TASK_STATUS_OPTIONS,
   TASK_STATUS_STYLES,
   taskStatusLabel,
-  type Task,
-  type TaskPayload,
-  TaskFilter,
   TASK_FILTERS,
-} from "../types/tasks";
-import { ProjectFormModal } from "./project-form-modal";
-import { ProjectProgressBar } from "./project-progress-bar";
-import { TaskFormModal } from "./task-form-modal";
-import { EditDeleteProject } from "./editDeleteProject";
-
-function TaskStatCard({
-  title,
-  value,
-  description,
-}: {
-  title: string;
-  value: number;
-  description: string;
-}) {
-  const displayed = useAnimatedNumber(value);
-
-  return (
-    <article className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-        {title}
-      </p>
-      <p className="mt-2 text-xl font-semibold tabular-nums text-zinc-900">
-        {Math.round(displayed)}
-      </p>
-      <p className="mt-1 text-sm text-zinc-500">{description}</p>
-    </article>
-  );
-}
+} from "../../types/tasks";
+import { ProjectFormModal } from "../projectFormModal";
+import { ProjectProgressBar } from "../projectProgressBar";
+import { TaskFormModal } from "../taskFormModal";
+import { EditDeleteProject } from "../editDeleteProject";
+import { TaskStatCard } from "./_components/TaskStatCard";
+import { useProjectDetail } from "./services";
 
 export function ProjectDetail({
   project,
@@ -78,101 +47,38 @@ export function ProjectDetail({
   onChangeTaskStatus,
   onRemoveTask,
 }: ProjectDetailProps) {
-  const [projectFormOpen, setProjectFormOpen] = useState(false);
-  const [taskFormOpen, setTaskFormOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [confirmRemoveProject, setConfirmRemoveProject] = useState(false);
-  const [taskFilter, setTaskFilter] = useState<TaskFilter>("todas");
-  const [celebrate, setCelebrate] = useState(false);
-  const [celebrationBurst, setCelebrationBurst] = useState(0);
-  const wasCompleteRef = useRef<boolean | null>(null);
-  const trackedProjectId = useRef(project.id);
 
-  const manager = findMember(members, project.managerId);
-  const team = membersByIds(members, project.members);
-  const assignableMembers = membersByIds(
-    members,
-    uniqueIds([
-      project.managerId,
-      ...project.members,
-      editingTask?.managerId ?? "",
-    ])
-  );
-  const status = getProjectStatus(tasks);
-  const progress = getProjectProgress(tasks);
-  const openTasks = tasks.filter(
-    (task) => task.status !== "completed" && task.status !== "cancelled"
-  ).length;
-  const completedTasks = tasks.filter((task) => task.status === "completed").length;
-  const overdueTasks = tasks.filter((task) => isTaskOverdue(task)).length;
-
-  useEffect(() => {
-    const isComplete = progress.percent === 100 && progress.total > 0;
-
-    if (trackedProjectId.current !== project.id) {
-      trackedProjectId.current = project.id;
-      wasCompleteRef.current = isComplete;
-      setCelebrate(false);
-      return;
-    }
-
-    if (wasCompleteRef.current === null) {
-      wasCompleteRef.current = isComplete;
-      return;
-    }
-
-    if (isComplete && !wasCompleteRef.current) {
-      setCelebrate(true);
-      setCelebrationBurst((burst) => burst + 1);
-    }
-
-    wasCompleteRef.current = isComplete;
-  }, [progress.percent, progress.total, project.id]);
-
-  const filteredTasks = useMemo(() => {
-    return [...tasks]
-      .filter((task) => {
-        if (taskFilter === "abertas") {
-          return task.status !== "completed" && task.status !== "cancelled";
-        }
-        if (taskFilter === "concluidas") return task.status === "completed";
-        if (taskFilter === "atrasadas") return isTaskOverdue(task);
-        return true;
-      })
-      .sort((a, b) => {
-        const overdueA = isTaskOverdue(a) ? 0 : 1;
-        const overdueB = isTaskOverdue(b) ? 0 : 1;
-        if (overdueA !== overdueB) return overdueA - overdueB;
-        return a.limit.localeCompare(b.limit);
-      });
-  }, [taskFilter, tasks]);
-
-  const pagination = usePagination(filteredTasks, {
-    resetKey: `${project.id}|${taskFilter}`,
-  });
-
-  function openCreateTask() {
-    setEditingTask(null);
-    setTaskFormOpen(true);
-  }
-
-  function openEditTask(task: Task) {
-    setEditingTask(task);
-    setTaskFormOpen(true);
-  }
-
-  function closeTaskForm() {
-    setTaskFormOpen(false);
-    setEditingTask(null);
-  }
-
-  function handleSaveTask(payload: TaskPayload) {
-    if (editingTask) {
-      return onUpdateTask(editingTask.id, payload);
-    }
-    return onCreateTask(payload);
-  }
+  const data = useProjectDetail({ project, tasks, members, onUpdateProject, onRemoveProject, onCreateTask, onUpdateTask, onChangeTaskStatus, onRemoveTask });
+  if (!data) return null;
+  const {
+    celebrationBurst,
+    celebrate,
+    setCelebrate,
+    status,
+    setProjectFormOpen,
+    setConfirmRemoveProject,
+    manager,
+    team,
+    progress,
+    openTasks,
+    completedTasks,
+    overdueTasks,
+    filteredTasks,
+    pagination,
+    setTaskFilter,
+    taskFilter,
+    setTaskToDelete,
+    editingTask,
+    assignableMembers,
+    openCreateTask,
+    openEditTask,
+    closeTaskForm,
+    handleSaveTask,
+    projectFormOpen,
+    taskFormOpen,
+    confirmRemoveProject,
+    taskToDelete
+  } = data;
 
   return (
     <div className="mt-8 space-y-4">

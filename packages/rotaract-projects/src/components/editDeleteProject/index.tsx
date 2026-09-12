@@ -1,11 +1,7 @@
 import { PencilSimpleIcon, TrashIcon } from "@phosphor-icons/react";
 import { Tooltip } from "@rotaract/components";
 import React from "react";
-
-type EditDeleteProjectProp = {
-  onEdit: () => void;
-  onDelete: () => void;
-}
+import { EditDeleteProjectProp } from "./type";
 
 export function EditDeleteProject({ onEdit, onDelete }: EditDeleteProjectProp) {
   return (

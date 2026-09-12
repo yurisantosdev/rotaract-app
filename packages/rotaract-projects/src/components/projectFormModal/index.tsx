@@ -1,25 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { AlertError, AlertSuccess, Button, Modal } from "@rotaract/components";
-import type { Member } from "@rotaract/members";
-import { uniqueIds } from "../types/projects";
+import { Button, Modal } from "@rotaract/components";
 import {
   PROJECT_INPUT_CLASS,
   PROJECT_TEXTAREA_CLASS,
-  type Project,
-  type ProjectPayload,
-} from "../types/projects";
-import { MemberPicker } from "./member-picker";
-
-type ProjectFormModalProps = {
-  open: boolean;
-  project: Project | null;
-  members: Member[];
-  currentUserId?: string;
-  onClose: () => void;
-  onSave: (payload: ProjectPayload) => void | Promise<void>;
-};
+} from "../../types/projects";
+import { MemberPicker } from "../memberPicker";
+import { ProjectFormModalProps } from "./type";
+import { useProjectFormModal } from "./services";
 
 export function ProjectFormModal({
   open,
@@ -29,80 +17,32 @@ export function ProjectFormModal({
   onClose,
   onSave,
 }: ProjectFormModalProps) {
-  const titleRef = useRef<HTMLInputElement>(null);
-  const isEdit = Boolean(project);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [managerId, setManagerId] = useState("");
-  const [memberIds, setMemberIds] = useState<string[]>([]);
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const data = useProjectFormModal({
+    open,
+    project,
+    members,
+    currentUserId,
+    onClose,
+    onSave
+  });
+  if (!data) return null;
+  const {
+    titleRef,
+    isEdit,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    managerId,
+    setManagerId,
+    memberIds,
+    setMemberIds,
+    error,
+    saving,
+    handleSubmit,
+    handleManagerChange
+  } = data;
 
-  useEffect(() => {
-    if (!open) return;
-
-    const initialManager = project?.managerId ?? currentUserId ?? "";
-    setTitle(project?.title ?? "");
-    setDescription(project?.description ?? "");
-    setManagerId(initialManager);
-    setMemberIds(
-      uniqueIds([initialManager, ...(project?.members ?? [])].filter(Boolean))
-    );
-    setError("");
-    setSaving(false);
-  }, [currentUserId, open, project]);
-
-  function handleManagerChange(ids: string[]) {
-    const nextManager = ids[0] ?? "";
-    setManagerId(nextManager);
-    setMemberIds((current) => uniqueIds([nextManager, ...current]));
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (saving) return;
-
-    const trimmedTitle = title.trim();
-    const trimmedDescription = description.trim();
-
-    if (trimmedTitle.length < 3) {
-      setError("Informe um título com pelo menos 3 caracteres.");
-      return;
-    }
-
-    if (trimmedDescription.length < 3) {
-      setError("Informe uma descrição com pelo menos 3 caracteres.");
-      return;
-    }
-
-    if (!managerId) {
-      setError("Escolha o membro responsável pelo projeto.");
-      return;
-    }
-
-    setSaving(true);
-    setError("");
-
-    try {
-      await onSave({
-        title: trimmedTitle,
-        description: trimmedDescription,
-        managerId,
-        members: uniqueIds([managerId, ...memberIds]),
-      });
-      AlertSuccess("Projeto salvo com sucesso");
-      onClose();
-    } catch (caught) {
-      AlertError("Não foi possível salvar o projeto.");
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Não foi possível salvar o projeto."
-      );
-    } finally {
-      setSaving(false);
-    }
-  }
 
   return (
     <Modal

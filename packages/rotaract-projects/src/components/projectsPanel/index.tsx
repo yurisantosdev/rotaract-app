@@ -1,37 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { FolderSimpleIcon, PlusIcon } from "@phosphor-icons/react";
-import { Button, Pagination, Tooltip, usePagination } from "@rotaract/components";
-import { MemberAvatar, type Member } from "@rotaract/members";
-import { formatDate } from "../lib/dates";
-import { findMember, firstName, membersByIds } from "../lib/members";
+import { Button, Pagination, Tooltip } from "@rotaract/components";
+import { MemberAvatar } from "@rotaract/members";
+import { formatDate } from "../../lib/dates";
+import { firstName, membersByIds } from "../../lib/members";
 import {
-  getProjectProgress,
-  getProjectStatus,
-  getProjectTasks,
-  matchesProjectFilter,
-  normalizeSearch,
   PROJECT_FILTERS,
   PROJECT_INPUT_CLASS,
   PROJECT_STATUS_LABELS,
   PROJECT_STATUS_STYLES,
-  type Project,
   type ProjectFilter,
-  type ProjectPayload,
-} from "../types/projects";
-import type { Task } from "../types/tasks";
-import { ProjectFormModal } from "./project-form-modal";
-import { ProjectProgressBar } from "./project-progress-bar";
-
-type ProjectsPanelProps = {
-  projects: Project[];
-  tasks: Task[];
-  members: Member[];
-  currentUserId?: string;
-  onOpen: (projectId: string) => void;
-  onCreate: (payload: ProjectPayload) => void | Promise<void>;
-};
+} from "../../types/projects";
+import { ProjectFormModal } from "../projectFormModal";
+import { ProjectProgressBar } from "../projectProgressBar";
+import { ProjectsPanelProps } from "./type";
+import { useProjectsPanel } from "./services";
 
 export function ProjectsPanel({
   projects,
@@ -41,36 +25,25 @@ export function ProjectsPanel({
   onOpen,
   onCreate,
 }: ProjectsPanelProps) {
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<ProjectFilter>("todos");
-  const [formOpen, setFormOpen] = useState(false);
-
-  const filtered = useMemo(() => {
-    const term = normalizeSearch(query);
-
-    return projects
-      .map((project) => {
-        const projectTasks = getProjectTasks(project.id, tasks);
-        const status = getProjectStatus(projectTasks);
-        const progress = getProjectProgress(projectTasks);
-        const manager = findMember(members, project.managerId);
-        return { project, projectTasks, status, progress, manager };
-      })
-      .filter((item) => {
-        if (!matchesProjectFilter(item.status, filter)) return false;
-        if (!term) return true;
-        return (
-          normalizeSearch(item.project.title).includes(term) ||
-          normalizeSearch(item.project.description).includes(term) ||
-          normalizeSearch(item.manager?.name ?? "").includes(term)
-        );
-      })
-      .sort((a, b) => b.project.updatedAt.localeCompare(a.project.updatedAt));
-  }, [filter, members, projects, query, tasks]);
-
-  const pagination = usePagination(filtered, {
-    resetKey: `${query}|${filter}`,
+  const data = useProjectsPanel({
+    projects,
+    tasks,
+    members,
+    currentUserId,
+    onOpen,
+    onCreate,
   });
+  if (!data) return null;
+  const {
+    query,
+    setQuery,
+    filter,
+    setFilter,
+    filtered,
+    pagination,
+    setFormOpen,
+    formOpen
+  } = data;
 
   return (
     <section className="mt-8 rounded-3xl border border-zinc-200 bg-white p-4 shadow-[0_12px_40px_rgba(24,24,27,0.04)] sm:p-6">

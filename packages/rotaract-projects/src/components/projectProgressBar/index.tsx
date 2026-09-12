@@ -1,19 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAnimatedNumber } from "@rotaract/components";
-
-type ProjectProgressBarProps = {
-  completed: number;
-  total: number;
-  percent: number;
-  delayMs?: number;
-  className?: string;
-  itemLabel?: {
-    singular: string;
-    plural: string;
-  };
-};
+import { ProjectProgressBarProps } from "./type";
+import { useProjectProgressBar } from "./services";
 
 export function ProjectProgressBar({
   completed,
@@ -23,17 +11,16 @@ export function ProjectProgressBar({
   className = "mt-4",
   itemLabel = { singular: "tarefa", plural: "tarefas" },
 }: ProjectProgressBarProps) {
-  const [target, setTarget] = useState(0);
-  const displayed = useAnimatedNumber(target);
-
-  useEffect(() => {
-    const reduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const wait = reduced ? 0 : delayMs;
-    const id = window.setTimeout(() => setTarget(percent), wait);
-    return () => window.clearTimeout(id);
-  }, [delayMs, percent]);
+  const data = useProjectProgressBar({
+    completed,
+    total,
+    percent,
+    delayMs,
+    className,
+    itemLabel,
+  });
+  if (!data) return null;
+  const { displayed } = data;
 
   return (
     <div className={className}>

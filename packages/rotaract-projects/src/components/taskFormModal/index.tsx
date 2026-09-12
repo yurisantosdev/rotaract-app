@@ -1,29 +1,16 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { AlertError, AlertSuccess, Button, DatePicker, Modal } from "@rotaract/components";
-import type { Member } from "@rotaract/members";
+import { Button, DatePicker, Modal } from "@rotaract/components";
 import {
   PROJECT_INPUT_CLASS,
   PROJECT_TEXTAREA_CLASS,
-} from "../types/projects";
+} from "../../types/projects";
 import {
   TASK_STATUS_OPTIONS,
-  type Task,
-  type TaskPayload,
-  type TaskStatus,
-} from "../types/tasks";
-import { todayISO } from "../lib/dates";
-import { MemberPicker } from "./member-picker";
-
-type TaskFormModalProps = {
-  open: boolean;
-  task: Task | null;
-  members: Member[];
-  defaultManagerId?: string;
-  onClose: () => void;
-  onSave: (payload: TaskPayload) => void | Promise<void>;
-};
+} from "../../types/tasks";
+import { MemberPicker } from "../memberPicker";
+import { TaskFormModalProps } from "./type";
+import { useTaskFormModal } from "./services";
 
 export function TaskFormModal({
   open,
@@ -33,82 +20,34 @@ export function TaskFormModal({
   onClose,
   onSave,
 }: TaskFormModalProps) {
-  const titleRef = useRef<HTMLInputElement>(null);
-  const isEdit = Boolean(task);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [managerId, setManagerId] = useState("");
-  const [date, setDate] = useState(todayISO());
-  const [limit, setLimit] = useState(todayISO());
-  const [status, setStatus] = useState<TaskStatus>("new");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-
-    setTitle(task?.title ?? "");
-    setDescription(task?.description ?? "");
-    setManagerId(task?.managerId ?? defaultManagerId ?? "");
-    setDate(task?.date ?? todayISO());
-    setLimit(task?.limit ?? todayISO());
-    setStatus(task?.status ?? "new");
-    setError("");
-    setSaving(false);
-  }, [defaultManagerId, open, task]);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (saving) return;
-
-    const trimmedTitle = title.trim();
-    const trimmedDescription = description.trim();
-
-    if (trimmedTitle.length < 3) {
-      setError("Informe um título com pelo menos 3 caracteres.");
-      return;
-    }
-
-    if (trimmedDescription.length < 3) {
-      setError("Informe uma descrição com pelo menos 3 caracteres.");
-      return;
-    }
-
-    if (!managerId) {
-      setError("Escolha o membro responsável pela tarefa.");
-      return;
-    }
-
-    if (limit < date) {
-      setError("O prazo não pode ser anterior à data da tarefa.");
-      return;
-    }
-
-    setSaving(true);
-    setError("");
-
-    try {
-      await onSave({
-        title: trimmedTitle,
-        description: trimmedDescription,
-        managerId,
-        date,
-        status,
-        limit,
-      });
-      AlertSuccess("Tarefa salva com sucesso");
-      onClose();
-    } catch (caught) {
-      AlertError("Não foi possível salvar a tarefa.");
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Não foi possível salvar a tarefa."
-      );
-    } finally {
-      setSaving(false);
-    }
-  }
+  const data = useTaskFormModal({
+    task,
+    members,
+    defaultManagerId,
+    onClose,
+    onSave,
+    open
+  });
+  if (!data) return null;
+  const {
+    titleRef,
+    isEdit,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    managerId,
+    setManagerId,
+    date,
+    setDate,
+    limit,
+    setLimit,
+    status,
+    setStatus,
+    error,
+    saving,
+    handleSubmit
+  } = data;
 
   return (
     <Modal
@@ -135,8 +74,8 @@ export function TaskFormModal({
               type="button"
               onClick={() => setStatus(item.id)}
               className={`h-11 rounded-[1.1rem] px-2 text-sm font-semibold transition ${status === item.id
-                  ? "bg-white text-zinc-900 shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-800"
+                ? "bg-white text-zinc-900 shadow-sm"
+                : "text-zinc-500 hover:text-zinc-800"
                 }`}
             >
               {item.label}

@@ -1,20 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { CheckIcon } from "@phosphor-icons/react";
-import { MemberAvatar, type Member } from "@rotaract/members";
-import { selectableMembers } from "../lib/members";
-import { normalizeSearch, PROJECT_INPUT_CLASS } from "../types/projects";
-
-type MemberPickerProps = {
-  members: Member[];
-  selectedIds: string[];
-  onChange: (ids: string[]) => void;
-  mode?: "single" | "multiple";
-  label: string;
-  hint?: string;
-  lockedIds?: string[];
-};
+import { MemberAvatar } from "@rotaract/members";
+import { PROJECT_INPUT_CLASS } from "../../types/projects";
+import { MemberPickerProps } from "./type";
+import { useMemberPicker } from "./services";
 
 export function MemberPicker({
   members,
@@ -25,51 +15,27 @@ export function MemberPicker({
   hint,
   lockedIds = [],
 }: MemberPickerProps) {
-  const [query, setQuery] = useState("");
-  const selected = useMemo(
-    () => members.filter((member) => selectedIds.includes(member.id)),
-    [members, selectedIds]
-  );
-  const options = useMemo(() => {
-    const term = normalizeSearch(query);
-    return selectableMembers(members, selectedIds).filter((member) => {
-      if (!term) return true;
-      return (
-        normalizeSearch(member.name).includes(term) ||
-        normalizeSearch(member.role).includes(term)
-      );
-    });
-  }, [members, query, selectedIds]);
 
-  const optionIds = options.map((member) => member.id);
-  const allSelected =
-    mode === "multiple" &&
-    optionIds.length > 0 &&
-    optionIds.every((id) => selectedIds.includes(id));
-
-  function toggle(id: string) {
-    if (lockedIds.includes(id) && selectedIds.includes(id)) return;
-
-    if (mode === "single") {
-      onChange(selectedIds[0] === id ? [] : [id]);
-      return;
-    }
-
-    onChange(
-      selectedIds.includes(id)
-        ? selectedIds.filter((item) => item !== id)
-        : [...selectedIds, id]
-    );
-  }
-
-  function toggleAll() {
-    if (mode !== "multiple") return;
-    if (allSelected) {
-      onChange(selectedIds.filter((id) => !optionIds.includes(id) || lockedIds.includes(id)));
-      return;
-    }
-    onChange(Array.from(new Set([...selectedIds, ...optionIds])));
-  }
+  const data = useMemberPicker({
+    members,
+    selectedIds,
+    onChange,
+    mode,
+    label,
+    hint,
+    lockedIds
+  });
+  if (!data) return null;
+  const {
+    selected,
+    toggle,
+    toggleAll,
+    options,
+    query,
+    setQuery,
+    allSelected,
+    optionIds
+  } = data;
 
   return (
     <div>
@@ -151,8 +117,8 @@ export function MemberPicker({
                       </span>
                       <span
                         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${selectedMember
-                            ? "border-rotaract-pink bg-rotaract-pink text-white"
-                            : "border-zinc-300 bg-white"
+                          ? "border-rotaract-pink bg-rotaract-pink text-white"
+                          : "border-zinc-300 bg-white"
                           }`}
                       >
                         {selectedMember ? (
