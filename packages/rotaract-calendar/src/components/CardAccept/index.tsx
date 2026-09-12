@@ -25,18 +25,24 @@ export function CardAccept({ currentUserId }: CardAcceptProps) {
       className="home-rise mt-8 overflow-hidden rounded-3xl border border-rotaract-pink/20 bg-gradient-to-br from-white via-white to-rotaract-pink/10 p-5 shadow-[0_16px_48px_rgba(255,45,122,0.10)] sm:mt-10 sm:p-6"
       aria-labelledby="card-accept-title"
     >
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium uppercase tracking-[0.24em] text-rotaract-pink">
+          Convite
+        </p>
+
+        <span className="shrink-0 rounded-full bg-rotaract-pink px-2.5 py-1 text-[11px] font-semibold text-white">
+          {count} {count === 1 ? "pendente" : "pendentes"}
+        </span>
+      </div>
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rotaract-pink text-white shadow-[0_10px_24px_rgba(255,45,122,0.28)]">
             <CalendarBlankIcon size={24} weight="bold" aria-hidden />
           </span>
-          <div className="min-w-0">
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-rotaract-pink">
-              Convite
-            </p>
+          <div className="w-ful">
             <h2
               id="card-accept-title"
-              className="mt-1 text-lg font-semibold tracking-tight text-zinc-900"
+              className="mt-1 md:text-lg text-base font-semibold tracking-tight text-zinc-900"
             >
               {title}
             </h2>
@@ -45,10 +51,6 @@ export function CardAccept({ currentUserId }: CardAcceptProps) {
             </p>
           </div>
         </div>
-
-        <span className="shrink-0 rounded-full bg-rotaract-pink px-2.5 py-1 text-[11px] font-semibold text-white">
-          {count} {count === 1 ? "pendente" : "pendentes"}
-        </span>
       </div>
 
       <ul className="mt-5 space-y-3">

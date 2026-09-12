@@ -94,7 +94,13 @@ export async function listPendingAccept(req: AuthenticatedRequest, res: Response
   res.json(itens.map((c) => serializar(c as unknown as CalendarType)));
 }
 
-export async function create(req: Request, res: Response): Promise<void> {
+export async function create(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const userId = req.user?.sub;
+  if (!userId || !mongoose.isValidObjectId(userId)) {
+    res.status(401).json({ error: "Token de autenticação necessário" });
+    return;
+  }
+
   const { title, type, date_start, date_end, hour_start, hour_end, all_day, description, members } = req.body as {
     title: string;
     type: string;
@@ -136,18 +142,25 @@ export async function create(req: Request, res: Response): Promise<void> {
       hour_end: hour_end.trim(),
       all_day: all_day,
       description: description.trim(),
-      members: members.map((member) => normalizeMember(member, "pending")),
+      members: members.map((member) =>
+        normalizeMember(
+          member,
+          memberIdOf(member) === userId ? "accepted" : "pending"
+        )
+      ),
     };
     const criada = await Calendar.create(dados);
     const obj = criada.toObject();
 
-    members.map(async (member) => {
-      await createNotice(
-        memberIdOf(member),
-        "Novo Agendamento",
-        `Você recebeu um novo agendamento: ${title} para ${formatDate(date_start)} até ${formatDate(date_end)}.`
-      );
-    });
+    members
+      .filter((member) => memberIdOf(member) !== userId)
+      .map(async (member) => {
+        await createNotice(
+          memberIdOf(member),
+          "Novo Agendamento",
+          `Você recebeu um novo agendamento: ${title} para ${formatDate(date_start)} até ${formatDate(date_end)}.`
+        );
+      });
 
     res.status(201).json(serializar(obj as CalendarType));
   } catch (err) {
