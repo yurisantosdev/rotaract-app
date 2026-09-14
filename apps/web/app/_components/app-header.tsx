@@ -7,6 +7,7 @@ import type { AuthUser } from "../lib/types";
 import { useClubBranding } from "../home/_components/club-branding";
 import { Notice } from "@rotaract/notices";
 import { ProfileDialog } from "./profile-dialog";
+import { Management } from "./management";
 
 type AppHeaderProps = {
   user: AuthUser;
@@ -62,7 +63,9 @@ export function AppHeader({
           </span>
         </Link>
 
-        <div className="flex items-center justify-center gap-2 sm:gap-3">
+        <div className="flex items-center justify-end gap-2 sm:gap-3">
+          <Management />
+
           <div className="flex h-10 w-10 items-center justify-center ">
             <span className="h-5 w-5">
               <Notice />
@@ -83,20 +86,18 @@ export function AppHeader({
                 >
                   <span className="relative block h-6 w-6" aria-hidden>
                     <span
-                      className={`absolute inset-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
-                        profileOpen
-                          ? "pointer-events-none scale-50 rotate-90 opacity-0"
-                          : "scale-100 rotate-0 opacity-100"
-                      }`}
+                      className={`absolute inset-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${profileOpen
+                        ? "pointer-events-none scale-50 rotate-90 opacity-0"
+                        : "scale-100 rotate-0 opacity-100"
+                        }`}
                     >
                       <UserIcon size={24} />
                     </span>
                     <span
-                      className={`absolute inset-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
-                        profileOpen
-                          ? "scale-100 rotate-0 opacity-100"
-                          : "pointer-events-none scale-50 -rotate-90 opacity-0"
-                      }`}
+                      className={`absolute inset-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${profileOpen
+                        ? "scale-100 rotate-0 opacity-100"
+                        : "pointer-events-none scale-50 -rotate-90 opacity-0"
+                        }`}
                     >
                       <XIcon size={24} />
                     </span>

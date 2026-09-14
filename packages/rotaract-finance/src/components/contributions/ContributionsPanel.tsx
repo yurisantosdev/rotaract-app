@@ -45,7 +45,6 @@ export function ContributionsPanel({
     filtered,
     query,
     setQuery,
-    selectedIds,
     setSelectedIds,
     filterFieldClassName,
     activeReference,

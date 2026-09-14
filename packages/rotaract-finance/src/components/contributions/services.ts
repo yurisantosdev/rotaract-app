@@ -210,7 +210,6 @@ export function useContributions({ contributions }: UseContributionsProps) {
     filtered,
     query,
     setQuery,
-    selectedIds,
     setSelectedIds,
     filterFieldClassName,
     activeReference,

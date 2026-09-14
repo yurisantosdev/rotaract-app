@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { DisableMobileZoom } from "./_components/disable-mobile-zoom";
-import { ReduxProvider } from "./redux-provider";
+import { ReduxProvider } from "./reduxProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
