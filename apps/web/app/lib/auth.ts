@@ -1,10 +1,17 @@
+import { isAccessTokenUnusable } from "./access-token";
+
 const COOKIE_NAME = "access_token";
+const SESSION_EXPIRED_NOTICE =
+  "Sessão expirada. Entre novamente para continuar.";
+
+let endingInvalidSession = false;
 
 function cookieMaxAge(remember: boolean): string {
   return remember ? `; Max-Age=${60 * 60 * 24 * 7}` : "";
 }
 
 export function setSession(token: string, remember: boolean): void {
+  endingInvalidSession = false;
   document.cookie = `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/${cookieMaxAge(remember)}; SameSite=Lax`;
   sessionStorage.removeItem("rotaract-viewing-management");
 
@@ -18,9 +25,7 @@ export function setSession(token: string, remember: boolean): void {
   localStorage.removeItem(COOKIE_NAME);
 }
 
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-
+function readStoredToken(): string | null {
   const stored =
     localStorage.getItem(COOKIE_NAME) ?? sessionStorage.getItem(COOKIE_NAME);
   if (stored) return stored;
@@ -31,6 +36,19 @@ export function getToken(): string | null {
   if (!match) return null;
 
   return decodeURIComponent(match.slice(`${COOKIE_NAME}=`.length));
+}
+
+export function getToken(): string | null {
+  if (typeof window === "undefined") return null;
+
+  const token = readStoredToken();
+  if (!token) return null;
+  if (isAccessTokenUnusable(token)) {
+    clearSession();
+    return null;
+  }
+
+  return token;
 }
 
 export function clearSession(): void {
@@ -51,4 +69,14 @@ export function consumeLoginNotice(): string | null {
   if (!value) return null;
   sessionStorage.removeItem(LOGIN_NOTICE_KEY);
   return value;
+}
+
+export function endInvalidSession(): void {
+  if (typeof window === "undefined" || endingInvalidSession) return;
+  endingInvalidSession = true;
+  setLoginNotice(SESSION_EXPIRED_NOTICE);
+  clearSession();
+  if (window.location.pathname !== "/") {
+    window.location.replace("/");
+  }
 }

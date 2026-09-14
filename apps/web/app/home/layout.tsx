@@ -7,7 +7,7 @@ import { loadMembers, membersClean } from "@rotaract/members";
 import { loadNotices, noticesClean } from "@rotaract/notices";
 import { AppHeader } from "../_components/app-header";
 import { apiFetch } from "../lib/api";
-import { clearSession, getToken, setLoginNotice } from "../lib/auth";
+import { clearSession, endInvalidSession, getToken, setLoginNotice } from "../lib/auth";
 import type { AuthUser } from "../lib/types";
 import type { AppDispatch } from "../store";
 import { ClubBrandingProvider } from "./_components/club-branding";
@@ -39,11 +39,15 @@ export default function HomeLayout({
       dispatch(loadMembers()),
       dispatch(loadNotices()),
     ])
-      .then(([{ ok, data }]) => {
+      .then(([{ ok, data, status }]) => {
         if (cancelled) return;
         if (!ok || !data.name) {
           dispatch(membersClean());
           dispatch(noticesClean());
+          if (status === 401) {
+            endInvalidSession();
+            return;
+          }
           clearSession();
           router.replace("/");
           return;
