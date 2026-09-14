@@ -6,6 +6,7 @@ function cookieMaxAge(remember: boolean): string {
 
 export function setSession(token: string, remember: boolean): void {
   document.cookie = `${COOKIE_NAME}=${encodeURIComponent(token)}; Path=/${cookieMaxAge(remember)}; SameSite=Lax`;
+  sessionStorage.removeItem("rotaract-viewing-management");
 
   if (remember) {
     localStorage.setItem(COOKIE_NAME, token);
@@ -35,6 +36,7 @@ export function getToken(): string | null {
 export function clearSession(): void {
   localStorage.removeItem(COOKIE_NAME);
   sessionStorage.removeItem(COOKIE_NAME);
+  sessionStorage.removeItem("rotaract-viewing-management");
   document.cookie = `${COOKIE_NAME}=; Path=/; Max-Age=0`;
 }
 

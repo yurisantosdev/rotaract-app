@@ -2,6 +2,7 @@
 
 import { Button, DatePicker, Modal } from "@rotaract/components";
 import { MemberPhotoField } from "../memberPhotoField";
+import { ManagementsField } from "./managementsField";
 import {
   formatPhone,
   MEMBER_INPUT_CLASS,
@@ -28,6 +29,8 @@ export function MemberModal({
     error,
     setError,
     saving,
+    managementOptions,
+    currentManagement,
   } = data;
 
   return (
@@ -38,7 +41,7 @@ export function MemberModal({
       title={isEdit ? "Editar membro" : "Novo membro"}
       description={
         isEdit
-          ? "Atualize foto, contato, aniversário, cargo e a situação no clube."
+          ? "Atualize foto, contato, aniversário, cargo, gestões de acesso e a situação no clube."
           : "Cadastre um companheiro com acesso ao aplicativo. Ele aparece na lista e nas cobranças da tesouraria."
       }
       initialFocusRef={nameRef}
@@ -169,6 +172,18 @@ export function MemberModal({
               ))}
             </select>
           </label>
+        </div>
+
+        <div className="mt-4">
+          <ManagementsField
+            options={managementOptions}
+            selected={form.managements}
+            currentManagement={currentManagement}
+            onChange={(managements) =>
+              setForm((current) => ({ ...current, managements }))
+            }
+            disabled={saving}
+          />
         </div>
 
         {isEdit ? null : (

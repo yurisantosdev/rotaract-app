@@ -9,11 +9,23 @@ const IMPORT_BATCH_SIZE = 25;
 
 const MOVEMENTS_URL = "/api/finance/movements";
 
-export async function listMovements(signal: AbortSignal): Promise<Movement[]> {
-  const response = await fetch(MOVEMENTS_URL, {
-    signal,
-    credentials: "include",
-  });
+export async function listMovements(
+  signal: AbortSignal,
+  management: string
+): Promise<Movement[]> {
+  const params = new URLSearchParams();
+  if (management.trim()) {
+    params.set("management", management.trim());
+  }
+  const query = params.toString();
+
+  const response = await fetch(
+    query ? `${MOVEMENTS_URL}?${query}` : MOVEMENTS_URL,
+    {
+      signal,
+      credentials: "include",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Não foi possível carregar as movimentações");
@@ -60,6 +72,7 @@ export async function updateMovement(
       category: movement.category,
       type: movement.type,
       value: movement.value,
+      management: movement.management,
     }),
   });
 
@@ -87,6 +100,7 @@ export async function createMovement(
       category: movement.category,
       type: movement.type,
       value: movement.value,
+      management: movement.management,
     }),
   });
 
@@ -126,9 +140,9 @@ async function importMovementsBatch(
     body: JSON.stringify({ movements }),
   });
 
-  const data = (await response.json().catch(() => null)) as ImportApiResponse | null;
+  const data: any = (await response.json().catch(() => null)) as ImportApiResponse | null;
   const created = Array.isArray(data?.created) ? data.created : [];
-  const errors: MovementImportIssue[] = (data?.errors ?? []).map((item) => {
+  const errors: MovementImportIssue[] = (data?.errors ?? []).map((item: any) => {
     const index = typeof item.index === "number" ? item.index : -1;
     const row =
       typeof item.row === "number"

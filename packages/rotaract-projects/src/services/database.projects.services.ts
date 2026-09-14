@@ -7,6 +7,7 @@ import {
 } from "../types/tasks";
 
 const PROJECTS_URL = "/api/projects";
+const TASKS_URL = "/api/tasks";
 
 function asId(value: unknown): string {
   if (typeof value === "string" && value.trim()) return value.trim();
@@ -51,6 +52,7 @@ function parseProject(data: unknown): Project {
     members: Array.isArray(row.members)
       ? row.members.map(asId).filter(Boolean)
       : [],
+    management: typeof row.management === "string" ? row.management : "",
     createdAt: asDateString(row.createdAt),
     updatedAt: asDateString(row.updatedAt),
   };
@@ -80,14 +82,84 @@ function toApiBody(project: ProjectPayload) {
     description: project.description,
     managerId: project.managerId,
     members: uniqueIds([project.managerId, ...project.members]),
+    management: project.management,
   };
 }
 
-export async function listProjects(signal: AbortSignal): Promise<Project[]> {
-  const response = await fetch(PROJECTS_URL, {
-    signal,
-    credentials: "include",
-  });
+function asDateInput(value: unknown): string {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+
+  const parsed = asDateString(value);
+  if (/^\d{4}-\d{2}-\d{2}/.test(parsed)) return parsed.slice(0, 10);
+  return parsed;
+}
+
+function asTaskStatus(value: unknown): TaskStatus {
+  if (typeof value === "string" && TASK_STATUS.includes(value as TaskStatus)) {
+    return value as TaskStatus;
+  }
+  return "new";
+}
+
+function parseTask(data: unknown): Task {
+  if (!data || typeof data !== "object") {
+    throw new Error("Resposta inválida da API de tarefas");
+  }
+
+  const row = data as Record<string, unknown>;
+  const id = asId(row.id) || asId(row._id);
+  const title = typeof row.title === "string" ? row.title : "";
+  const projectId = asId(row.projectId);
+
+  if (!id || !title || !projectId) {
+    throw new Error("Resposta inválida da API de tarefas");
+  }
+
+  return {
+    id,
+    title,
+    description: typeof row.description === "string" ? row.description : "",
+    managerId: asId(row.managerId),
+    projectId,
+    date: asDateInput(row.date),
+    status: asTaskStatus(row.status),
+    limit: asDateInput(row.limit),
+    createdAt: asDateString(row.createdAt),
+    updatedAt: asDateString(row.updatedAt),
+  };
+}
+
+function toTaskApiBody(task: TaskWritePayload) {
+  return {
+    title: task.title,
+    description: task.description,
+    managerId: task.managerId,
+    projectId: task.projectId,
+    date: task.date,
+    status: task.status,
+    limit: task.limit,
+  };
+}
+
+export async function listProjects(
+  signal: AbortSignal,
+  management: string
+): Promise<Project[]> {
+  const params = new URLSearchParams();
+  if (management.trim()) {
+    params.set("management", management.trim());
+  }
+  const query = params.toString();
+
+  const response = await fetch(
+    query ? `${PROJECTS_URL}?${query}` : PROJECTS_URL,
+    {
+      signal,
+      credentials: "include",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Não foi possível carregar os projetos");
@@ -169,65 +241,6 @@ export async function removeProjects(
 
   return "Projeto excluído com sucesso";
 }
-
-function asDateInput(value: unknown): string {
-  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
-    return value.slice(0, 10);
-  }
-
-  const parsed = asDateString(value);
-  if (/^\d{4}-\d{2}-\d{2}/.test(parsed)) return parsed.slice(0, 10);
-  return parsed;
-}
-
-function asTaskStatus(value: unknown): TaskStatus {
-  if (typeof value === "string" && TASK_STATUS.includes(value as TaskStatus)) {
-    return value as TaskStatus;
-  }
-  return "new";
-}
-
-function parseTask(data: unknown): Task {
-  if (!data || typeof data !== "object") {
-    throw new Error("Resposta inválida da API de tarefas");
-  }
-
-  const row = data as Record<string, unknown>;
-  const id = asId(row.id) || asId(row._id);
-  const title = typeof row.title === "string" ? row.title : "";
-  const projectId = asId(row.projectId);
-
-  if (!id || !title || !projectId) {
-    throw new Error("Resposta inválida da API de tarefas");
-  }
-
-  return {
-    id,
-    title,
-    description: typeof row.description === "string" ? row.description : "",
-    managerId: asId(row.managerId),
-    projectId,
-    date: asDateInput(row.date),
-    status: asTaskStatus(row.status),
-    limit: asDateInput(row.limit),
-    createdAt: asDateString(row.createdAt),
-    updatedAt: asDateString(row.updatedAt),
-  };
-}
-
-function toTaskApiBody(task: TaskWritePayload) {
-  return {
-    title: task.title,
-    description: task.description,
-    managerId: task.managerId,
-    projectId: task.projectId,
-    date: task.date,
-    status: task.status,
-    limit: task.limit,
-  };
-}
-
-const TASKS_URL = "/api/tasks";
 
 export async function listTasks(signal: AbortSignal): Promise<Task[]> {
   const response = await fetch(TASKS_URL, {

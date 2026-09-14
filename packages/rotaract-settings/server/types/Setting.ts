@@ -5,6 +5,8 @@ export type SettingTypeDoc = {
   valueContribution: number;
   logo: string;
   nameClub: string;
+  currentManagement: string;
+  managements: string[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -14,6 +16,8 @@ export type SettingResponse = {
   valueContribution: number;
   logo: string;
   nameClub: string;
+  currentManagement: string;
+  managements: string[];
   createdAt: Date;
   updatedAt: Date;
 };

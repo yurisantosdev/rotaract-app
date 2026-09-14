@@ -80,3 +80,34 @@ export function loadMembers(): MembersThunk {
     return pendingLoad;
   };
 }
+
+export function reloadMembers(): MembersThunk {
+  return (dispatch) => {
+    dispatch(membersRequest());
+
+    pendingLoad = listMembers(new AbortController().signal)
+      .then((items) => {
+        dispatch(membersSuccess(items));
+        return items;
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return undefined;
+        }
+
+        dispatch(
+          membersFailure(
+            error instanceof Error
+              ? error.message
+              : "Não foi possível carregar os membros"
+          )
+        );
+        return undefined;
+      })
+      .finally(() => {
+        pendingLoad = null;
+      });
+
+    return pendingLoad;
+  };
+}

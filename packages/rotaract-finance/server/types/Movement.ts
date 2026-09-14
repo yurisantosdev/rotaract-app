@@ -23,6 +23,7 @@ export type MovementTypeDoc = {
   value: number;
   createdBy: mongoose.Types.ObjectId;
   contributionId?: mongoose.Types.ObjectId;
+  management: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -34,6 +35,7 @@ export type MovementResponse = {
   category: MovementCategory;
   type: MovementType;
   value: number;
+  management: string;
   createdAt: Date;
   updatedAt: Date;
 };

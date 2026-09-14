@@ -10,6 +10,7 @@ import {
   type ContributionStatus,
   type ContributionTypeDoc,
 } from "../types/Contribution";
+import { clubManagementsFromSettings } from "@rotaract/settings/server";
 
 function shortName(name: string): string {
   return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).join(" ");
@@ -25,6 +26,7 @@ function serializar(doc: ContributionTypeDoc, fallbackName = ""): ContributionRe
     value: doc.value,
     status: doc.status ?? "pendente",
     date: doc.date ?? todayISO(),
+    management: doc.management,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -215,6 +217,7 @@ async function ensureMovementForContribution(
     value: contribution.value,
     createdBy,
     contributionId: contribution._id,
+    management: contribution.management,
   });
 }
 
@@ -307,8 +310,17 @@ function parseContributionBody(
   };
 }
 
-export async function list(_req: Request, res: Response): Promise<void> {
-  const itens = await Contribution.find().sort({ createdAt: -1 }).lean();
+async function managementQuery(req: Request): Promise<{ management: string } | { _id: { $exists: false } }> {
+  const requested =
+    typeof req.query.management === "string" ? req.query.management.trim() : "";
+  const club = await clubManagementsFromSettings();
+  const management = requested || club.currentManagement;
+  return management ? { management } : { _id: { $exists: false } };
+}
+
+export async function list(req: Request, res: Response): Promise<void> {
+  const filter = await managementQuery(req);
+  const itens = await Contribution.find(filter).sort({ createdAt: -1 }).lean();
   const missingNameIds = itens
     .filter((item) => typeof item.name !== "string" || !item.name.trim())
     .map((item) => item.memberId);
@@ -324,8 +336,12 @@ export async function list(_req: Request, res: Response): Promise<void> {
   );
 }
 
-export async function listOverdue(_req: Request, res: Response): Promise<void> {
-  const itens = await Contribution.find({ status: "vencido" }).sort({ createdAt: -1 }).lean();
+export async function listOverdue(req: Request, res: Response): Promise<void> {
+  const filter = await managementQuery(req);
+  const itens = await Contribution.find({
+    status: "vencido",
+    ...filter,
+  }).sort({ createdAt: -1 }).lean();
   const missingNameIds = itens
     .filter((item) => typeof item.name !== "string" || !item.name.trim())
     .map((item) => item.memberId);
@@ -347,6 +363,9 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
     res.status(401).json({ erro: "Token de autenticação necessário" });
     return;
   }
+
+  const club = await clubManagementsFromSettings();
+  req.body.management = club.currentManagement;
 
   const parsed = parseContributionBody(req.body);
   if (!parsed.ok) {
@@ -377,16 +396,20 @@ export async function generate(req: AuthenticatedRequest, res: Response): Promis
     return;
   }
 
+  const club = await clubManagementsFromSettings();
+  req.body.management = club.currentManagement;
+
   if (typeof req.body !== "object" || req.body === null) {
     res.status(400).json({ erro: "Corpo da requisição inválido" });
     return;
   }
 
-  const { memberIds, references, reference, value } = req.body as {
+  const { memberIds, references, reference, value, management } = req.body as {
     memberIds?: unknown;
     references?: unknown;
     reference?: unknown;
     value?: unknown;
+    management?: unknown;
   };
 
   if (!Array.isArray(memberIds) || memberIds.length === 0) {
@@ -448,6 +471,7 @@ export async function generate(req: AuthenticatedRequest, res: Response): Promis
         value: parsedValue,
         date: dateByReference.get(item) ?? todayISO(),
         status: "pendente" as const,
+        management: management as string,
       }))
   );
 

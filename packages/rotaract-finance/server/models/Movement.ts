@@ -44,6 +44,11 @@ const movementSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    management: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   },
   {
     timestamps: true,

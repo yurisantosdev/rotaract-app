@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { useViewingManagement } from "@rotaract/settings";
 import { ProjectFormModalProps } from "./type";
 import { uniqueIds } from "../../../src/types/projects";
 import { AlertError, AlertSuccess } from "@rotaract/components";
@@ -12,6 +13,7 @@ export function useProjectFormModal({
   onClose,
   onSave,
 }: ProjectFormModalProps) {
+  const { viewingManagement } = useViewingManagement();
   const titleRef = useRef<HTMLInputElement>(null);
   const isEdit = Boolean(project);
   const [title, setTitle] = useState("");
@@ -63,6 +65,12 @@ export function useProjectFormModal({
       return;
     }
 
+    const management = project?.management?.trim() || viewingManagement.trim();
+    if (!management) {
+      setError("Selecione uma gestão para visualizar antes de salvar o projeto.");
+      return;
+    }
+
     setSaving(true);
     setError("");
 
@@ -72,6 +80,7 @@ export function useProjectFormModal({
         description: trimmedDescription,
         managerId,
         members: uniqueIds([managerId, ...memberIds]),
+        management,
       });
       AlertSuccess("Projeto salvo com sucesso");
       onClose();

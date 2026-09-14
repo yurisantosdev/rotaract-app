@@ -13,16 +13,19 @@ function serializar(doc: SettingTypeDoc): SettingResponse {
     valueContribution: doc.valueContribution,
     logo: doc.logo,
     nameClub: doc.nameClub,
+    currentManagement: doc.currentManagement,
+    managements: doc.managements,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
 }
 
-
 type SettingInput = {
   valueContribution: number;
   logo: string;
   nameClub: string;
+  currentManagement: string;
+  managements: string[];
 };
 
 function parseSettingBody(
@@ -32,10 +35,12 @@ function parseSettingBody(
     return { ok: false, erro: "Corpo da requisição inválido" };
   }
 
-  const { valueContribution, logo, nameClub } = body as {
+  const { valueContribution, logo, nameClub, currentManagement, managements } = body as {
     valueContribution?: unknown;
     logo?: unknown;
     nameClub?: unknown;
+    currentManagement?: unknown;
+    managements?: unknown;
   };
 
   if (typeof valueContribution !== "number" || valueContribution <= 0) {
@@ -50,14 +55,46 @@ function parseSettingBody(
     return { ok: false, erro: "Campo nome do clube é obrigatório" };
   }
 
+  if (typeof currentManagement !== "string" || !currentManagement.trim()) {
+    return { ok: false, erro: "Campo gestão atual é obrigatório e deve ser uma string" };
+  }
+
+  if (!Array.isArray(managements) || !managements.every((management) => typeof management === "string" && management.trim())) {
+    return { ok: false, erro: "Campo gestões é obrigatório e deve ser um array de strings" };
+  }
+
   return {
     ok: true,
     data: {
       valueContribution,
       logo: logo.trim(),
       nameClub: nameClub.trim(),
+      currentManagement: currentManagement.trim(),
+      managements: managements.map((management) => management.trim()),
     },
   };
+}
+
+function withCurrentInManagements(data: SettingInput): SettingInput {
+  const current = data.currentManagement.trim();
+  const already = data.managements.some(
+    (item) => item.toLowerCase() === current.toLowerCase()
+  );
+
+  return {
+    ...data,
+    managements: already ? data.managements : [...data.managements, current],
+  };
+}
+
+async function addManagementToActiveMembers(management: string): Promise<void> {
+  const name = management.trim();
+  if (!name) return;
+
+  await mongoose.connection.collection("members").updateMany(
+    { status: "ativo" },
+    { $addToSet: { managements: name } }
+  );
 }
 
 export async function list(_req: Request, res: Response): Promise<void> {
@@ -78,10 +115,13 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
     return;
   }
 
+  const data = withCurrentInManagements(parsed.data);
   const criada = await Setting.create({
-    ...parsed.data,
+    ...data,
     createdBy: new mongoose.Types.ObjectId(userId),
   });
+
+  await addManagementToActiveMembers(data.currentManagement);
 
   res.status(201).json(serializar(criada.toObject() as SettingTypeDoc));
 }
@@ -99,7 +139,19 @@ export async function update(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const atualizada = await Setting.findByIdAndUpdate(id, parsed.data, {
+  const existing = await Setting.findById(id).lean();
+  if (!existing) {
+    res.status(404).json({ erro: "Configuração não encontrada" });
+    return;
+  }
+
+  const data = withCurrentInManagements(parsed.data);
+  const previousCurrent =
+    typeof existing.currentManagement === "string"
+      ? existing.currentManagement.trim()
+      : "";
+
+  const atualizada = await Setting.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
   }).lean();
@@ -109,5 +161,59 @@ export async function update(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  if (data.currentManagement !== previousCurrent) {
+    await addManagementToActiveMembers(data.currentManagement);
+  }
+
   res.json(serializar(atualizada as unknown as SettingTypeDoc));
+}
+
+export function uniqueManagementNames(values: unknown): string[] | null {
+  if (!Array.isArray(values)) return null;
+
+  const names: string[] = [];
+  const seen = new Set<string>();
+
+  for (const item of values) {
+    if (typeof item !== "string" || !item.trim()) return null;
+    const name = item.trim();
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
+
+  return names;
+}
+
+export async function clubManagementsFromSettings(): Promise<{
+  currentManagement: string;
+  managements: string[];
+}> {
+  const settings = await mongoose.connection
+    .collection("settings")
+    .findOne(
+      {},
+      {
+        sort: { createdAt: -1 },
+        projection: { currentManagement: 1, managements: 1 },
+      }
+    );
+
+  const currentManagement =
+    typeof settings?.currentManagement === "string"
+      ? settings.currentManagement.trim()
+      : "";
+  const managements = uniqueManagementNames(settings?.managements) ?? [];
+
+  if (
+    currentManagement &&
+    !managements.some(
+      (item) => item.toLowerCase() === currentManagement.toLowerCase()
+    )
+  ) {
+    managements.push(currentManagement);
+  }
+
+  return { currentManagement, managements };
 }

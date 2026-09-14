@@ -2,6 +2,7 @@
 
 import { AlertError, AlertSuccess } from "@rotaract/components";
 import { useMembers, useMembersStatus } from "@rotaract/members";
+import { useViewingManagement } from "@rotaract/settings";
 import { useEffect, useState } from "react";
 import { Project, ProjectPayload } from "../types/projects";
 import { Task, TaskPayload, TaskStatus } from "../types/tasks";
@@ -10,6 +11,7 @@ import { createProjects, createTasks, listProjects, listTasks, removeProjects, r
 export function useProjects(userName: string) {
   const members = useMembers();
   const membersStatus = useMembersStatus();
+  const { viewingManagement, viewingOptions } = useViewingManagement();
   const firstName = userName.split(" ")[0] || userName;
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -24,10 +26,33 @@ export function useProjects(userName: string) {
   const selectedTasks = tasks.filter((task) => task.projectId === selected?.id);
 
   useEffect(() => {
+    setSelectedId(null);
+  }, [viewingManagement]);
+
+  useEffect(() => {
+    if (!viewingManagement) {
+      const waitingForViewing =
+        membersStatus === "idle" ||
+        membersStatus === "loading" ||
+        viewingOptions.length > 0;
+
+      if (waitingForViewing) {
+        setIsLoadingProjects(true);
+        return;
+      }
+
+      setProjects([]);
+      setTasks([]);
+      setLoadError("");
+      setIsLoadingProjects(false);
+      return;
+    }
+
     const controller = new AbortController();
+    setIsLoadingProjects(true);
 
     void Promise.all([
-      listProjects(controller.signal),
+      listProjects(controller.signal, viewingManagement),
       listTasks(controller.signal),
     ])
       .then(([projectList, taskList]) => {
@@ -51,15 +76,17 @@ export function useProjects(userName: string) {
       });
 
     return () => controller.abort();
-  }, []);
+  }, [membersStatus, viewingManagement, viewingOptions.length]);
 
   function handleCreateProject(payload: ProjectPayload) {
     const controller = new AbortController();
 
     return createProjects(controller.signal, payload).then((created) => {
-      setProjects((current) => [created, ...current]);
+      if (created.management === viewingManagement) {
+        setProjects((current) => [created, ...current]);
+        setSelectedId(created.id);
+      }
       setLoadError("");
-      setSelectedId(created.id);
     });
   }
 

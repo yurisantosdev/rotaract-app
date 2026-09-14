@@ -79,6 +79,12 @@ function parseMember(data: unknown): Member {
     status: asStatus(row.status),
     joinedAt:
       typeof row.joinedAt === "string" ? row.joinedAt : createdAt.slice(0, 10),
+    managements: Array.isArray(row.managements)
+      ? row.managements.filter(
+          (item): item is string =>
+            typeof item === "string" && item.trim().length > 0
+        ).map((item) => item.trim())
+      : [],
   };
 }
 
@@ -92,6 +98,7 @@ function toApiBody(member: MemberPayload) {
     status: member.status,
     position: toApiPosition(member.role),
     ...(member.password ? { password: member.password } : {}),
+    ...(Array.isArray(member.managements) ? { managements: member.managements } : {}),
   };
 }
 

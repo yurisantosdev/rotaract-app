@@ -16,6 +16,7 @@ export type Movement = {
   date: string;
   description: string;
   category: string;
+  management: string;
   type: MovementType;
   value: number;
 };

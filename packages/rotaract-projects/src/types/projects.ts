@@ -7,6 +7,7 @@ export type Projects = {
   description: string;
   managerId: string;
   members: string[];
+  management: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -17,6 +18,7 @@ export type ProjectsPayload = {
   description: string;
   managerId: string;
   members: string[];
+  management: string;
 };
 
 export type Project = {
@@ -25,6 +27,7 @@ export type Project = {
   description: string;
   managerId: string;
   members: string[];
+  management: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -34,6 +37,7 @@ export type ProjectPayload = {
   description: string;
   managerId: string;
   members: string[];
+  management: string;
 };
 
 export type ProjectFilter = "todos" | "andamento" | "concluidos" | "atrasados";

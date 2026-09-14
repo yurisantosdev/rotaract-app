@@ -5,8 +5,10 @@ import { MOVEMENT_CATEGORIES, Movement, MovementType } from "../../types/movemen
 import { FormEvent, useMemo, useState } from "react";
 import { UseMovementsProps } from "./types";
 import { AlertSuccess, usePagination } from "@rotaract/components";
+import { useViewingManagement } from "@rotaract/settings";
 
 export function useMovements({ movements, onUpdate, onAdd }: UseMovementsProps) {
+  const { viewingManagement } = useViewingManagement();
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<"todos" | MovementType>("todos");
   const [formOpen, setFormOpen] = useState(false);
@@ -101,12 +103,22 @@ export function useMovements({ movements, onUpdate, onAdd }: UseMovementsProps) 
       return;
     }
 
+    const management =
+      editingMovement?.management?.trim() || viewingManagement.trim();
+    if (!management) {
+      setError(
+        "Selecione uma gestão para visualizar antes de salvar a movimentação."
+      );
+      return;
+    }
+
     const payload = {
       date,
       description: description.trim(),
       category,
       type,
       value: parsedValue,
+      management,
     };
 
     setSaving(true);

@@ -1,14 +1,19 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
+import { reloadMembers } from "@rotaract/members";
 import { ClubSettings, ConfigPageProps, Setting, isImageDataUrl } from "../types/settings";
 import { formatMoneyFromNumber, parseMoneyInput } from "./money.services";
 import { createSettings, listSettings, updateSettings } from "./database.settings.services";
 import { AlertError, AlertSuccess } from "@rotaract/components";
+import { useOptionalViewingManagement } from "../components/currentManagement/viewingManagement";
 
 export function useSettings({ userName, onSaved }: ConfigPageProps) {
   const EMPTY_SETTINGS: ClubSettings = {
     clubName: "",
     logoUrl: "",
     membershipFee: 0,
+    currentManagement: "",
+    managements: [],
   };
 
   function toClubSettings(setting: Setting): ClubSettings {
@@ -17,12 +22,18 @@ export function useSettings({ userName, onSaved }: ConfigPageProps) {
       clubName: setting.nameClub,
       logoUrl: setting.logo,
       membershipFee: setting.valueContribution,
+      currentManagement: setting.currentManagement,
+      managements: setting.managements,
     };
   }
 
   const firstName = userName.split(" ")[0] || userName;
+  const dispatch = useDispatch();
+  const viewing = useOptionalViewingManagement();
   const [saved, setSaved] = useState<ClubSettings>(EMPTY_SETTINGS);
   const [clubName, setClubName] = useState("");
+  const [currentManagement, setCurrentManagement] = useState("");
+  const [managements, setManagements] = useState<string[]>([]);
   const [logoUrl, setLogoUrl] = useState("");
   const [feeInput, setFeeInput] = useState(
     formatMoneyFromNumber(0)
@@ -35,12 +46,19 @@ export function useSettings({ userName, onSaved }: ConfigPageProps) {
   const draftFee = parseMoneyInput(feeInput);
   const dirty = useMemo(() => {
     const fee = Number.isFinite(draftFee) ? draftFee : -1;
+    const savedManagements = saved.managements ?? [];
+    const managementsChanged =
+      managements.length !== savedManagements.length ||
+      managements.some((item, index) => item !== savedManagements[index]);
+
     return (
       clubName.trim() !== saved.clubName ||
       logoUrl !== saved.logoUrl ||
-      fee !== saved.membershipFee
+      fee !== saved.membershipFee ||
+      (currentManagement ?? "") !== (saved.currentManagement ?? "") ||
+      managementsChanged
     );
-  }, [clubName, draftFee, logoUrl, saved]);
+  }, [clubName, currentManagement, draftFee, logoUrl, managements, saved]);
 
   function handleLogoChange(nextUrl: string) {
     setLogoUrl(nextUrl);
@@ -49,8 +67,69 @@ export function useSettings({ userName, onSaved }: ConfigPageProps) {
   function resetTo(settings: ClubSettings) {
     setClubName(settings.clubName);
     handleLogoChange(settings.logoUrl);
-    setFeeInput(formatMoneyFromNumber(settings.membershipFee));
+    setFeeInput(formatMoneyFromNumber(settings.membershipFee ?? 0));
     setError("");
+    setCurrentManagement(settings.currentManagement ?? "");
+    setManagements(settings.managements ?? []);
+  }
+
+  async function handleCreateManagement(name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    const settingsId = saved.id;
+    if (!settingsId) {
+      AlertError("Salve as configurações do clube antes de cadastrar uma gestão.");
+      throw new Error("Configurações ainda não foram salvas");
+    }
+
+    const nextManagements = managements.some(
+      (item) => item.toLowerCase() === trimmed.toLowerCase()
+    )
+      ? managements
+      : [...managements, trimmed];
+    const closingCurrent = Boolean(currentManagement.trim());
+    const fee = saved.membershipFee ?? parseMoneyInput(feeInput);
+
+    if (!Number.isFinite(fee) || fee <= 0 || !isImageDataUrl(saved.logoUrl)) {
+      AlertError("Salve as configurações do clube antes de cadastrar uma gestão.");
+      throw new Error("Configurações incompletas");
+    }
+
+    const payload = {
+      valueContribution: fee,
+      logo: saved.logoUrl,
+      nameClub: saved.clubName,
+      currentManagement: trimmed,
+      managements: nextManagements,
+    };
+
+    try {
+      const result = await updateSettings(
+        settingsId,
+        new AbortController().signal,
+        payload
+      );
+      const next = toClubSettings(result);
+      setSaved(next);
+      setCurrentManagement(next.currentManagement ?? "");
+      setManagements(next.managements ?? []);
+      viewing?.setViewingManagement(next.currentManagement ?? trimmed);
+      await dispatch(reloadMembers() as never);
+      AlertSuccess(
+        closingCurrent
+          ? `Gestão finalizada. ${trimmed} agora é a vigente.`
+          : "Gestão criada com sucesso"
+      );
+      onSaved(next);
+    } catch (error) {
+      AlertError(
+        closingCurrent
+          ? "Não foi possível finalizar a gestão."
+          : "Não foi possível criar a gestão."
+      );
+      throw error;
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -73,6 +152,11 @@ export function useSettings({ userName, onSaved }: ConfigPageProps) {
       return;
     }
 
+    if (!currentManagement.trim() || managements.length === 0) {
+      setError("Cadastre ao menos uma gestão para o clube.");
+      return;
+    }
+
     setError("");
     setSaving(true);
 
@@ -80,6 +164,8 @@ export function useSettings({ userName, onSaved }: ConfigPageProps) {
       valueContribution: fee,
       logo: logoUrl,
       nameClub: name,
+      currentManagement: currentManagement,
+      managements: managements,
     };
 
     try {
@@ -141,6 +227,9 @@ export function useSettings({ userName, onSaved }: ConfigPageProps) {
     setDiscardOpen,
     discardOpen,
     resetTo,
-    saved
+    saved,
+    currentManagement,
+    managements,
+    handleCreateManagement,
   };
 }

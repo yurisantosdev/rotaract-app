@@ -29,21 +29,21 @@ export const modules = [
     ),
   },
   {
-    title: "Configurações",
-    description: "Preferências do clube, permissões e ajustes da conta.",
-    href: "/home/settings",
-    action: "Abrir configurações",
-    icon: (
-      <GearIcon size={25} />
-    ),
-  },
-  {
     title: "Projetos",
     description: "Gerenciamento de projetos do clube.",
     href: "/home/projects",
     action: "Abrir projetos",
     icon: (
       <PencilRulerIcon size={25} />
+    ),
+  },
+  {
+    title: "Configurações",
+    description: "Preferências do clube, permissões e ajustes da conta.",
+    href: "/home/settings",
+    action: "Abrir configurações",
+    icon: (
+      <GearIcon size={25} />
     ),
   },
 ];

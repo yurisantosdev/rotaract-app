@@ -22,6 +22,11 @@ const projectsSchema = new mongoose.Schema(
       required: true,
       ref: "User",
     },
+    management: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   },
   {
     timestamps: true,

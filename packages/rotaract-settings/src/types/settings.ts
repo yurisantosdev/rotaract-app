@@ -3,6 +3,8 @@ export type Setting = {
   valueContribution: number;
   logo: string;
   nameClub: string;
+  currentManagement: string;
+  managements: string[];
   createdAt: Date;
   updatedAt: Date;
 };
@@ -17,13 +19,17 @@ export type SettingPayload = {
   valueContribution: number;
   logo: string;
   nameClub: string;
+  currentManagement: string;
+  managements: string[];
 };
 
 export type ClubSettings = {
   id?: string;
   clubName: string;
   logoUrl: string;
-  membershipFee: number;
+  membershipFee?: number;
+  currentManagement?: string;
+  managements?: string[];
 };
 
 export const SETTINGS_INPUT_CLASS =

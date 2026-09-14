@@ -7,7 +7,7 @@ import type { AuthUser } from "../lib/types";
 import { useClubBranding } from "../home/_components/club-branding";
 import { Notice } from "@rotaract/notices";
 import { ProfileDialog } from "./profile-dialog";
-import { Management } from "./management";
+import { Management } from "@rotaract/settings";
 
 type AppHeaderProps = {
   user: AuthUser;

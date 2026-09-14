@@ -16,6 +16,7 @@ export type MembersType = {
   phone?: string;
   status: MemberStatus;
   position: MemberPosition;
+  managements?: string[];
   createdAt: Date;
   updatedAt: Date;
 };

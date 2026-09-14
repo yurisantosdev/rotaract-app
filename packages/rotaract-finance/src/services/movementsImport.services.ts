@@ -200,7 +200,10 @@ export function downloadMovementsImportTemplate(): void {
   XLSX.writeFile(workbook, "modelo-movimentacoes.xlsx");
 }
 
-export function parseMovementsWorkbook(buffer: ArrayBuffer): ParsedMovementImport {
+export function parseMovementsWorkbook(
+  buffer: ArrayBuffer,
+  management: string
+): ParsedMovementImport {
   const bytes = new Uint8Array(buffer);
   const workbook = XLSX.read(bytes, {
     type: "array",
@@ -348,6 +351,7 @@ export function parseMovementsWorkbook(buffer: ArrayBuffer): ParsedMovementImpor
         category,
         type,
         value,
+        management: management.trim(),
       },
     });
   });

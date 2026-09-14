@@ -26,6 +26,7 @@ export type ContributionTypeDoc = {
   value: number;
   date: string
   status: ContributionStatus;
+  management: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -38,6 +39,7 @@ export type ContributionResponse = {
   value: number;
   date: string
   status: ContributionStatus;
+  management: string;
   createdAt: Date;
   updatedAt: Date;
 };

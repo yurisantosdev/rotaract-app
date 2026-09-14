@@ -13,6 +13,7 @@ import type { AppDispatch } from "../store";
 import { ClubBrandingProvider } from "./_components/club-branding";
 import { MemberSessionProvider } from "./_components/member-session";
 import { Loading } from "@rotaract/components";
+import { ViewingManagementProvider } from "@rotaract/settings";
 
 export default function HomeLayout({
   children,
@@ -79,13 +80,15 @@ export default function HomeLayout({
     user ? (
       <div className="min-h-dvh overflow-x-hidden bg-rotaract-mist text-rotaract-ink">
         <ClubBrandingProvider>
-          <AppHeader
-            user={user}
-            onLogout={handleLogout}
-            onUserUpdated={setUser}
-            onReloginRequired={handleReloginRequired}
-          />
-          <MemberSessionProvider user={user}>{children}</MemberSessionProvider>
+          <ViewingManagementProvider userId={user.id} userEmail={user.email}>
+            <AppHeader
+              user={user}
+              onLogout={handleLogout}
+              onUserUpdated={setUser}
+              onReloginRequired={handleReloginRequired}
+            />
+            <MemberSessionProvider user={user}>{children}</MemberSessionProvider>
+          </ViewingManagementProvider>
         </ClubBrandingProvider>
       </div>
     ) : (

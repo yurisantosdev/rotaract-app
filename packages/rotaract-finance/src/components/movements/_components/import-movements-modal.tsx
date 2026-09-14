@@ -9,6 +9,7 @@ import {
   WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { Button, Modal, Pagination, usePagination } from "@rotaract/components";
+import { useViewingManagement } from "@rotaract/settings";
 import { importMovements } from "../../../services/database.movements.services";
 import {
   downloadMovementsImportTemplate,
@@ -34,6 +35,7 @@ export function ImportMovementsModal({
   onClose,
   onImported,
 }: ImportMovementsModalProps) {
+  const { viewingManagement } = useViewingManagement();
   const inputRef = useRef<HTMLInputElement>(null);
   const [phase, setPhase] = useState<ImportPhase>("idle");
   const [progress, setProgress] = useState(0);
@@ -79,6 +81,12 @@ export function ImportMovementsModal({
       return;
     }
 
+    const management = viewingManagement.trim();
+    if (!management) {
+      setError("Selecione uma gestão para visualizar antes de importar.");
+      return;
+    }
+
     setError("");
     setIssues([]);
     setCreatedCount(0);
@@ -92,7 +100,7 @@ export function ImportMovementsModal({
       setProgress(22);
       setStatus("Validando as linhas...");
 
-      const parsed = parseMovementsWorkbook(buffer);
+      const parsed = parseMovementsWorkbook(buffer, management);
       const parseIssues = parsed.issues;
 
       if (parsed.rows.length === 0) {

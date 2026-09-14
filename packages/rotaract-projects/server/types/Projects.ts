@@ -6,6 +6,7 @@ export type ProjectsTypeDoc = {
   description: string;
   managerId: string;
   members: string[];
+  management: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -16,6 +17,7 @@ export type ProjectsResponse = {
   description: string;
   managerId: string;
   members: string[];
+  management: string;
   createdAt: Date;
   updatedAt: Date;
 };

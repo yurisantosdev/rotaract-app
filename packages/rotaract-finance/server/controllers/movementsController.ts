@@ -10,6 +10,7 @@ import {
   type MovementType,
   type MovementTypeDoc,
 } from "../types/Movement";
+import { clubManagementsFromSettings } from "@rotaract/settings/server";
 
 const DATE_ISO = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -21,6 +22,7 @@ function serializar(doc: MovementTypeDoc): MovementResponse {
     category: doc.category,
     type: doc.type,
     value: doc.value,
+    management: doc.management,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -57,21 +59,23 @@ type MovementInput = {
   category: MovementCategory;
   type: MovementType;
   value: number;
+  management: any;
 };
 
 function parseMovementBody(
-  body: unknown
+  body: unknown,
 ): { ok: true; data: MovementInput } | { ok: false; erro: string } {
   if (typeof body !== "object" || body === null) {
     return { ok: false, erro: "Corpo da requisição inválido" };
   }
 
-  const { date, description, category, type, value } = body as {
+  const { date, description, category, type, value, management } = body as {
     date?: unknown;
     description?: unknown;
     category?: unknown;
     type?: unknown;
     value?: unknown;
+    management?: unknown;
   };
 
   if (typeof date !== "string" || !isValidIsoDate(date.trim())) {
@@ -93,6 +97,10 @@ function parseMovementBody(
     return { ok: false, erro: "Campo type deve ser entrada ou saida" };
   }
 
+  if (typeof management !== "string" || !management.trim()) {
+    return { ok: false, erro: "Campo management é obrigatório e deve ser uma string" };
+  }
+
   const parsedValue = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
     return { ok: false, erro: "Campo value deve ser um número maior que zero" };
@@ -106,12 +114,22 @@ function parseMovementBody(
       category,
       type,
       value: parsedValue,
+      management: management.trim(),
     },
   };
 }
 
-export async function list(_req: Request, res: Response): Promise<void> {
-  const itens = await Movement.find().sort({ date: -1, createdAt: -1 }).lean();
+export async function list(req: Request, res: Response): Promise<void> {
+  const requested =
+    typeof req.query.management === "string" ? req.query.management.trim() : "";
+  const club = await clubManagementsFromSettings();
+  const management = requested || club.currentManagement;
+
+  const itens = await Movement.find(
+    management ? { management } : { _id: { $exists: false } }
+  )
+    .sort({ date: -1, createdAt: -1 })
+    .lean();
   res.json(itens.map((item) => serializar(item as unknown as MovementTypeDoc)));
 }
 
@@ -169,7 +187,7 @@ export async function importMany(
 
   const createdBy = new mongoose.Types.ObjectId(userId);
   const inserted = await Movement.insertMany(
-    accepted.map((item) => ({ ...item, createdBy }))
+    accepted.map((item) => ({ ...item, createdBy, management: item.management }))
   );
 
   res.status(201).json({
@@ -186,6 +204,9 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
     res.status(401).json({ erro: "Token de autenticação necessário" });
     return;
   }
+
+  const club = await clubManagementsFromSettings();
+  req.body.management = club.currentManagement;
 
   const parsed = parseMovementBody(req.body);
   if (!parsed.ok) {

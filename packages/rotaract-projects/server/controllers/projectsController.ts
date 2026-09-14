@@ -7,6 +7,7 @@ import {
   type ProjectsTypeDoc,
 } from "../types/Projects";
 import { createNotice } from "@rotaract/notices/server";
+import { clubManagementsFromSettings } from "@rotaract/settings/server";
 
 function asIdString(value: unknown): string {
   if (typeof value === "string") return value;
@@ -45,6 +46,7 @@ function serializar(doc: ProjectsTypeDoc): ProjectsResponse {
     description: doc.description,
     managerId: asIdString(doc.managerId),
     members: (doc.members ?? []).map(asIdString),
+    management: doc.management,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -55,6 +57,7 @@ type ProjectsInput = {
   description: string;
   managerId: string;
   members: string[];
+  management: string;
 };
 
 function parseProjectsBody(
@@ -64,11 +67,12 @@ function parseProjectsBody(
     return { ok: false, erro: "Corpo da requisição inválido" };
   }
 
-  const { title, description, managerId, members } = body as {
+  const { title, description, managerId, members, management } = body as {
     title?: unknown;
     description?: unknown;
     managerId?: unknown;
     members?: unknown;
+    management?: unknown;
   };
 
   if (typeof title !== "string" || !title.trim()) {
@@ -87,6 +91,10 @@ function parseProjectsBody(
     return { ok: false, erro: "Campo membros é obrigatório e deve ser um array de IDs válidos" };
   }
 
+  if (typeof management !== "string" || !management.trim()) {
+    return { ok: false, erro: "Campo gerente é obrigatório e deve ser uma string" };
+  }
+
   return {
     ok: true,
     data: {
@@ -94,21 +102,35 @@ function parseProjectsBody(
       description: description.trim(),
       managerId: managerId.trim(),
       members: members.map((member) => member.trim()),
+      management: management.trim(),
     },
   };
 }
 
-export async function list(_req: Request, res: Response): Promise<void> {
-  const itens = await Projects.find().sort({ createdAt: -1 }).lean();
+export async function list(req: Request, res: Response): Promise<void> {
+  const requested =
+    typeof req.query.management === "string" ? req.query.management.trim() : "";
+  const club = await clubManagementsFromSettings();
+  const management = requested || club.currentManagement;
+
+  const itens = await Projects.find(
+    management ? { management } : { _id: { $exists: false } }
+  )
+    .sort({ createdAt: -1 })
+    .lean();
+
   res.json(itens.map((item) => serializar(item as unknown as ProjectsTypeDoc)));
 }
 
 export async function create(req: AuthenticatedRequest, res: Response): Promise<void> {
+  const club = await clubManagementsFromSettings();
+
   const userId = req.user?.sub;
   if (!userId || !mongoose.isValidObjectId(userId)) {
     res.status(401).json({ erro: "Token de autenticação necessário" });
     return;
   }
+  req.body.management = club.currentManagement;
 
   const parsed = parseProjectsBody(req.body);
   if (!parsed.ok) {
@@ -118,7 +140,6 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
 
   const criada = await Projects.create({
     ...parsed.data,
-    createdBy: new mongoose.Types.ObjectId(userId),
   });
 
   await notifyMembers(

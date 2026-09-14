@@ -20,6 +20,7 @@ export type Member = {
   role: MemberRole;
   status: MemberStatus;
   joinedAt: string;
+  managements?: string[];
 };
 
 export type MemberPayload = {
@@ -31,6 +32,7 @@ export type MemberPayload = {
   role: MemberRole;
   status: MemberStatus;
   password?: string;
+  managements?: string[];
 };
 
 export type MemberFilter = "todos" | MemberStatus | "diretoria";
@@ -146,4 +148,38 @@ export function isPastDate(value: string): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return date.getTime() < today.getTime();
+}
+
+export function findMemberByAccount(
+  members: Member[],
+  account: { id?: string; email?: string }
+): Member | undefined {
+  const id = account.id?.trim();
+  if (id) {
+    const byId = members.find((item) => item.id === id);
+    if (byId) return byId;
+  }
+
+  const email = account.email?.trim().toLowerCase();
+  if (!email) return undefined;
+  return members.find((item) => item.email.trim().toLowerCase() === email);
+}
+
+export function uniqueMemberManagements(members: Member[]): string[] {
+  const names = new Set<string>();
+  for (const member of members) {
+    const value = member.managements as unknown;
+    const items = Array.isArray(value)
+      ? value
+      : typeof value === "string" && value.trim()
+        ? [value]
+        : [];
+
+    for (const item of items) {
+      if (typeof item !== "string") continue;
+      const name = item.trim();
+      if (name) names.add(name);
+    }
+  }
+  return [...names].sort((a, b) => a.localeCompare(b, "pt-BR"));
 }

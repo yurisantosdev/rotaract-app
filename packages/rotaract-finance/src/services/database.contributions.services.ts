@@ -2,8 +2,20 @@ import { Contribution, GenerateContributionsPayload } from "../types/contributio
 
 const CONTRIBUTIONS_URL = "/api/finance/contributions";
 
-export async function listContributions(signal: AbortSignal): Promise<Contribution[]> {
-  const response = await fetch(CONTRIBUTIONS_URL, {
+function withManagementQuery(url: string, management: string): string {
+  const params = new URLSearchParams();
+  if (management.trim()) {
+    params.set("management", management.trim());
+  }
+  const query = params.toString();
+  return query ? `${url}?${query}` : url;
+}
+
+export async function listContributions(
+  signal: AbortSignal,
+  management: string
+): Promise<Contribution[]> {
+  const response = await fetch(withManagementQuery(CONTRIBUTIONS_URL, management), {
     signal,
     credentials: "include",
   });
@@ -20,11 +32,17 @@ export async function listContributions(signal: AbortSignal): Promise<Contributi
   return data;
 }
 
-export async function listContributionsOverdue(signal: AbortSignal): Promise<Contribution[]> {
-  const response = await fetch(`${CONTRIBUTIONS_URL}/overdue`, {
-    signal,
-    credentials: "include",
-  });
+export async function listContributionsOverdue(
+  signal: AbortSignal,
+  management: string
+): Promise<Contribution[]> {
+  const response = await fetch(
+    withManagementQuery(`${CONTRIBUTIONS_URL}/overdue`, management),
+    {
+      signal,
+      credentials: "include",
+    }
+  );
 
   if (!response.ok) {
     throw new Error("Não foi possível carregar as mensalidades atrasadas");

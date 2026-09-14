@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useMembersStatus } from "@rotaract/members";
+import { useViewingManagement } from "@rotaract/settings";
 import { Movement, Tab } from "../types/movement";
 import { Contribution, GenerateContributionsPayload, isUnpaidContribution } from "../types/contributions";
 import { createMovement, listMovements, removeMovement, updateMovement } from "./database.movements.services";
@@ -10,17 +12,41 @@ import { downloadFinanceReport } from "./report.services";
 
 export function useFinance(userName: string) {
   const firstName = userName.split(" ")[0] || userName;
+  const membersStatus = useMembersStatus();
+  const { viewingManagement, viewingOptions } = useViewingManagement();
   const [tab, setTab] = useState<Tab>("movimentos");
   const [movements, setMovements] = useState<Movement[]>([]);
   const [contributions, setContributions] =
     useState<Contribution[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingFinance, setIsLoadingFinance] = useState(true);
+  const isLoading =
+    isLoadingFinance ||
+    membersStatus === "idle" ||
+    membersStatus === "loading";
 
   useEffect(() => {
+    if (!viewingManagement) {
+      const waitingForViewing =
+        membersStatus === "idle" ||
+        membersStatus === "loading" ||
+        viewingOptions.length > 0;
+
+      if (waitingForViewing) {
+        setIsLoadingFinance(true);
+        return;
+      }
+
+      setMovements([]);
+      setContributions([]);
+      setIsLoadingFinance(false);
+      return;
+    }
+
     const controller = new AbortController();
+    setIsLoadingFinance(true);
 
     void Promise.all([
-      listMovements(controller.signal)
+      listMovements(controller.signal, viewingManagement)
         .then(setMovements)
         .catch((error: unknown) => {
           if (error instanceof DOMException && error.name === "AbortError") {
@@ -28,7 +54,7 @@ export function useFinance(userName: string) {
           }
           setMovements([]);
         }),
-      listContributions(controller.signal)
+      listContributions(controller.signal, viewingManagement)
         .then(setContributions)
         .catch((error: unknown) => {
           if (error instanceof DOMException && error.name === "AbortError") {
@@ -38,12 +64,12 @@ export function useFinance(userName: string) {
         }),
     ]).finally(() => {
       if (!controller.signal.aborted) {
-        setIsLoading(false);
+        setIsLoadingFinance(false);
       }
     });
 
     return () => controller.abort();
-  }, []);
+  }, [membersStatus, viewingManagement, viewingOptions.length]);
 
   const totals = useMemo(() => {
     const income = movements
@@ -75,6 +101,7 @@ export function useFinance(userName: string) {
     const controller = new AbortController();
 
     return createMovement(controller.signal, movement).then((created) => {
+      if (created.management !== viewingManagement) return;
       setMovements((current) => [
         {
           id: created.id,
@@ -83,6 +110,7 @@ export function useFinance(userName: string) {
           category: created.category,
           type: created.type,
           value: created.value,
+          management: created.management,
         },
         ...current,
       ]);
@@ -94,7 +122,10 @@ export function useFinance(userName: string) {
 
     setMovements((current) => {
       const existingIds = new Set(current.map((item) => item.id));
-      const incoming = created.filter((item) => !existingIds.has(item.id));
+      const incoming = created.filter(
+        (item) =>
+          !existingIds.has(item.id) && item.management === viewingManagement
+      );
       return incoming.length === 0 ? current : [...incoming, ...current];
     });
   }
@@ -134,7 +165,7 @@ export function useFinance(userName: string) {
 
   function refreshMovements() {
     const controller = new AbortController();
-    return listMovements(controller.signal)
+    return listMovements(controller.signal, viewingManagement)
       .then(setMovements)
       .catch(() => undefined);
   }
@@ -216,8 +247,11 @@ export function useFinance(userName: string) {
     const controller = new AbortController();
 
     return generateContributions(controller.signal, payload).then((result) => {
-      if (result.created.length === 0) return;
-      setContributions((current) => [...result.created, ...current]);
+      const created = result.created.filter(
+        (item) => item.management === viewingManagement
+      );
+      if (created.length === 0) return;
+      setContributions((current) => [...created, ...current]);
     });
   }
 

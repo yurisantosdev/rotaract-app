@@ -12,6 +12,7 @@ export type Contribution = {
   value: number;
   date: string;
   status: ContributionStatus;
+  management: string;
   createdAt: Date;
   updatedAt: Date;
 };

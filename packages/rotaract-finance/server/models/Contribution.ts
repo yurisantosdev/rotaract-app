@@ -38,6 +38,11 @@ const contributionSchema = new mongoose.Schema(
       enum: CONTRIBUTION_STATUS,
       trim: true,
     },
+    management: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   },
   {
     timestamps: true,

@@ -3,6 +3,10 @@ import mongoose from "mongoose";
 import { hashPassword } from "../lib/password";
 import { MemberPosition, MemberStatus, MembersType } from "../types/Members";
 import { Member } from "../models/Members";
+import {
+  clubManagementsFromSettings,
+  uniqueManagementNames,
+} from "../lib/clubManagements";
 
 function serializar(member: MembersType) {
   return {
@@ -14,6 +18,7 @@ function serializar(member: MembersType) {
     phone: member.phone,
     status: member.status,
     position: member.position,
+    managements: member.managements,
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
   };
@@ -32,13 +37,17 @@ function isDuplicateKey(err: unknown): boolean {
   );
 }
 
+function allowsManagement(name: string, allowed: string[]): boolean {
+  return allowed.some((item) => item.toLowerCase() === name.toLowerCase());
+}
+
 export async function list(req: Request, res: Response): Promise<void> {
   const itens = await Member.find().sort({ createdAt: -1 }).lean();
   res.json(itens.map((c) => serializar(c as unknown as MembersType)));
 }
 
 export async function create(req: Request, res: Response): Promise<void> {
-  const { name, password, photo, email, birthDate, status, position, phone } = req.body as {
+  const { name, password, photo, email, birthDate, position, phone, managements } = req.body as {
     name?: string;
     password?: string;
     photo?: string;
@@ -47,6 +56,7 @@ export async function create(req: Request, res: Response): Promise<void> {
     status?: MemberStatus;
     position?: MemberPosition;
     phone?: string;
+    managements?: unknown;
   };
 
   if (typeof name !== "string" || !name.trim()) {
@@ -78,6 +88,41 @@ export async function create(req: Request, res: Response): Promise<void> {
   }
 
   try {
+    const club = await clubManagementsFromSettings();
+    if (!club.currentManagement) {
+      res.status(400).json({
+        erro: "Cadastre a gestão atual do clube antes de criar um membro.",
+      });
+      return;
+    }
+
+    const parsedManagements = uniqueManagementNames(managements);
+    if (managements !== undefined && parsedManagements === null) {
+      res.status(400).json({
+        erro: "Campo gestões deve ser um array de strings.",
+      });
+      return;
+    }
+
+    const nextManagements =
+      parsedManagements && parsedManagements.length > 0
+        ? parsedManagements
+        : [club.currentManagement];
+
+    if (nextManagements.length === 0) {
+      res.status(400).json({ erro: "Selecione ao menos uma gestão." });
+      return;
+    }
+
+    if (
+      nextManagements.some((item) => !allowsManagement(item, club.managements))
+    ) {
+      res.status(400).json({
+        erro: "Há gestões que não existem no cadastro do clube.",
+      });
+      return;
+    }
+
     const hash = await hashPassword(password);
     const dados: {
       name: string;
@@ -88,6 +133,7 @@ export async function create(req: Request, res: Response): Promise<void> {
       status?: MemberStatus;
       position: MemberPosition;
       phone?: string;
+      managements: string[];
     } = {
       name: name.trim(),
       password: hash,
@@ -95,6 +141,7 @@ export async function create(req: Request, res: Response): Promise<void> {
       birthDate: birthDate.trim(),
       position,
       phone: digitsOnly(phone),
+      managements: nextManagements,
     };
 
     if (typeof photo === "string" && photo.trim()) {
@@ -123,7 +170,17 @@ export async function update(req: Request, res: Response): Promise<void> {
     return;
   }
 
-  const { name, password, photo, email, birthDate, status, position, phone } = req.body as {
+  const {
+    name,
+    password,
+    photo,
+    email,
+    birthDate,
+    status,
+    position,
+    phone,
+    managements
+  } = req.body as {
     name?: string;
     password?: string;
     photo?: string;
@@ -132,6 +189,7 @@ export async function update(req: Request, res: Response): Promise<void> {
     status?: MemberStatus;
     position?: MemberPosition;
     phone?: string;
+    managements?: unknown;
   };
 
   if (typeof name !== "string" || !name.trim()) {
@@ -166,6 +224,7 @@ export async function update(req: Request, res: Response): Promise<void> {
       status?: MemberStatus;
       position: MemberPosition;
       phone?: string;
+      managements?: string[];
     } = {
       name: name.trim(),
       email: email.trim(),
@@ -173,6 +232,34 @@ export async function update(req: Request, res: Response): Promise<void> {
       position,
       phone: digitsOnly(phone),
     };
+
+    if (managements !== undefined) {
+      const parsedManagements = uniqueManagementNames(managements);
+      if (parsedManagements === null || parsedManagements.length === 0) {
+        res.status(400).json({
+          erro: "Selecione ao menos uma gestão de acesso.",
+        });
+        return;
+      }
+
+      const club = await clubManagementsFromSettings();
+      const existing = await Member.findById(id).lean();
+      const allowed = [
+        ...club.managements,
+        ...((existing?.managements as string[] | undefined) ?? []),
+      ];
+
+      if (
+        parsedManagements.some((item) => !allowsManagement(item, allowed))
+      ) {
+        res.status(400).json({
+          erro: "Há gestões que não existem no cadastro do clube.",
+        });
+        return;
+      }
+
+      dados.managements = parsedManagements;
+    }
 
     if (typeof password === "string" && password.length > 0) {
       dados.password = await hashPassword(password);

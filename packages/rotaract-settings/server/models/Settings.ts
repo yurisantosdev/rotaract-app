@@ -22,6 +22,15 @@ const settingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    currentManagement: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    managements: {
+      type: [String],
+      required: true,
+    }
   },
   {
     timestamps: true,

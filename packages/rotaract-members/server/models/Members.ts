@@ -48,6 +48,10 @@ const membersSchema = new mongoose.Schema(
       trim: true,
       enum: MEMBER_POSITION,
     },
+    managements: {
+      type: [String],
+      required: false,
+    }
   },
   {
     timestamps: true,

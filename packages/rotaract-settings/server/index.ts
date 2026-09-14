@@ -4,3 +4,4 @@ export type {
   SettingResponse,
   SettingTypeDoc,
 } from "./types/Setting";
+export { clubManagementsFromSettings, uniqueManagementNames } from "./controllers/settingsController";

@@ -12,6 +12,7 @@ import {
 import { formatBRL, formatMoneyInput } from "./services/money.services";
 import { PreView } from "./components/preView";
 import { useSettings } from "./services/settings.services";
+import { CurrentManagement } from "./components/currentManagement";
 
 export function ConfigPage({
   userName,
@@ -38,7 +39,10 @@ export function ConfigPage({
     setDiscardOpen,
     discardOpen,
     resetTo,
-    saved
+    saved,
+    currentManagement,
+    managements,
+    handleCreateManagement,
   } = data;
 
   return (
@@ -51,16 +55,10 @@ export function ConfigPage({
         <TitleModule
           module="Módulo configurações"
           title="Clube"
-          description={`Olá, ${firstName}. Ajuste a identidade e o valor padrão da mensalidade.`}
+          description={`Olá, ${firstName}. Ajuste a identidade, a gestão e o valor padrão da mensalidade.`}
         />
 
-        <PreView
-          clubName={clubName}
-          logoUrl={logoUrl}
-          membershipFee={Number.isFinite(draftFee) ? draftFee : 0}
-        />
-
-        <form onSubmit={handleSubmit} className="mt-5 grid gap-4 lg:grid-cols-5">
+        <form onSubmit={handleSubmit} className="mt-8 grid gap-4 lg:grid-cols-5 lg:items-start">
           <section className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-6 lg:col-span-3">
             <h2 className="text-lg font-semibold tracking-tight text-zinc-900">
               Identidade
@@ -70,6 +68,13 @@ export function ConfigPage({
             </p>
 
             <div className="mt-6">
+              <PreView
+                clubName={clubName}
+                logoUrl={logoUrl}
+              />
+            </div>
+
+            <div className="mt-5">
               <ClubLogoField
                 clubName={clubName}
                 logoUrl={logoUrl}
@@ -94,43 +99,51 @@ export function ConfigPage({
             </label>
           </section>
 
-          <section className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-6 lg:col-span-2">
-            <h2 className="text-lg font-semibold tracking-tight text-zinc-900">
-              Mensalidade
-            </h2>
-            <p className="mt-1 text-sm leading-relaxed text-zinc-500">
-              Valor padrão ao gerar as cobranças dos sócios.
-            </p>
+          <div className="flex flex-col gap-4 lg:col-span-2">
+            <CurrentManagement
+              currentManagement={currentManagement}
+              managements={managements}
+              onCreateManagement={handleCreateManagement}
+            />
 
-            <label className="mt-6 block">
-              <span className="mb-1.5 block text-sm text-zinc-600">Valor da mensalidade</span>
-              <span className="relative block">
-                <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-sm text-zinc-400">
-                  R$
-                </span>
-                <input
-                  inputMode="numeric"
-                  autoComplete="off"
-                  value={feeInput}
-                  onChange={(event) => setFeeInput(formatMoneyInput(event.target.value))}
-                  className={`${SETTINGS_INPUT_CLASS} pl-12 tabular-nums`}
-                  placeholder="0,00"
-                />
-              </span>
-            </label>
-
-            <div className="mt-5 rounded-2xl bg-rotaract-mist px-4 py-3">
-              <p className="text-sm text-zinc-600">
-                Cada sócio passa a ter a cobrança padrão de{" "}
-                <span className="font-semibold tabular-nums text-zinc-900">
-                  {Number.isFinite(draftFee) && draftFee > 0
-                    ? formatBRL(draftFee)
-                    : "—"}
-                </span>{" "}
-                por mês.
+            <section className="rounded-3xl border border-zinc-200 bg-white p-5 sm:p-6">
+              <h2 className="text-lg font-semibold tracking-tight text-zinc-900">
+                Mensalidade
+              </h2>
+              <p className="mt-1 text-sm leading-relaxed text-zinc-500">
+                Valor padrão ao gerar as cobranças dos sócios.
               </p>
-            </div>
-          </section>
+
+              <label className="mt-6 block">
+                <span className="mb-1.5 block text-sm text-zinc-600">Valor da mensalidade</span>
+                <span className="relative block">
+                  <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-sm text-zinc-400">
+                    R$
+                  </span>
+                  <input
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={feeInput}
+                    onChange={(event) => setFeeInput(formatMoneyInput(event.target.value))}
+                    className={`${SETTINGS_INPUT_CLASS} pl-12 tabular-nums`}
+                    placeholder="0,00"
+                  />
+                </span>
+              </label>
+
+              <div className="mt-5 rounded-2xl bg-rotaract-mist px-4 py-3">
+                <p className="text-sm text-zinc-600">
+                  Cada sócio passa a ter a cobrança padrão de{" "}
+                  <span className="font-semibold tabular-nums text-zinc-900">
+                    {Number.isFinite(draftFee) && draftFee > 0
+                      ? formatBRL(draftFee)
+                      : "—"}
+                  </span>{" "}
+                  por mês.
+                </p>
+              </div>
+            </section>
+          </div>
 
           <div className="lg:col-span-5">
             {error ? (
