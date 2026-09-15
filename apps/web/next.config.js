@@ -9,6 +9,8 @@ const nextConfig = {
     "@rotaract/members",
     "@rotaract/calendar",
     "@rotaract/notices",
+    "@rotaract/projects",
+    "@rotaract/pautas",
   ],
   async rewrites() {
     return [

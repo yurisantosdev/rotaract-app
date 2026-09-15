@@ -234,6 +234,29 @@ export async function update(req: Request, res: Response): Promise<void> {
 
     const obj = atualizada.toObject();
 
+    try {
+      const PautasModel = mongoose.models.Pautas;
+      if (PautasModel) {
+        const acceptedIds = (obj.members ?? [])
+          .filter((member) => member.accept === "accepted")
+          .map((member) => member._id.toString())
+          .filter((memberId) => mongoose.isValidObjectId(memberId))
+          .map((memberId) => new mongoose.Types.ObjectId(memberId));
+
+        if (acceptedIds.length > 0) {
+          await PautasModel.updateMany(
+            { calendarEventId: obj._id },
+            {
+              $addToSet: { presentMemberIds: { $each: acceptedIds } },
+              $set: { generatedAt: null },
+            }
+          );
+        }
+      }
+    } catch (syncError) {
+      console.error("Falha ao sincronizar presentes da pauta:", syncError);
+    }
+
     members.map(async (member) => {
       await createNotice(
         memberIdOf(member),

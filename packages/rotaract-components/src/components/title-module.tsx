@@ -13,7 +13,7 @@ export function TitleModule({
             {module}
           </p>
         ) : null}
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-900 break-words sm:text-4xl">
+        <h1 className="mt-3 md:text-3xl text-2xl font-semibold tracking-tight text-zinc-900 break-words sm:text-4xl">
           {title}
         </h1>
         {description ? (

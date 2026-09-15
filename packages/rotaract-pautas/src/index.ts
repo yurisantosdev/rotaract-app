@@ -1,0 +1,1 @@
+export { PautasPage } from "./PautasPage";

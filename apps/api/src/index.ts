@@ -15,6 +15,7 @@ import { membersRouter } from "@rotaract/members/server";
 import { calendarRouter } from "@rotaract/calendar/server";
 import { noticesRouter } from "@rotaract/notices/server";
 import { projectsRoutes, tasksRoutes } from "@rotaract/projects/server";
+import { pautasRouter } from "@rotaract/pautas/server";
 
 import { startCronJobs } from "@rotaract/scripts/server";
 
@@ -189,6 +190,7 @@ app.use("/api/calendar", requireAuth, calendarRouter);
 app.use("/api/notices", requireAuth, noticesRouter);
 app.use("/api/projects", requireAuth, projectsRoutes);
 app.use("/api/tasks", requireAuth, tasksRoutes);
+app.use("/api/pautas", requireAuth, pautasRouter);
 
 export default app;
 

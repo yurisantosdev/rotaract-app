@@ -1,4 +1,4 @@
-import { CalendarBlankIcon, CurrencyCircleDollarIcon, GearIcon, PencilRulerIcon, UsersThreeIcon } from "@phosphor-icons/react";
+import { CalendarBlankIcon, CurrencyCircleDollarIcon, GearIcon, PencilRulerIcon, ScrollIcon, UsersThreeIcon } from "@phosphor-icons/react";
 
 export const modules = [
   {
@@ -35,6 +35,15 @@ export const modules = [
     action: "Abrir projetos",
     icon: (
       <PencilRulerIcon size={25} />
+    ),
+  },
+  {
+    title: "Pautas",
+    description: "Gerenciamento de pautas do clube.",
+    href: "/home/pautas",
+    action: "Abrir pautas",
+    icon: (
+      <ScrollIcon size={25} />
     ),
   },
   {

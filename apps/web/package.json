@@ -19,6 +19,7 @@
     "@rotaract/notices": "*",
     "@rotaract/settings": "*",
     "@rotaract/projects": "*",
+    "@rotaract/pautas": "*",
     "@reduxjs/toolkit": "^2.12.0",
     "next": "16.3.2",
     "react": "19.2.8",
