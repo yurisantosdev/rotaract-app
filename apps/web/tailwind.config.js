@@ -10,6 +10,7 @@ const config = {
     "../../packages/rotaract-notices/src/**/*.{ts,tsx}",
     "../../packages/rotaract-projects/src/**/*.{ts,tsx}",
     "../../packages/rotaract-components/src/**/*.{ts,tsx}",
+    "../../packages/rotaract-reports/src/**/*.{ts,tsx}",
   ],
   theme: {
     extend: {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { UserIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
-import type { AuthUser } from "../lib/types";
+import { AuthUser } from "@rotaract/members";
 import { useClubBranding } from "../home/_components/club-branding";
 import { Notice } from "@rotaract/notices";
 import { ProfileDialog } from "./profile-dialog";

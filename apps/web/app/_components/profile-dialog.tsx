@@ -12,7 +12,7 @@ import {
   useMembers,
   useMembersStatus,
 } from "@rotaract/members";
-import type { AuthUser } from "../lib/types";
+import { AuthUser } from "@rotaract/members";
 import type { AppDispatch } from "../store";
 
 type ProfileDialogProps = {
@@ -115,6 +115,7 @@ export function ProfileDialog({
         name: updated.name,
         email: updated.email,
         photo: updated.photo,
+        developer: false,
       });
       onClose();
     } catch (caught: unknown) {

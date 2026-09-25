@@ -81,6 +81,14 @@ export type MembersPageProps = {
   backHref?: string;
 };
 
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  photo?: string;
+  developer: boolean;
+};
+
 export function normalizeSearch(value: string): string {
   return value
     .normalize("NFD")

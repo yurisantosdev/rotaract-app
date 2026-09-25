@@ -1,14 +1,14 @@
 import type { Request, Response } from "express";
 import mongoose from "mongoose";
 import { hashPassword } from "../lib/password";
-import { MemberPosition, MemberStatus, MembersType } from "../types/Members";
+import { MemberPosition, MemberStatus, MembersResponse, MembersType } from "../types/Members";
 import { Member } from "../models/Members";
 import {
   clubManagementsFromSettings,
   uniqueManagementNames,
 } from "../lib/clubManagements";
 
-function serializar(member: MembersType) {
+export function serializar(member: MembersType): MembersResponse {
   return {
     id: member._id.toString(),
     name: member.name,
@@ -19,6 +19,7 @@ function serializar(member: MembersType) {
     status: member.status,
     position: member.position,
     managements: member.managements,
+    developer: member.developer,
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
   };
@@ -47,7 +48,7 @@ export async function list(req: Request, res: Response): Promise<void> {
 }
 
 export async function create(req: Request, res: Response): Promise<void> {
-  const { name, password, photo, email, birthDate, position, phone, managements } = req.body as {
+  const { name, password, photo, email, birthDate, position, phone, managements, developer } = req.body as {
     name?: string;
     password?: string;
     photo?: string;
@@ -57,6 +58,7 @@ export async function create(req: Request, res: Response): Promise<void> {
     position?: MemberPosition;
     phone?: string;
     managements?: unknown;
+    developer?: boolean;
   };
 
   if (typeof name !== "string" || !name.trim()) {
@@ -134,6 +136,7 @@ export async function create(req: Request, res: Response): Promise<void> {
       position: MemberPosition;
       phone?: string;
       managements: string[];
+      developer?: boolean;
     } = {
       name: name.trim(),
       password: hash,
@@ -142,6 +145,7 @@ export async function create(req: Request, res: Response): Promise<void> {
       position,
       phone: digitsOnly(phone),
       managements: nextManagements,
+      developer: developer ?? false,
     };
 
     if (typeof photo === "string" && photo.trim()) {
@@ -149,7 +153,7 @@ export async function create(req: Request, res: Response): Promise<void> {
     }
 
     dados.status = 'ativo';
-
+    dados.developer = developer ?? false;
     const criada = await Member.create(dados);
     const obj = criada.toObject();
     delete obj.password;
@@ -179,7 +183,8 @@ export async function update(req: Request, res: Response): Promise<void> {
     status,
     position,
     phone,
-    managements
+    managements,
+    developer
   } = req.body as {
     name?: string;
     password?: string;
@@ -190,6 +195,7 @@ export async function update(req: Request, res: Response): Promise<void> {
     position?: MemberPosition;
     phone?: string;
     managements?: unknown;
+    developer?: boolean;
   };
 
   if (typeof name !== "string" || !name.trim()) {
@@ -225,12 +231,14 @@ export async function update(req: Request, res: Response): Promise<void> {
       position: MemberPosition;
       phone?: string;
       managements?: string[];
+      developer?: boolean;
     } = {
       name: name.trim(),
       email: email.trim(),
       birthDate: birthDate.trim(),
       position,
       phone: digitsOnly(phone),
+      developer: developer ?? false,
     };
 
     if (managements !== undefined) {

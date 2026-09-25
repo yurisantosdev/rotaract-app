@@ -17,6 +17,22 @@ export type MembersType = {
   status: MemberStatus;
   position: MemberPosition;
   managements?: string[];
+  developer?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type MembersResponse = {
+  id: string;
+  name: string;
+  email: string;
+  photo?: string;
+  birthDate?: string;
+  phone?: string;
+  status: MemberStatus;
+  position: MemberPosition;
+  managements?: string[];
+  developer?: boolean;
   createdAt: Date;
   updatedAt: Date;
 };

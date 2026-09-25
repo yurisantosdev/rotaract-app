@@ -75,6 +75,7 @@ export async function me(req: Request, res: Response): Promise<void> {
     name: member.name,
     email: member.email,
     photo: member.photo,
+    developer: member.developer,
     createdAt: member.createdAt,
     updatedAt: member.updatedAt,
   });

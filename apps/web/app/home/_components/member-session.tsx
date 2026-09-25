@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";
-import type { AuthUser } from "../../lib/types";
+import { AuthUser } from "@rotaract/members";
 
 type MemberSession = {
   user: AuthUser;

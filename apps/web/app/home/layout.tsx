@@ -8,11 +8,12 @@ import { loadNotices, noticesClean } from "@rotaract/notices";
 import { AppHeader } from "../_components/app-header";
 import { apiFetch } from "../lib/api";
 import { clearSession, endInvalidSession, getToken, setLoginNotice } from "../lib/auth";
-import type { AuthUser } from "../lib/types";
+import { AuthUser } from "@rotaract/members";
 import type { AppDispatch } from "../store";
 import { ClubBrandingProvider } from "./_components/club-branding";
 import { MemberSessionProvider } from "./_components/member-session";
 import { Loading } from "@rotaract/components";
+import { Reports } from "@rotaract/reports";
 import { ViewingManagementProvider } from "@rotaract/settings";
 
 export default function HomeLayout({
@@ -92,6 +93,7 @@ export default function HomeLayout({
               onReloginRequired={handleReloginRequired}
             />
             <MemberSessionProvider user={user}>{children}</MemberSessionProvider>
+            <Reports />
           </ViewingManagementProvider>
         </ClubBrandingProvider>
       </div>

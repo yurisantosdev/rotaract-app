@@ -16,6 +16,7 @@ import { calendarRouter } from "@rotaract/calendar/server";
 import { noticesRouter } from "@rotaract/notices/server";
 import { projectsRoutes, tasksRoutes } from "@rotaract/projects/server";
 import { pautasRouter } from "@rotaract/pautas/server";
+import { reportsRouter } from "@rotaract/reports/server";
 
 import { startCronJobs } from "@rotaract/scripts/server";
 
@@ -140,7 +141,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "15mb" }));
 
 function payloadSaude(db: boolean) {
   const mongodbUri = lerMongoUri();
@@ -191,6 +192,7 @@ app.use("/api/notices", requireAuth, noticesRouter);
 app.use("/api/projects", requireAuth, projectsRoutes);
 app.use("/api/tasks", requireAuth, tasksRoutes);
 app.use("/api/pautas", requireAuth, pautasRouter);
+app.use("/api/reports", requireAuth, reportsRouter);
 
 export default app;
 
