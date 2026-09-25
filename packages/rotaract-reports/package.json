@@ -5,7 +5,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./server": {
-      "types": "./server/index.ts",
+      "types": "./dist/server/index.d.ts",
       "require": "./dist/server/index.js",
       "import": "./dist/server/index.js",
       "default": "./dist/server/index.js"
@@ -27,6 +27,8 @@
     "@phosphor-icons/react": "^2.1.10",
     "@reduxjs/toolkit": "^2.12.0",
     "@rotaract/components": "*",
+    "@rotaract/members": "*",
+    "@rotaract/notices": "*",
     "html2canvas": "^1.4.1",
     "next": "16.3.3",
     "react": "19.2.8",
