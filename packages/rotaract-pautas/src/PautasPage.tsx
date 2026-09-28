@@ -38,6 +38,8 @@ export function PautasPage({
     handleImportPendingItems,
     handleGeneratePdf,
     handleDownloadPdf,
+    handleSaveDocument,
+    club,
   } = data;
 
   return (
@@ -95,6 +97,8 @@ export function PautasPage({
             canImportPendingItems={canImportPendingItems}
             onGeneratePdf={handleGeneratePdf}
             onDownloadPdf={handleDownloadPdf}
+            onSaveDocument={handleSaveDocument}
+            club={club}
             generatingPdf={generatingPdf}
             downloadingPdf={downloadingPdf}
           />

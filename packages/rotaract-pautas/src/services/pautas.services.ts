@@ -19,6 +19,7 @@ import {
   movePautaItem,
   removePauta,
   removePautaItem,
+  savePautaDocument,
   updatePauta,
   updatePautaItem,
 } from "./database.pautas.services";
@@ -138,6 +139,15 @@ export function usePautas(userName: string) {
     const controller = new AbortController();
 
     return updatePauta(selected.id, controller.signal, payload).then(replacePauta);
+  }
+
+  function handleSaveDocument(documentHtml: string) {
+    if (!selected) return Promise.resolve();
+    const controller = new AbortController();
+
+    return savePautaDocument(selected.id, controller.signal, documentHtml).then(
+      replacePauta
+    );
   }
 
   function handleRemovePauta() {
@@ -348,5 +358,7 @@ export function usePautas(userName: string) {
     handleImportPendingItems,
     handleGeneratePdf,
     handleDownloadPdf,
+    handleSaveDocument,
+    club,
   };
 }

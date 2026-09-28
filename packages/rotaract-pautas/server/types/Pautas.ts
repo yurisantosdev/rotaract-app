@@ -35,6 +35,7 @@ export type PautasTypeDoc = {
   type: PautaType;
   status: PautaStatus;
   notes: string;
+  documentHtml: string;
   presentMemberIds: Array<mongoose.Types.ObjectId | string>;
   items: PautaItemTypeDoc[];
   calendarEventId: mongoose.Types.ObjectId | string | null;
@@ -61,6 +62,7 @@ export type PautasResponse = {
   type: PautaType;
   status: PautaStatus;
   notes: string;
+  documentHtml: string;
   presentMemberIds: string[];
   items: PautaItemResponse[];
   calendarEventId: string | null;

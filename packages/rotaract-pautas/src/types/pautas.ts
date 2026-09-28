@@ -27,6 +27,7 @@ export type Pauta = {
   type: PautaType;
   status: PautaStatus;
   notes: string;
+  documentHtml: string;
   presentMemberIds: string[];
   items: PautaItem[];
   calendarEventId: string | null;
@@ -183,6 +184,11 @@ export type PautaDetailProps = {
   canImportPendingItems: boolean;
   onGeneratePdf: () => void | Promise<void>;
   onDownloadPdf: () => void | Promise<void>;
+  onSaveDocument: (documentHtml: string) => void | Promise<void>;
+  club: {
+    clubName: string;
+    logoUrl?: string;
+  };
   generatingPdf: boolean;
   downloadingPdf: boolean;
 };

@@ -12,6 +12,7 @@ import {
   FilePdfIcon,
   PencilSimpleIcon,
   PlusIcon,
+  TextAaIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
 import {
@@ -36,6 +37,7 @@ import {
   PAUTA_ITEM_STATUS_STYLES,
 } from "../../types/pautaItems";
 import { EditDeletePauta } from "../editDeletePauta";
+import { PautaDocumentModal } from "../pautaDocumentModal";
 import { PautaFormModal } from "../pautaFormModal";
 import { PautaItemFormModal } from "../pautaItemFormModal";
 import { PautaProgressBar } from "../pautaProgressBar";
@@ -57,6 +59,8 @@ export function PautaDetail({
   canImportPendingItems,
   onGeneratePdf,
   onDownloadPdf,
+  onSaveDocument,
+  club,
   generatingPdf,
   downloadingPdf,
 }: PautaDetailProps) {
@@ -75,6 +79,8 @@ export function PautaDetail({
     canImportPendingItems,
     onGeneratePdf,
     onDownloadPdf,
+    onSaveDocument,
+    club,
     generatingPdf,
     downloadingPdf,
   });
@@ -85,6 +91,8 @@ export function PautaDetail({
     setCelebrate,
     pautaFormOpen,
     setPautaFormOpen,
+    documentOpen,
+    setDocumentOpen,
     itemFormOpen,
     itemToDelete,
     setItemToDelete,
@@ -165,11 +173,10 @@ export function PautaDetail({
           </div>
 
           <div
-            className={`shrink-0 items-center gap-2 ${
-              canMarkAsRealized
-                ? "flex w-full md:w-auto"
-                : "hidden md:flex"
-            }`}
+            className={`shrink-0 items-center gap-2 ${canMarkAsRealized
+              ? "flex w-full md:w-auto"
+              : "hidden md:flex"
+              }`}
           >
             {canMarkAsRealized ? (
               <div className="min-w-0 flex-1 [&>span]:flex [&>span]:w-full md:flex-none md:[&>span]:w-auto">
@@ -233,11 +240,24 @@ export function PautaDetail({
               Documento
             </p>
             <p className="mt-3 text-sm text-zinc-500">
-              {canDownload
-                ? "A pauta já foi gerada. Qualquer alteração exige gerar o PDF de novo."
-                : "Gere o PDF com os dados atuais para liberar o download."}
+              {pauta.documentHtml.trim()
+                ? "Há um texto editado. Gere o PDF de novo para baixar essa versão."
+                : canDownload
+                  ? "A pauta já foi gerada. Qualquer alteração exige gerar o PDF de novo."
+                  : "Gere o PDF com os dados atuais para liberar o download."}
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2">
+              <Tooltip label="Editar documento">
+                <button
+                  type="button"
+                  aria-label="Editar documento"
+                  onClick={() => setDocumentOpen(true)}
+                  className="inline-flex h-11 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700 transition hover:border-rotaract-pink/30 hover:text-rotaract-pink"
+                >
+                  <TextAaIcon className="h-5 w-5" />
+                  Editar
+                </button>
+              </Tooltip>
               <Tooltip label="Gerar pauta em PDF">
                 <Button
                   aria-label="Gerar pauta"
@@ -526,6 +546,15 @@ export function PautaDetail({
         members={members}
         onClose={() => setPautaFormOpen(false)}
         onSave={onUpdatePauta}
+      />
+
+      <PautaDocumentModal
+        open={documentOpen}
+        pauta={pauta}
+        members={members}
+        club={club}
+        onClose={() => setDocumentOpen(false)}
+        onSave={onSaveDocument}
       />
 
       <PautaItemFormModal

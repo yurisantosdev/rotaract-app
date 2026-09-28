@@ -6,6 +6,7 @@ import {
   mergeAcceptedIntoPresent,
   syncPautasWithAcceptedCalendarMembers,
 } from "../lib/calendarSync";
+import { sanitizeStoredDocumentHtml } from "../lib/sanitizeDocumentHtml";
 import { Pautas } from "../models/Pautas";
 import type { AuthenticatedRequest } from "../types/express";
 import {
@@ -79,6 +80,7 @@ function serialize(doc: PautasTypeDoc): PautasResponse {
     type: doc.type,
     status: doc.status,
     notes: doc.notes ?? "",
+    documentHtml: doc.documentHtml ?? "",
     presentMemberIds: (doc.presentMemberIds ?? []).map(asIdString).filter(Boolean),
     items: sortItems(doc.items ?? []).map(serializeItem),
     calendarEventId: asIdString(doc.calendarEventId) || null,
@@ -506,6 +508,7 @@ export async function duplicate(req: AuthenticatedRequest, res: Response): Promi
     type: current.type,
     status: "rascunho",
     notes: current.notes ?? "",
+    documentHtml: current.documentHtml ?? "",
     presentMemberIds: current.presentMemberIds ?? [],
     calendarEventId: current.calendarEventId ?? null,
     items,
@@ -523,6 +526,34 @@ export async function generate(req: Request, res: Response): Promise<void> {
   const atualizada = await Pautas.findByIdAndUpdate(
     id,
     { generatedAt: new Date() },
+    { new: true, runValidators: true }
+  ).lean();
+
+  if (!atualizada) {
+    res.status(404).json({ erro: "Pauta não encontrada" });
+    return;
+  }
+
+  res.json(serialize(atualizada as unknown as PautasTypeDoc));
+}
+
+export async function updateDocument(req: Request, res: Response): Promise<void> {
+  const id = requirePautaId(req.params.id, res);
+  if (!id) return;
+
+  const parsed = sanitizeStoredDocumentHtml(
+    typeof req.body === "object" && req.body !== null
+      ? (req.body as { documentHtml?: unknown }).documentHtml
+      : undefined
+  );
+  if (!parsed.ok) {
+    res.status(400).json({ erro: parsed.erro });
+    return;
+  }
+
+  const atualizada = await Pautas.findByIdAndUpdate(
+    id,
+    { documentHtml: parsed.html, generatedAt: null },
     { new: true, runValidators: true }
   ).lean();
 

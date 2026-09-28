@@ -119,6 +119,7 @@ function parsePauta(data: unknown): Pauta {
     type: asPautaType(row.type),
     status: asPautaStatus(row.status),
     notes: typeof row.notes === "string" ? row.notes : "",
+    documentHtml: typeof row.documentHtml === "string" ? row.documentHtml : "",
     presentMemberIds: Array.isArray(row.presentMemberIds)
       ? row.presentMemberIds.map(asId).filter(Boolean)
       : [],
@@ -271,6 +272,30 @@ export async function updatePauta(
   if (!response.ok) {
     throw new Error(
       await readApiError(response, "Não foi possível atualizar a pauta")
+    );
+  }
+
+  return parsePauta(await response.json());
+}
+
+export async function savePautaDocument(
+  id: string,
+  signal: AbortSignal,
+  documentHtml: string
+): Promise<Pauta> {
+  const response = await fetch(`${PAUTAS_URL}/${id}/document`, {
+    method: "PUT",
+    signal,
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ documentHtml }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await readApiError(response, "Não foi possível salvar o documento")
     );
   }
 

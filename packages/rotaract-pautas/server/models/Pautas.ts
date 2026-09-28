@@ -67,6 +67,11 @@ const pautasSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    documentHtml: {
+      type: String,
+      required: false,
+      default: "",
+    },
     presentMemberIds: {
       type: [mongoose.Schema.Types.ObjectId],
       required: true,

@@ -7,6 +7,7 @@ pautasRoutes.get("/", controller.list);
 pautasRoutes.post("/", controller.create);
 pautasRoutes.post("/:id/duplicate", controller.duplicate);
 pautasRoutes.post("/:id/generate", controller.generate);
+pautasRoutes.put("/:id/document", controller.updateDocument);
 pautasRoutes.post("/:id/import-pending", controller.importPending);
 pautasRoutes.post("/:id/items", controller.createItem);
 pautasRoutes.post("/:id/items/:itemId/move", controller.moveItem);

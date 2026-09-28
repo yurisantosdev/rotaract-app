@@ -27,6 +27,7 @@ export function usePautaDetail({
   const [editingItem, setEditingItem] = useState<PautaItem | null>(null);
   const [itemToDelete, setItemToDelete] = useState<PautaItem | null>(null);
   const [confirmRemovePauta, setConfirmRemovePauta] = useState(false);
+  const [documentOpen, setDocumentOpen] = useState(false);
   const [itemFilter, setItemFilter] = useState<PautaItemFilter>("todos");
   const [celebrate, setCelebrate] = useState(false);
   const [celebrationBurst, setCelebrationBurst] = useState(0);
@@ -144,6 +145,8 @@ export function usePautaDetail({
     handleMarkAsRealized,
     pautaFormOpen,
     setPautaFormOpen,
+    documentOpen,
+    setDocumentOpen,
     itemFormOpen,
     itemToDelete,
     setItemToDelete,

@@ -1,4 +1,5 @@
 import type { Member } from "@rotaract/members";
+import { sanitizeDocumentHtml } from "./sanitizeDocumentHtml";
 import { formatDateLong } from "./dates";
 import { membersByIds } from "./members";
 import {
@@ -6,7 +7,7 @@ import {
   pautaTypeLabel,
   type Pauta,
 } from "../types/pautas";
-import { pautaItemStatusLabel, sortPautaItems } from "../types/pautaItems";
+import { sortPautaItems } from "../types/pautaItems";
 
 export type PautaClubInfo = {
   clubName: string;
@@ -22,7 +23,20 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function buildPautaHtml(
+const DOCUMENT_BASE_CSS = `
+  h1 { font-size: 22px; font-weight: 700; margin: 0; line-height: 1.2; }
+  h2 { font-size: 20px; font-weight: 700; margin: 12px 0 6px; }
+  h3 { font-size: 14px; font-weight: 700; margin: 10px 0 6px; }
+  p { margin: 6px 0; font-size: 14px; line-height: 1.5; }
+  ul { margin: 8px 0; padding-left: 1.25rem; }
+  ol { margin: 8px 0; padding-left: 1.25rem; }
+  li { margin: 2px 0; }
+  strong, b { font-weight: 700; }
+  em, i { font-style: italic; }
+  u { text-decoration: underline; }
+`;
+
+export function buildPautaInnerHtml(
   pauta: Pauta,
   members: Member[],
   club: PautaClubInfo
@@ -49,23 +63,19 @@ function buildPautaHtml(
 
   const itemsHtml =
     items.length === 0
-      ? `<p style="margin:0;color:#71717a;font-size:13px;">Nenhum item cadastrado nesta pauta.</p>`
+      ? `<p style="margin:0;color:#71717a;font-size:14px;">Nenhum item cadastrado nesta pauta.</p>`
       : items
         .map((item, index) => {
-          const responsible = members.find((member) => member.id === item.responsibleId);
-          return `<article style="border:1px solid #f4f4f5;border-radius:16px;padding:14px 16px;margin-bottom:10px;background:#fafafa;">
-              <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;">
-                <p style="margin:0;font-size:14px;font-weight:600;color:#18181b;">${index + 1}. ${escapeHtml(item.title)}</p>
-                <span style="font-size:11px;font-weight:700;color:#ff2d7a;white-space:nowrap;">${escapeHtml(pautaItemStatusLabel(item.status))}</span>
-              </div>
-              ${item.description ? `<p style="margin:8px 0 0;font-size:13px;color:#52525b;line-height:1.45;">${escapeHtml(item.description)}</p>` : ""}
-              <p style="margin:8px 0 0;font-size:12px;color:#71717a;">Responsável: ${escapeHtml(responsible?.name ?? "Não informado")}</p>
-            </article>`;
+          const description = item.description.trim();
+          return `<p style="margin:${index === 0 ? "0" : "16px"} 0 0;font-size:14px;font-weight:700;color:#18181b;">${index + 1}. ${escapeHtml(item.title)}</p>${
+            description
+              ? `<p style="margin:4px 0 0;font-size:14px;line-height:1.5;color:#18181b;white-space:pre-wrap;">${escapeHtml(description)}</p>`
+              : ""
+          }`;
         })
         .join("");
 
-  return `<div style="width:720px;padding:36px 40px 28px;font-family:Arial,Helvetica,sans-serif;color:#18181b;background:#fff;">
-    <header style="display:flex;align-items:center;gap:16px;border-bottom:2px solid #ff2d7a;padding-bottom:16px;">
+  return `<header style="display:flex;align-items:center;gap:16px;border-bottom:2px solid #ff2d7a;padding-bottom:16px;">
       ${logo}
       <div>
         <p style="margin:0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#ff2d7a;font-weight:700;">Módulo pautas</p>
@@ -99,8 +109,26 @@ function buildPautaHtml(
 
     <footer style="margin-top:28px;padding-top:12px;border-top:1px solid #e4e4e7;font-size:11px;color:#a1a1aa;">
       Documento gerado em ${escapeHtml(generatedAt)}.
-    </footer>
+    </footer>`;
+}
+
+function wrapPautaDocument(inner: string): string {
+  return `<div style="width:720px;padding:36px 40px 28px;font-family:Arial,Helvetica,sans-serif;color:#18181b;background:#fff;">
+    <style>${DOCUMENT_BASE_CSS}</style>
+    ${inner}
   </div>`;
+}
+
+function resolvePautaDocumentHtml(
+  pauta: Pauta,
+  members: Member[],
+  club: PautaClubInfo
+): string {
+  const custom = pauta.documentHtml?.trim();
+  const inner = custom
+    ? sanitizeDocumentHtml(custom)
+    : buildPautaInnerHtml(pauta, members, club);
+  return wrapPautaDocument(inner);
 }
 
 export async function generatePautaPdfBlob(
@@ -114,7 +142,7 @@ export async function generatePautaPdfBlob(
   ]);
   const html2canvas = html2canvasModule.default;
   const container = document.createElement("div");
-  container.innerHTML = buildPautaHtml(pauta, members, club);
+  container.innerHTML = resolvePautaDocumentHtml(pauta, members, club);
   container.style.position = "fixed";
   container.style.left = "-12000px";
   container.style.top = "0";
