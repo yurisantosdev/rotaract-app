@@ -1,5 +1,5 @@
-import { PautaClubInfo } from "@/src/lib/pdf";
-import { Pauta } from "@/src/types/pautas";
+import { PautaClubInfo } from "../../lib/pdf";
+import { Pauta } from "../../types/pautas";
 import { Member } from "@rotaract/members";
 
 export type PautaDocumentModalProps = {
