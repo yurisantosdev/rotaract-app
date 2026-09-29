@@ -8,11 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { createPortal } from "react-dom";
 import { useReportImageViewer } from "./services";
-
-type ReportImageViewerProps = {
-  src: string;
-  alt?: string;
-};
+import { ReportImageViewerProps } from "./types";
 
 export function ReportImageViewer({
   src,
@@ -85,10 +81,10 @@ export function ReportImageViewer({
 
           <div
             className={`relative min-h-0 flex-1 overflow-hidden ${zoom > 1
-                ? dragging
-                  ? "cursor-grabbing"
-                  : "cursor-grab"
-                : "cursor-zoom-in"
+              ? dragging
+                ? "cursor-grabbing"
+                : "cursor-grab"
+              : "cursor-zoom-in"
               }`}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
